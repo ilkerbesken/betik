@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.0373106mm"
+   height="6.0373106mm"
+   viewBox="0 0 22.818182 22.818182"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="matrix(1.0909091,0,0,1.0909091,-1.6818182,-1.6818182)"
+     id="g912"
+     style="stroke:#262626;stroke-width:0.916667;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path908"
+       class="icon-stroke"
+       d="M 12,2 V 22 M 2,12 h 20 m -13,7 3,3 3,-3 m 4,-10 3,3 -3,3 M 9,5 12,2 15,5 M 5,9 2,12 5,15"
+       style="stroke:#262626;stroke-width:0.916667;stroke-dasharray:none;stroke-opacity:1" /></g></svg>

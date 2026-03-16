@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="5.5562501mm"
+   height="5.5562501mm"
+   viewBox="0 0 21.000001 21.000001"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="translate(-1.5,-1.5)"
+     id="g7159"
+     style="stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"><path
+       id="rect7155"
+       style="fill:none;stroke:#262626;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       class="icon-stroke dashed"
+       d="m 4,2 h 16 c 1.108,0 2,0.892 2,2 v 16 c 0,1.108 -0.892,2 -2,2 H 4 C 2.892,22 2,21.108 2,20 V 4 C 2,2.892 2.892,2 4,2 Z m 8.599464,3.8024101 h 4.798394 c 0.443051,0 0.799732,0.3566806 0.799732,0.7997322 v 4.7983937 c 0,0.443051 -0.356681,0.799732 -0.799732,0.799732 h -4.798394 c -0.443051,0 -0.799732,-0.356681 -0.799732,-0.799732 V 6.6021423 c 0,-0.4430516 0.356681,-0.7997322 0.799732,-0.7997322 z m -0.397621,9.1883759 a 3.1926288,3.1926288 0 0 1 -3.192629,3.192629 3.1926288,3.1926288 0 0 1 -3.1926289,-3.192629 3.1926288,3.1926288 0 0 1 3.1926289,-3.192629 3.1926288,3.1926288 0 0 1 3.192629,3.192629 z" /></g></svg>

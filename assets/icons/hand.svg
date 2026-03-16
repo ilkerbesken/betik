@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.0401139mm"
+   height="6.0380435mm"
+   viewBox="0 0 22.828777 22.820952"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="matrix(1.0842646,0,0,1.0908949,-1.5235223,-1.6802634)"
+     id="g868"
+     style="stroke:#262626;stroke-width:0.919477;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path864"
+       class="icon-stroke"
+       d="m 18,11 a 2,2 0 1 1 4,0 v 3 a 8,8 0 0 1 -8,8 H 12 C 9.2,22 7.5,21.14 6.01,19.66 l -3.6,-3.6 A 2,2 0 0 1 5.24,13.24 L 7,15 m 3,-4.5 V 6 A 2,2 0 0 0 8,4 V 4 A 2,2 0 0 0 6,6 v 8 m 8,-4 V 4 A 2,2 0 0 0 12,2 v 0 a 2,2 0 0 0 -2,2 v 2 m 8,5 V 6 A 2,2 0 0 0 16,4 v 0 a 2,2 0 0 0 -2,2 v 0"
+       style="stroke:#262626;stroke-width:0.919477;stroke-dasharray:none;stroke-opacity:1" /></g></svg>

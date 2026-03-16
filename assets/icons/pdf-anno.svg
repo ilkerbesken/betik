@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="5.132113mm"
+   height="5.9496727mm"
+   viewBox="0 0 19.396963 22.486952"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-2">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7-9">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="translate(-3.2916626,-2.3876739)"
+     id="g187053"
+     style="stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path187049"
+       style="fill:none;stroke:#262626;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-dashoffset:1.6;stroke-opacity:1;paint-order:markers stroke fill"
+       d="M 22.188625,7.2907271 V 23.827772 c 0,0.302957 -0.243897,0.546854 -0.546854,0.546854 H 4.3385166 c -0.3029571,0 -0.546854,-0.243897 -0.546854,-0.546854 V 3.4345278 c 0,-0.3029571 0.2438969,-0.5468539 0.546854,-0.5468539 H 17.650576 Z" /><path
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       d="m 10.030694,19.360503 2.9594,2.95953 2.9595,-2.95953"
+       stroke-width="1"
+       id="path1337-7"
+       style="fill:none;stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+       transform="translate(1.4698223e-4,-4.010847)" /><path
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       d="m 12.990144,22.319373 v -9.35537"
+       stroke-width="1"
+       id="path1339-3"
+       style="fill:none;stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+       transform="translate(1.4698223e-4,-4.010847)" /></g></svg>

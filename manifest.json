@@ -1,0 +1,44 @@
+{
+    "name": "Betik",
+    "short_name": "Betik",
+    "description": "Profesyonel Dijital Beyaz Tahta Uygulaması",
+    "start_url": "index.html",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#ffffff",
+    "theme_color": "#262626",
+    "icons": [
+        {
+            "src": "assets/favicon/favicon.svg",
+            "sizes": "192x192 512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "assets/favicon/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "file_handlers": [
+        {
+            "action": "./",
+            "accept": {
+                "application/x-betik": [
+                    ".tik",
+                    ".tik"
+                ]
+            },
+            "icons": [
+                {
+                    "src": "assets/icons/dot-tik.svg",
+                    "sizes": "any",
+                    "type": "image/svg+xml"
+                }
+            ],
+            "launch_type": "single-client"
+        }
+    ],
+    "protocol_handlers": []
+}

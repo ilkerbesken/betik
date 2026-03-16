@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.135251mm"
+   height="5.5696859mm"
+   viewBox="0 0 23.188351 21.050782"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="translate(0.74496297,-0.6597219)"
+     id="g850-7"
+     style="stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path13714"
+       style="color:#000000;fill:#262626;stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+       d="m 12.815926,1.1597219 c -0.884607,0 -1.768169,0.3658244 -2.445312,1.0429687 L 0.80811375,11.765191 c -1.41076391,1.269687 -1.39075193,3.497919 -0.0371094,4.851562 l 4.59375005,4.59375 h 6.8281246 9.75 l -0.002,-1.966797 h -7.78125 l 6.625,-6.626953 -0.03906,0.03516 C 22.156377,11.382222 22.138321,9.1559426 20.784676,7.8023 L 15.220223,2.2398 C 14.585667,1.534682 13.700534,1.159722 12.815926,1.1597219 Z m -0.988281,5.7617187 a 3.4782484,3.4782484 0 0 1 3.476562,3.4785154 3.4782484,3.4782484 0 0 1 -3.476562,3.478516 3.4782484,3.4782484 0 0 1 -3.4785156,-3.478516 3.4782484,3.4782484 0 0 1 3.4785156,-3.4785154 z" /></g></svg>

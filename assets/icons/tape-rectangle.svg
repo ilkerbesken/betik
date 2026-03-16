@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.0910954mm"
+   height="3.8387556mm"
+   viewBox="0 0 23.021463 14.508683"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="matrix(0.86118694,0,0,0.86118694,-436.85219,-2.5823937)"
+     id="g3633"
+     style="stroke:#262626;stroke-width:1.16119;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"><path
+       id="rect1016-6"
+       style="fill:none;stroke:#262626;stroke-width:1.16119;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       class="icon-stroke"
+       d="m 522.79892,5.7997942 h 9.99556 c 0.3461,0 0.62472,0.2786264 0.62472,0.6247228 v 9.995564 c 0,0.346096 -0.27862,0.624723 -0.62472,0.624723 h -9.99556 c -0.3461,0 -0.62473,-0.278627 -0.62473,-0.624723 V 6.424517 c 0,-0.3460964 0.27863,-0.6247228 0.62473,-0.6247228 z m 5.35102,11.7226648 c 0,0.96557 -0.77734,1.7429 -1.74291,1.7429 h -18.55902 l 4.78034,-3.25715 -2.41078,-1.13077 2.44471,-2.04203 -4.05681,-4.6439903 3.67025,-1.71546 -3.60837,-2.89672 h 17.73968 c 0.96557,0 1.74291,0.77734 1.74291,1.74291" /></g></svg>

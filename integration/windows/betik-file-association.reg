@@ -1,0 +1,16 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\.tik]
+@="Betik.Note"
+"Content Type"="application/x-betik"
+"PerceivedType"="document"
+
+[HKEY_CLASSES_ROOT\Betik.Note]
+@="Betik Not Dosyası"
+"FriendlyTypeName"="Betik Not Dosyası"
+
+[HKEY_CLASSES_ROOT\Betik.Note\DefaultIcon]
+@="C:\\Path\\To\\Your\\App\\assets\\icons\\dot-tik.ico"
+
+[HKEY_CLASSES_ROOT\Betik.Note\shell\open\command]
+@="\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --app=\"https://your-domain.com/?file=%1\""

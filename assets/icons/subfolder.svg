@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.0910478mm"
+   height="6.0230103mm"
+   viewBox="0 0 23.021283 22.764133"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     style="fill:none;stroke:#262626;stroke-width:0.842298;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+     id="g4311"
+     transform="matrix(1.1872278,0,0,1.1872278,-174.98371,1.7380609)"><path
+       id="path4439"
+       style="fill:none;stroke:#262626;stroke-width:0.842298;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+       d="m 158.18612,10.192368 h 2.40787 l 1.50937,1.429886 h 4.25477 v 4.301996 c 0,0.756117 -0.6318,1.364826 -1.41652,1.364826 h -6.75549 c -0.7848,0 -1.41652,-0.608709 -1.41652,-1.364826 v -4.367056 c 0,-0.756116 0.63172,-1.364826 1.41652,-1.364826 z m 0,-10.81424172 h 2.40787 l 1.50937,1.42988598 h 4.25477 V 5.1100085 c 0,0.7561165 -0.6318,1.3648262 -1.41652,1.3648262 h -6.75549 c -0.7848,0 -1.41652,-0.6087097 -1.41652,-1.3648262 V 0.74295257 c 0,-0.75611651 0.63172,-1.36482629 1.41652,-1.36482629 z M 151.81665,3.305049 h -1.95041 c -1.13937,0 -2.0566,-0.9173884 -2.0566,-2.0569266 m 4.00701,13.1722046 h -1.95041 c -1.13937,0 -2.0566,-0.917388 -2.0566,-2.056927 V -1.0428166" /></g></svg>

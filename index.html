@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <title>Betik</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon/favicon.svg">
+    <meta name="theme-color" content="#262626">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Betik">
+    <link rel="apple-touch-icon" href="assets/favicon/favicon.svg">
+    <link rel="manifest" href="./manifest.json?v=1.0.1">
+
+    <link rel="stylesheet" href="style.css?v=0.8.2">
+    <link rel="stylesheet" href="css/template-gallery.css?v=0.8.1">
+
+    <!-- PDF.js for PDF annotation support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- pako for .tik file format (gzip compression) -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    <!-- Dexie.js for robust IndexedDB management -->
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+    <!-- Tesseract.js for OCR (Optical Character Recognition) support -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+
+<body>
+    <div id="bottomSheetOverlay"> </div>
+    <!-- Icons are now loaded as individual SVG files for better maintainability -->
+
+    <div id="dashboard" class="dashboard">
+        <div class="dashboard-sidebar">
+            <div class="workspace-header">
+                <div class="avatar">T</div>
+                <span class="workspace-name">Betik</span>
+            </div>
+
+            <!-- Mobile Search and Actions -->
+            <div class="mobile-dashboard-actions mobile-only">
+                <div class="search-bar">
+                    <img src="assets/icons/select.svg" class="search-icon" style="opacity: 0.5;">
+                    <input type="text" placeholder="Notlarda ara..." id="mobileSearchInput">
+                    <button class="search-clear-btn" id="mobileSearchClear" style="display: none;">✕</button>
+                </div>
+                <div class="mobile-action-buttons">
+                    <button id="btnSelectAllMobile" class="mobile-action-btn" title="Tümünü Seç">
+                        <img src="assets/icons/select-all.svg" alt="select-all">
+                    </button>
+                    <button id="btnImportMobile" class="mobile-action-btn" title="İçe Aktar">
+                        <img src="assets/icons/import.svg" alt="import">
+                    </button>
+                    <button id="btnOpenTemplatesMobile" class="mobile-action-btn" title="Şablonlar">
+                        <img src="assets/icons/pages.svg" alt="templates">
+                    </button>
+                    <button id="btnNewBoardMobile" class="mobile-action-btn primary" title="Yeni Not">
+                        <span>+</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-item active" data-view="all">
+                        <img src="assets/icons/pages.svg" class="nav-icon">
+                        <span>Tüm Sayfalar</span>
+                    </div>
+                    <div class="nav-item" data-view="recent">
+                        <img src="assets/icons/undo.svg" class="nav-icon">
+                        <span>Son Kullanılanlar</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="section-title">KOLEKSİYONLAR</div>
+                    <div class="nav-item" data-view="favorites">
+                        <img src="assets/icons/star.svg" class="nav-icon">
+                        <span>Favoriler</span>
+                    </div>
+                    <div class="nav-item" data-view="trash">
+                        <img src="assets/icons/trash.svg" class="nav-icon">
+                        <span>Çöp Kutusu</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="section-title"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>KLASÖRLER</span>
+                        <button id="btnNewFolder" class="sidebar-action-btn" title="Yeni Klasör">
+                            <span style="font-size: 16px;">+</span>
+                        </button>
+                    </div>
+                    <div id="folderList">
+                        <!-- Dynamic folders will be listed here -->
+                    </div>
+                </div>
+
+                <div class="nav-section"
+                    style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                    <div class="nav-item" id="btnStorageSettings">
+                        <img src="assets/icons/settings.svg" class="nav-icon" style="opacity: 0.6;">
+                        <span>Depolama Ayarları</span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="breadcrumb">Betik / Tüm Sayfalar</div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <img src="assets/icons/select.svg" class="search-icon" style="opacity: 0.5;">
+                        <input type="text" placeholder="Ara..." id="searchInput">
+                        <button class="search-clear-btn" id="searchClear" style="display: none;">✕</button>
+                    </div>
+
+                    <div class="view-options-container">
+                        <button id="btnViewOptions" class="btn btn-secondary" title="Görünüm Ayarları">
+                            <img src="assets/icons/view.svg" alt="view" class="icon-small"
+                                style="width: 14px; margin-right: 5px;">
+                            Görünüm
+                        </button>
+                        <div class="view-options-dropdown" id="viewOptionsDropdown">
+                            <div class="option-group">
+                                <label>Görünüm Ayarları</label>
+                                <div class="size-buttons">
+                                    <button class="size-btn" data-size="mini" title="En Küçük">En Küçük</button>
+                                    <button class="size-btn" data-size="xsmall" title="Daha Küçük">Daha
+                                        Küçük</button>
+                                    <button class="size-btn" data-size="small" title="Küçük">Küçük</button>
+                                    <button class="size-btn" data-size="medium" title="Orta">Orta</button>
+                                    <button class="size-btn" data-size="large" title="Büyük">Büyük</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-action-group">
+                    <button id="btnEmptyTrash" class="btn btn-danger"
+                        style="display: none; background-color: #fa5252; color: white;">Çöp Kutusunu Boşalt</button>
+
+                    <div class="secondary-actions">
+                        <button id="btnSelectAll" class="btn-icon" title="Tümünü Seç (Ctrl+A)">
+                            <img src="assets/icons/select-all.svg" alt="select-all">
+                        </button>
+                        <button id="btnImport" class="btn btn-secondary btn-icon" title="İçe Aktar">
+                            <img src="assets/icons/import.svg" alt="import" class="icon-small" style="width: 14px;">
+                        </button>
+                        <button id="btnOpenTemplates" class="btn-icon" title="Şablonlar">
+                            <img src="assets/icons/template.svg" alt="templates">
+                        </button>
+                    </div>
+
+                    <button id="btnNewBoard" class="btn btn-primary btn-large">
+                        <span class="btn-icon-text">+</span> Yeni Not
+                    </button>
+                </div>
+            </header>
+
+            <!-- Storage Permission Alert Banner -->
+            <div id="storageAlertBanner"
+                style="display: none; background: #fff9db; border-bottom: 1px solid #ffe066; padding: 10px 20px; align-items: center; justify-content: space-between; font-size: 14px; color: #856404; z-index: 100;">
+                <div style="display: flex; align-items: center;">
+                    <span style="margin-right: 12px; font-size: 18px;">📂</span>
+                    <span><strong>Kayıt Klasörüne Erişilemiyor:</strong> Dosyalarınızı senkronize etmek için klasör
+                        erişim izni vermeniz gerekiyor.</span>
+                </div>
+                <button id="btnGrantStoragePermission" class="btn btn-warning"
+                    style="height: 32px; padding: 0 15px; font-size: 13px;">Erişime İzin Ver</button>
+            </div>
+
+            <!-- Bulk Actions Toolbar -->
+            <div id="bulkActionsToolbar" class="bulk-actions-toolbar" style="display: none;">
+                <span class="selected-count">0 not seçildi</span>
+                <button id="btnBulkChangeCover" title="Kapak Değiştir">
+                    <img src="assets/icons/cover.svg">
+                    <span>Kapak</span>
+                </button>
+                <button id="btnBulkMove" title="Klasöre Taşı">
+                    <img src="assets/icons/subfolder.svg">
+                    <span>Taşı</span>
+                </button>
+                <button id="btnBulkFavorite" title="Favorile">
+                    <img src="assets/icons/star.svg">
+                    <span>Favorile</span>
+                </button>
+                <button id="btnBulkDelete" title="Sil">
+                    <img src="assets/icons/trash.svg">
+                    <span>Sil</span>
+                </button>
+                <div class="bulk-divider"></div>
+                <button id="btnBulkCancel" title="İptal">✕</button>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="board-grid" id="boardGrid">
+                    <!-- Board items will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal-backdrop">
+        <div class="import-modal">
+            <div class="modal-header">
+                <h2>İçe Aktar</h2>
+                <button class="close-modal-btn" id="btnCloseImportModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <button class="import-option-btn" id="btnModalUploadPDF">
+                    <div class="option-icon-wrapper">
+                        <img src="assets/icons/pdf-anno.svg" alt="pdf">
+                    </div>
+                    <div class="option-content">
+                        <span class="option-title">PDF içe aktar</span>
+                    </div>
+                </button>
+                <button class="import-option-btn" id="btnModalOpenTom">
+                    <div class="option-icon-wrapper">
+                        <img src="assets/icons/dot-tik.svg" alt="tik">
+                    </div>
+                    <div class="option-content">
+                        <span class="option-title">betik dosyası aç (.tik)</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Loader -->
+    <div id="dashboardLoader" class="dashboard-loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+
+    <div id="app" style="display: none;">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <!-- Tab Selector Dropdown -->
+                <div class="tab-selector-container">
+                    <button id="current-tab-btn" class="current-tab-btn">
+                        <span id="active-tab-name">Sekme Seçin</span>
+                        <img src="assets/icons/arrow-dashboard.svg" class="dropdown-arrow">
+                    </button>
+                    <div id="tab-dropdown" class="tab-dropdown">
+                        <!-- Tabs will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="tool-btn" id="btnHome" title="Dashboard'a Dön">
+                    <img src="assets/icons/home.svg" alt="home" class="icon">
+                </div>
+
+                <button class="tool-btn" id="btnPageSidebarTrigger" title="Sayfalar">
+                    <img src="assets/icons/side-page.svg" alt="pages" class="icon">
+                </button>
+
+                <button class="tool-btn" id="btnAddPage" title="Sayfa Ekle">
+                    <img src="assets/icons/add-page.svg" alt="add-page" class="icon">
+                </button>
+
+                <button class="tool-btn" id="undoBtn" title="Geri Al (Ctrl+Z)">
+                    <img src="assets/icons/undo.svg" alt="undo" class="icon">
+                </button>
+
+                <button class="tool-btn" id="redoBtn" title="İleri Al (Ctrl+Y)">
+                    <img src="assets/icons/redo.svg" alt="redo" class="icon">
+                </button>
+            </div>
+
+            <div class="toolbar-center">
+                <div class="tool-group">
+                    <button class="tool-btn" data-tool="select" title="Seç (V)">
+                        <img src="assets/icons/select.svg" alt="select" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="hand" title="El (H)">
+                        <img src="assets/icons/hand.svg" alt="hand" class="icon">
+                    </button>
+                    <div class="tool-btn" id="btnTextSelect" title="PDF Metin Seçimi">
+                        <img src="assets/icons/text-cursor.svg" alt="Seç" class="icon">
+                    </div>
+                    <button class="tool-btn" data-tool="grab-image" title="Ekran Yakala (G)">
+                        <img src="assets/icons/grab-image.svg" alt="grab" class="icon">
+                    </button>
+                </div>
+
+                <div class="tool-group">
+                    <button class="tool-btn active" data-tool="pen" title="Kalem (P)">
+                        <img src="assets/icons/pen.svg" alt="pen" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="charcoal" title="Karakalem (K)">
+                        <img src="assets/icons/charcoal.svg" alt="charcoal" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="fountain-pen" title="Dolma Kalem (D)">
+                        <img src="assets/icons/fountain-pen.svg" alt="fountain-pen" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="vector-pen" title="Vektör Kalemi (V)">
+                        <img src="assets/icons/pen-edit.svg" alt="vector-pen" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="highlighter" title="Vurgulayıcı Pen (I)">
+                        <img src="assets/icons/highlighter.svg" alt="highlighter" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="eraser" title="Silgi (X)">
+                        <img src="assets/icons/eraser.svg" alt="eraser" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="text" title="Metin (T)">
+                        <img src="assets/icons/text.svg" alt="text" class="icon">
+                    </button>
+                    <button class="tool-btn" id="btnToolbarInsertImage" title="Resim Ekle">
+                        <img src="assets/icons/picture.svg" alt="image" class="icon">
+                    </button>
+                    <button class="tool-btn" id="btnToolbarPaste" title="Yapıştır (Ctrl+V)">
+                        <img src="assets/icons/paste.svg" alt="paste" class="icon">
+                    </button>
+                </div>
+
+                <div class="tool-group">
+                    <button class="tool-btn" id="shapePickerBtn" data-tool="rectangle" title="Şekiller (O)">
+                        <img src="assets/icons/rectangle.svg" alt="rectangle" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="arrow" title="Ok (A)">
+                        <img src="assets/icons/arrow.svg" alt="arrow" class="icon">
+                    </button>
+                </div>
+
+                <div class="tool-group">
+                    <button class="tool-btn" data-tool="sticker" title="Stickerlar (S)">
+                        <img src="assets/icons/sticker.svg" alt="sticker" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tool="tape" title="Bant Aracı (T)">
+                        <img src="assets/icons/tape.svg" alt="tape" class="icon">
+                    </button>
+                </div>
+
+                <div class="tool-group" style="border-right: none;">
+                    <button class="tool-btn" data-tool="table" title="Tablo Ekle">
+                        <img src="assets/icons/table.svg" alt="table" class="icon">
+                    </button>
+                </div>
+
+
+            </div>
+
+            <div class="toolbar-right">
+                <!-- Sayfa Kontrolleri -->
+                <div class="page-navigation-group-top">
+                    <button class="tool-btn" id="btnPrevPage" title="Önceki Sayfa">
+                        <img src="assets/icons/arrow-line-left.svg" alt="prev" class="icon">
+                    </button>
+                    <button class="tool-btn" id="btnNextPage" title="Sonraki Sayfa">
+                        <img src="assets/icons/arrow-line-right.svg" alt="next" class="icon">
+                    </button>
+                </div>
+                <!-- More Actions Menu -->
+                <div class="app-menu-container">
+                    <button class="tool-btn" id="btnAppMenu" title="Daha Fazla">
+                        <span>...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- NEW: Properties Sidebar (Right of Color Palette) -->
+        <div id="propertiesSidebar" class="floating-sidebar properties-sidebar">
+            <!-- Table Settings -->
+            <div id="toolGroupTable" class="tool-group" style="display: none;">
+                <div class="property-input-group">
+                    <span class="label">Satır</span>
+                    <button class="num-adj-btn" data-dir="down" data-target="tableRowInput">−</button>
+                    <input type="number" id="tableRowInput" class="num-input clean-input" min="1" max="20" value="3"
+                        title="Satır Sayısı">
+                    <button class="num-adj-btn" data-dir="up" data-target="tableRowInput">+</button>
+                </div>
+                <div class="property-input-group">
+                    <span class="label">Sütun</span>
+                    <button class="num-adj-btn" data-dir="down" data-target="tableColInput">−</button>
+                    <input type="number" id="tableColInput" class="num-input clean-input" min="1" max="20" value="3"
+                        title="Sütun Sayısı">
+                    <button class="num-adj-btn" data-dir="up" data-target="tableColInput">+</button>
+                </div>
+            </div>
+
+            <!-- Select Tool Settings -->
+            <div class="tool-group" id="selectSettings" style="display: none;">
+                <button class="tool-btn active" data-select-mode="normal" title="Seç ve Taşı">
+                    <img src="assets/icons/select.svg" alt="select" class="icon">
+                </button>
+                <button class="tool-btn" data-select-mode="area" title="Bölge Seç">
+                    <img src="assets/icons/select-area.svg" alt="select-area" class="icon">
+                </button>
+                <button class="tool-btn" id="btnVerticalSpaceTool" title="Dikey Boşluk">
+                    <img src="assets/icons/vertical-space.svg" alt="vertical-space" class="icon">
+                </button>
+            </div>
+
+            <!-- OCR: Paylaşılan Dil Seçici (Resim veya PDF OCR aktifken görünür) -->
+            <div class="tool-group" id="ocrLangGroup" style="display: none; align-items: center; gap: 6px;">
+                <label class="label" style="white-space:nowrap; font-size:10px; opacity:0.7;">Dil</label>
+                <select id="ocrLangSelect"
+                    style="font-size:11px; padding:3px 8px; border-radius:6px; border:1px solid #e0e0e0; background:#fff; cursor:pointer; height:26px; max-width:140px; outline:none;">
+                    <option value="tur+eng" selected>TR + EN</option>
+                    <option value="tur">Türkçe</option>
+                    <option value="eng">İngilizce</option>
+                    <option value="deu">Almanca</option>
+                    <option value="deu+eng">DE + EN</option>
+                    <option value="fra">Fransızca</option>
+                    <option value="fra+eng">FR + EN</option>
+                    <option value="spa">İspanyolca</option>
+                    <option value="ita">İtalyanca</option>
+                    <option value="por">Portekizce</option>
+                    <option value="nld">Hollandaca</option>
+                    <option value="pol">Polonca</option>
+                    <option value="rus">Rusça</option>
+                    <option value="ukr">Ukraynaca</option>
+                    <option value="ara">Arapça</option>
+                    <option value="jpn">Japonca</option>
+                    <option value="chi_sim">Çince (Basit)</option>
+                    <option value="chi_tra">Çince (Geleneksel)</option>
+                    <option value="kor">Korece</option>
+                    <option value="ell">Yunanca</option>
+                    <option value="heb">İbranice</option>
+                    <option value="swe">İsveçce</option>
+                    <option value="nor">Norveçce</option>
+                    <option value="dan">Danca</option>
+                    <option value="fin">Fince</option>
+                </select>
+            </div>
+
+            <!-- OCR: Resim Nesnesi için Metin Katmanı -->
+            <div class="tool-group" id="imageOcrSettings" style="display: none; align-items: center; gap: 6px;">
+                <button class="tool-btn" id="btnOcrImage"
+                    title="Resmi Metne Dönüştür (OCR) — Görünmez metin katmanı oluşturur"
+                    style="gap:5px; padding: 4px 8px; min-width: auto;">
+                    <img src="assets/icons/OCRpicture.svg" alt="vertical-space" class="icon">
+                </button>
+            </div>
+
+            <!-- OCR: PDF Sayfası için Metin Katmanı -->
+            <div class="tool-group" id="pdfOcrSettings" style="display: none; align-items: center; gap: 8px;">
+                <button class="tool-btn" id="btnOcrPdfPage" title="Bu Sayfayı Metne Dönüştür"
+                    style="gap:5px; padding: 4px 10px; min-width: auto;">
+                    <img src="assets/icons/OCR-onepage.svg" alt="vertical-space" class="icon">
+                </button>
+                <button class="tool-btn" id="btnOcrPdfAll" title="Tüm Belgeyi Metne Dönüştür (Bu işlem zaman alabilir)"
+                    style="gap:5px; padding: 4px 10px; min-width: auto; background: rgba(99,99,255,0.1); border-color: rgba(99,99,255,0.3);">
+                    <img src="assets/icons/OCR-all.svg" alt="vertical-space" class="icon">
+                </button>
+            </div>
+
+            <!-- PDF Text Highlight Settings -->
+            <div class="tool-group" id="pdfTextHighlightSettings" style="display: none; align-items: center; gap: 8px;">
+                <button class="tool-btn" id="btnHighlightPdfText" title="Seçili Metni Vurgula">
+                    <img src="assets/icons/highlighter.svg" alt="highlight" class="icon">
+                </button>
+                <div class="quick-colors" id="pdfHighlightColors" style="display: flex; gap: 4px;">
+                    <button class="quick-color-btn" data-highlight-color="#ffff00"
+                        style="background: #ffff00; width: 20px; height: 20px;" title="Sarı"></button>
+                    <button class="quick-color-btn" data-highlight-color="#00ff00"
+                        style="background: #00ff00; width: 20px; height: 20px;" title="Yeşil"></button>
+                    <button class="quick-color-btn" data-highlight-color="#00ffff"
+                        style="background: #00ffff; width: 20px; height: 20px;" title="Turkuaz"></button>
+                    <button class="quick-color-btn" data-highlight-color="#ff00ff"
+                        style="background: #ff00ff; width: 20px; height: 20px;" title="Pembe"></button>
+                    <button class="quick-color-btn" data-highlight-color="#ff6600"
+                        style="background: #ff6600; width: 20px; height: 20px;" title="Turuncu"></button>
+                    <button class="quick-color-btn" data-highlight-color="#ff0000"
+                        style="background: #ff0000; width: 20px; height: 20px;" title="Kırmızı"></button>
+                    <button class="quick-color-btn" data-highlight-color="#0000ff"
+                        style="background: #0000ff; width: 20px; height: 20px;" title="Mavi"></button>
+                    <button class="quick-color-btn" data-highlight-color="#9900ff"
+                        style="background: #9900ff; width: 20px; height: 20px;" title="Mor"></button>
+                </div>
+            </div>
+
+
+            <!-- Quick Stroke Widths Group -->
+            <div class="tool-group" id="quickStrokeWidths" style="display: flex; align-items: center; gap: 6px;">
+                <div id="quickStrokeWidthsList" style="display: flex; gap: 6px;"></div>
+            </div>
+
+            <!-- Quick Colors Group -->
+            <div class="tool-group" id="quickColors" style="display: flex; align-items: center; gap: 6px;">
+                <div id="quickColorsList" style="display: flex; gap: 6px;"></div>
+                <button id="btnQuickColorAdd" class="tool-btn" title="Renk Ekle"
+                    style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; background: #f8f9fa; border: 1px solid #e9ecef; color: #666; cursor: pointer;">+</button>
+            </div>
+
+            <!-- Brush Settings Group (Hidden) -->
+            <div class="tool-group" id="toolGroupBrushSettings" style="display: none !important;">
+                <button id="btnBrushSettingsTrigger" class="property-trigger-btn" title="Araç Seçenekleri">
+                    <img src="assets/icons/settings.svg" alt="settings" class="icon">
+                    <span class="label" style="font-size: 8px;"></span>
+                </button>
+            </div>
+
+
+
+
+
+
+            <div class="tool-group" id="shapeSettings" style="display: none;">
+                <button class="tool-btn active" data-tool="rectangle" title="Dikdörtgen">
+
+                    <img src="assets/icons/rectangle.svg" alt="rectangle" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="ellipse" title="Elips">
+
+                    <img src="assets/icons/ellipse.svg" alt="ellipse" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="triangle" title="Üçgen">
+
+                    <img src="assets/icons/triangle.svg" alt="triangle" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="trapezoid" title="Yamuk">
+
+                    <img src="assets/icons/trapezoid.svg" alt="trapezoid" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="star" title="Yıldız">
+
+                    <img src="assets/icons/star.svg" alt="star" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="diamond" title="Karo">
+
+                    <img src="assets/icons/diamond.svg" alt="diamond" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="parallelogram" title="Paralel Kenar">
+
+                    <img src="assets/icons/parallelogram.svg" alt="parallelogram" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="oval" title="Oval">
+
+                    <img src="assets/icons/oval.svg" alt="oval" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="heart" title="Kalp">
+
+                    <img src="assets/icons/heart.svg" alt="heart" class="icon">
+
+                </button>
+                <button class="tool-btn" data-tool="cloud" title="Bulut">
+
+                    <img src="assets/icons/cloud.svg" alt="cloud" class="icon">
+
+                </button>
+            </div>
+
+
+            <div class="tool-group" id="fillSettings" style="display: none;">
+                <button id="btnFillToggle" class="tool-btn" title="İçini Doldur">
+
+                    <img src="assets/icons/fill.svg" alt="fill" class="icon">
+
+                </button>
+            </div>
+
+            <div class="tool-group">
+                <button class="tool-btn active" id="pressureBtn" title="Basınç Hassasiyeti">
+
+                    <img src="assets/icons/pressure.svg" alt="pressure" class="icon">
+
+                </button>
+            </div>
+
+            <div class="tool-group" id="eraserSettings" style="display: none;">
+                <label class="label">Silgi</label>
+                <button class="tool-btn active" data-eraser-mode="object" title="Nesne Silgisi">
+
+                    <img src="assets/icons/eraser-object.svg" alt="eraser-object" class="icon">
+
+                </button>
+                <button class="tool-btn" data-eraser-mode="partial" title="Kısmi Silgi (Piksel)">
+
+                    <img src="assets/icons/eraser-partial.svg" alt="eraser-partial" class="icon">
+
+                </button>
+
+                <div style="width: 1px; height: 20px; background: #e0e0e0; margin: 0 4px;"></div>
+
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span class="label">Boyut</span>
+                    <input type="range" id="eraserSizeSlider" class="stroke-width-slider" min="2" max="100" value="20"
+                        step="2" title="Silgi Boyutu" style="width: 70px;">
+                    <span id="eraserSizeVal" class="val-badge">20px</span>
+                </div>
+            </div>
+
+
+            <div class="tool-group" id="arrowSettings" style="display: none; gap: 8px;">
+                <!-- Start Style Wrap -->
+                <div style="position: relative;">
+                    <button id="btnArrowStartTrigger" class="property-trigger-btn" title="Başlangıç Ucu">
+                        <img src="assets/icons/arrow-trigger-start.svg" alt="arrow-trigger-start" class="icon">
+
+                    </button>
+                </div>
+                <!-- End Style Wrap -->
+                <div style="position: relative;">
+                    <button id="btnArrowEndTrigger" class="property-trigger-btn" title="Bitiş Ucu">
+                        <img src="assets/icons/arrow-trigger-end.svg" alt="arrow-trigger-end" class="icon">
+
+                    </button>
+                </div>
+            </div>
+
+
+
+            <div class="tool-group" id="arrowPathSettings" style="display: none;">
+                <label class="label">Şekil</label>
+                <button class="tool-btn" data-arrow-path="curved" title="Eğri">
+                    <img src="assets/icons/arrow-curved.svg" alt="arrow-curved" class="icon">
+
+                </button>
+                <button class="tool-btn" data-arrow-path="elbow" title="Dirsek">
+                    <img src="assets/icons/arrow-elbow.svg" alt="arrow-elbow" class="icon">
+
+                </button>
+            </div>
+
+            <div class="tool-group" id="stickerSettings" style="display: none; align-items: center; gap: 8px;">
+                <label class="label" style="margin: 0;">Stickerlar</label>
+                <div id="stickerSidebarList" class="sticker-sidebar-list">
+                    <!-- Stickers will be added here -->
+                </div>
+                <button id="btnStickerMore" class="tool-btn" title="Yönet" style="margin-left: auto; flex-shrink: 0;">
+                    <img src="assets/icons/settings.svg" alt="settings" class="icon" style="width: 16px; height: 16px;">
+                </button>
+            </div>
+
+            <div class="tool-group" id="tapeSettings"
+                style="display: none; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                <!-- Mod Grubu -->
+                <div class="mode-options" style="display: flex; gap: 4px;">
+                    <button class="tool-btn active" data-tape-mode="line" title="Düz Bant Çizgisi">
+                        <img src="assets/icons/tape-line.svg" alt="line" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tape-mode="freehand" title="Serbest Bant">
+                        <img src="assets/icons/tape-freehand.svg" alt="freehand" class="icon">
+                    </button>
+                    <button class="tool-btn" data-tape-mode="rectangle" title="Dikdörtgen Bant">
+                        <img src="assets/icons/tape-rectangle.svg" alt="rectangle" class="icon">
+                    </button>
+                </div>
+
+                <div style="width: 1px; height: 20px; background: #e0e0e0; margin: 0 4px;"></div>
+
+                <!-- Desen Grubu -->
+                <div class="pattern-options" style="display: flex; gap: 4px; align-items: center;">
+                    <button class="pattern-btn" data-tape-pattern="solid" title="Düz Renk">
+                        <div class="icon color-sync"
+                            style="width: 18px; height: 18px; border: 1px solid rgba(0,0,0,0.1); border-radius: 3px;">
+                        </div>
+                    </button>
+                    <button class="pattern-btn" data-tape-pattern="dots" title="Noktalı">
+                        <div class="icon color-sync"
+                            style="-webkit-mask-image: url('assets/icons/pattern-dots.svg'); mask-image: url('assets/icons/pattern-dots.svg');">
+                        </div>
+                    </button>
+                    <button class="pattern-btn" data-tape-pattern="grid" title="Kareli">
+                        <div class="icon color-sync"
+                            style="-webkit-mask-image: url('assets/icons/pattern-grid.svg'); mask-image: url('assets/icons/pattern-grid.svg');">
+                        </div>
+                    </button>
+                    <button class="pattern-btn active" data-tape-pattern="stripes" title="Çizgili">
+                        <div class="icon color-sync"
+                            style="-webkit-mask-image: url('assets/icons/pattern-lines.svg'); mask-image: url('assets/icons/pattern-lines.svg');">
+                        </div>
+                    </button>
+
+                    <!-- Özel Desenler Listesi Tetikleyici -->
+                    <button class="tool-btn" id="btnTapeCustomPatterns" title="Özel Desenlerim"
+                        style="padding: 2px; width: 24px; height: 24px;">
+                        <img src="assets/icons/arrow-tape.svg" alt="more" class="icon"
+                            style="width: 12px; height: 12px;">
+                    </button>
+                </div>
+
+                <div style="width: 1px; height: 20px; background: #e0e0e0; margin: 0 4px;"></div>
+
+                <!-- Özel Seçenekler -->
+                <div style="display: flex; gap: 4px;">
+                    <button class="tool-btn" id="btnTapeImageUpload" title="Resimden Bant Yap">
+                        <img src="assets/icons/picture-to-tape.svg" alt="image" class="icon">
+                    </button>
+                    <button class="tool-btn" id="btnTapePickShape" title="Şekilden Bant Yap">
+                        <img src="assets/icons/draw-to-tape.svg" alt="pick" class="icon">
+                    </button>
+                </div>
+
+                <input type="file" id="tapeImageInput" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Reset Settings -->
+            <div class="tool-group reset-group" style="border-right: none; margin-left: auto;">
+                <a href="#" id="btnResetProperties" class="reset-link">Ayarları Sıfırla</a>
+            </div>
+        </div>
+
+        <!-- Canvas Settings Modal -->
+        <div id="canvasSettingsModal" class="modal-backdrop">
+            <div id="canvasSettingsPanel" class="settings-modal">
+                <div class="sidebar-header">
+                    <span>Tuval Ayarları</span>
+                    <button id="btnCloseSettings" class="close-sidebar-btn" title="Kapat">×</button>
+                </div>
+
+                <div class="sidebar-content">
+                    <div class="setting-item-vertical">
+                        <label>Sayfa Boyutu</label>
+                        <select id="canvasSizeSelect">
+                            <option value="a6">A6 (105x148mm)</option>
+                            <option value="a5">A5 (148x210mm)</option>
+                            <option value="a4" selected>A4 (210x297mm)</option>
+                            <option value="a3">A3 (297x420mm)</option>
+                            <option value="letter">Letter (8.5x11in)</option>
+                            <option value="full">Tam Ekran (Esnek)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item-vertical">
+                        <label>Yönlendirme</label>
+                        <div class="segmented-control">
+                            <label class="segment">
+                                <input type="radio" name="orientation" value="portrait" checked>
+                                <span>Dikey</span>
+                            </label>
+                            <label class="segment">
+                                <input type="radio" name="orientation" value="landscape">
+                                <span>Yatay</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item-vertical">
+                        <label>Arkaplan Rengi</label>
+                        <div class="color-grid-small">
+                            <button class="color-option-rect active" data-color="white" style="background: #ffffff;"
+                                title="Beyaz"></button>
+                            <button class="color-option-rect" data-color="cream" style="background: #fffef0;"
+                                title="Krem"></button>
+                            <button class="color-option-rect" data-color="green" style="background: #e8f5e9;"
+                                title="Yeşil"></button>
+                            <button class="color-option-rect custom-add" id="btnCustomBackground"
+                                title="Özel Renk">+</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item-vertical">
+                        <label>Sayfa Deseni</label>
+                        <div class="pattern-grid-sidebar ">
+                            <button class="pattern-item active" data-pattern="none" title="Yok">
+                                <span>Boş</span>
+                            </button>
+                            <button class="pattern-item" data-pattern="dots" title="Noktalı">
+                                <img src="assets/icons/pattern-dots.svg" alt="dots" class="icon-tiny">
+                                <span>Noktalı</span>
+                            </button>
+                            <button class="pattern-item" data-pattern="grid" title="Kareli">
+                                <img src="assets/icons/pattern-grid.svg" alt="grid" class="icon-tiny">
+                                <span>Kareli</span>
+                            </button>
+                            <button class="pattern-item" data-pattern="lines" title="Çizgili">
+                                <img src="assets/icons/pattern-lines.svg" alt="lines" class="icon-tiny">
+                                <span>Çizgili</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="patternOptionsGroup"
+                        style="display: none; border-top: 1px dashed #eee; padding-top: 15px; margin-top: 10px;">
+                        <div class="setting-item-vertical">
+                            <label>Desen Rengi</label>
+                            <div class="color-grid-small">
+                                <button class="color-option-rect active" data-pattern-color="rgba(0,0,0,0.15)"
+                                    style="background: rgba(0,0,0,0.15);" title="Gri"></button>
+                                <button class="color-option-rect" data-pattern-color="rgba(0,0,255,0.1)"
+                                    style="background: rgba(0,0,255,0.1);" title="Mavi"></button>
+                                <button class="color-option-rect" data-pattern-color="rgba(255,0,0,0.1)"
+                                    style="background: rgba(255,0,0,0.1);" title="Kırmızı"></button>
+                                <button class="color-option-rect custom-add" id="btnCustomPatternColor"
+                                    title="Özel Renk">+</button>
+                            </div>
+                        </div>
+
+                        <div class="aSeparator"></div>
+
+                        <div class="setting-item-vertical">
+                            <label style="display: flex; justify-content: space-between;">
+                                Aralık <span id="patternSpacingVal" class="val-badge">20px</span>
+                            </label>
+                            <input type="range" id="patternSpacingSlider" min="10" max="100" value="20" step="5">
+                        </div>
+
+
+                        <div class="setting-item-vertical">
+                            <label style="display: flex; justify-content: space-between;">
+                                Kalınlık <span id="patternThicknessVal" class="val-badge">1px</span>
+                            </label>
+                            <input type="range" id="patternThicknessSlider" min="0.5" max="3" value="1" step="0.5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button class="btn btn-primary" id="applySettingsBtn" style="width: 100%;">Ayarları Uygula</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context Menu -->
+        <div id="contextMenu" class="context-menu">
+            <div class="context-menu-item" data-action="cut">
+                <span class="menu-icon">
+                    <img src="assets/icons/cut.svg" alt="cut" class="icon">
+
+                </span>
+                <span>Kes</span>
+                <span class="menu-shortcut">Ctrl+X</span>
+            </div>
+            <div class="context-menu-item" data-action="copy">
+                <span class="menu-icon">
+                    <img src="assets/icons/copy.svg" alt="copy" class="icon">
+
+                </span>
+                <span>Kopyala</span>
+                <span class="menu-shortcut">Ctrl+C</span>
+            </div>
+            <div class="context-menu-item" data-action="paste">
+                <span class="menu-icon">
+                    <img src="assets/icons/paste.svg" alt="paste" class="icon">
+
+                </span>
+                <span>Yapıştır</span>
+                <span class="menu-shortcut">Ctrl+V</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="duplicate">
+                <span class="menu-icon">
+                    <img src="assets/icons/duplicate.svg" alt="duplicate" class="icon">
+
+                </span>
+                <span>Çoğalt</span>
+                <span class="menu-shortcut">Ctrl+D</span>
+            </div>
+            <div class="context-menu-item" data-action="delete">
+                <span class="menu-icon">
+                    <img src="assets/icons/trash.svg" alt="trash" class="icon">
+
+                </span>
+                <span>Sil</span>
+                <span class="menu-shortcut">Del</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="lock">
+                <span class="menu-icon">
+                    <img src="assets/icons/lock.svg" alt="lock" class="icon">
+                </span>
+                <span>Kilitle</span>
+                <span class="menu-shortcut">K</span>
+            </div>
+            <div class="context-menu-item" data-action="unlock">
+                <span class="menu-icon">
+                    <img src="assets/icons/unlock.svg" alt="unlock" class="icon">
+                </span>
+                <span>Kilidi Aç</span>
+                <span class="menu-shortcut">J</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <!--<div class="context-menu-item" data-action="applyColor">
+                <span class="menu-icon">🎨</span>
+                <span>Aktif Rengi Uygula</span>
+            </div>
+            <div id="ctxChangeBorderColor" class="context-menu-item" data-action="changeBorderColor">
+                <span class="menu-icon">🖍️</span>
+                <span>Çerçeve Rengini Değiştir</span>
+            </div>-->
+            <div class="context-menu-separator"></div>
+            <!-- Table Options -->
+            <div class="context-menu-separator table-option"></div>
+            <div class="context-menu-item table-option" data-action="addRowAbove">
+                <span class="menu-icon">
+                    <img src="assets/icons/add-row-above.svg" class="icon">
+                </span>
+                <span>Satır Ekle (Üst)</span>
+            </div>
+            <div class="context-menu-item table-option" data-action="addRowBelow">
+                <span class="menu-icon">
+                    <img src="assets/icons/add-row-below.svg" class="icon">
+                </span>
+                <span>Satır Ekle (Alt)</span>
+            </div>
+            <div class="context-menu-item table-option" data-action="addColLeft">
+                <span class="menu-icon">
+                    <img src="assets/icons/add-col-left.svg" class="icon">
+                </span>
+                <span>Sütun Ekle (Sol)</span>
+            </div>
+            <div class="context-menu-item table-option" data-action="addColRight">
+                <span class="menu-icon">
+                    <img src="assets/icons/add-col-right.svg" class="icon">
+                </span>
+                <span>Sütun Ekle (Sağ)</span>
+            </div>
+            <div class="context-menu-item table-option" data-action="deleteRow">
+                <span class="menu-icon">
+                    <img src="assets/icons/delete-row.svg" class="icon">
+                </span>
+                <span>Satırı Sil</span>
+            </div>
+            <div class="context-menu-item table-option" data-action="deleteCol">
+                <span class="menu-icon">
+                    <img src="assets/icons/delete-col.svg" class="icon">
+                </span>
+                <span>Sütunu Sil</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="flipHorizontal">
+                <span class="menu-icon">
+                    <img src="assets/icons/flip-h.svg" alt="flip-h" class="icon">
+
+                </span>
+                <span>Yatay Döndür</span>
+            </div>
+            <div class="context-menu-item" data-action="flipVertical">
+                <span class="menu-icon">
+                    <img src="assets/icons/flip-v.svg" alt="flip-v" class="icon">
+
+                </span>
+                <span>Dikey Döndür</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="bringToFront">
+                <span class="menu-icon">
+                    <img src="assets/icons/bring-front.svg" alt="bring-front" class="icon">
+
+                </span>
+                <span>En Öne Getir</span>
+            </div>
+            <div class="context-menu-item" data-action="bringForward">
+                <span class="menu-icon">
+                    <img src="assets/icons/bring-forward.svg" alt="bring-forward" class="icon">
+
+                </span>
+                <span>Bir Öne Getir</span>
+            </div>
+            <div class="context-menu-item" data-action="sendBackward">
+                <span class="menu-icon">
+                    <img src="assets/icons/send-backward.svg" alt="send-backward" class="icon">
+
+                </span>
+                <span>Bir Arkaya Gönder</span>
+            </div>
+            <div class="context-menu-item" data-action="sendToBack">
+                <span class="menu-icon">
+                    <img src="assets/icons/send-back.svg" alt="send-back" class="icon">
+
+                </span>
+                <span>En Arkaya Gönder</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="group">
+                <span class="menu-icon">
+                    <img src="assets/icons/group.svg" alt="group" class="icon">
+                </span>
+                <span>Grupla</span>
+                <span class="menu-shortcut">G</span>
+            </div>
+            <div class="context-menu-item" data-action="ungroup">
+                <span class="menu-icon">
+                    <img src="assets/icons/ungroup.svg" alt="ungroup" class="icon">
+                </span>
+                <span>Grubu Çöz</span>
+                <span class="menu-shortcut">U</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="saveAsSticker">
+                <span class="menu-icon">
+                    <img src="assets/icons/sticker.svg" alt="sticker" class="icon">
+                </span>
+                <span>Sticker Olarak Kaydet</span>
+            </div>
+        </div>
+
+        <div id="pageSidebar" class="page-sidebar collapsed">
+            <div class="sidebar-header">
+                <span>Sayfalar</span>
+                <div class="header-actions">
+                    <button id="btnTogglePageView" class="view-toggle-btn" title="Görünümü Değiştir">
+                        <img src="assets/icons/grid-view.svg" alt="view" class="icon"
+                            style="width: 14px; height: 14px;">
+                    </button>
+                    <button id="btnTogglePageSidebar" class="close-sidebar-btn" title="Kapat">×</button>
+                </div>
+            </div>
+            <div id="pageList" class="page-list">
+                <!-- Sayfalar buraya gelecek -->
+            </div>
+            <div class="sidebar-footer">
+                <button id="btnAddPageSidebar" class="btn btn-primary"
+                    style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span style="font-size: 16px;">+</span> Yeni Sayfa
+                </button>
+            </div>
+        </div>
+
+        <div class="canvas-container" id="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-info">
+                <span id="toolInfo">Aktif Araç: Kalem</span>
+                <span class="separator">•</span>
+                <span id="objectCount">Nesneler: 0</span>
+                <span class="separator">•</span>
+                <span id="canvasSize">Tuval: A4</span>
+                <span class="separator">•</span>
+                <span id="cursorPos">X: 0, Y: 0</span>
+            </div>
+            <div class="status-actions">
+
+                <button class="tool-btn" id="clearBtn" title="Temizle">
+
+                    <img src="assets/icons/trash.svg" alt="trash" class="icon">
+
+                </button>
+            </div>
+            <div class="zoom-controls">
+
+                <button class=" zoom-btn" id="zoomFitBtn" title="Genişliğe Sığdır">
+                    <img src="assets/icons/zoom-fit-width.svg" alt="fit-width" class="icon">
+                </button>
+
+                <div style="width: 1px; height: 16px; background: #ddd; margin: 0 4px;"></div>
+
+                <button class="zoom-btn" id="zoomOutBtn" title="Uzaklaş (-)">
+                    <img src="assets/icons/zoom-out.svg" alt="zoom-out" class="icon">
+                </button>
+
+                <button class="zoom-btn zoom-level" id="zoomResetBtn" title="Sıfırla">
+                    <span id="zoomLevelDisplay">100%</span>
+                </button>
+
+                <button class="zoom-btn" id="zoomInBtn" title="Yakınlaş (+)">
+                    <img src="assets/icons/zoom-in.svg" alt="zoom-in" class="icon">
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Moved Popups -->
+    <div id="popupBrushSettings" class="property-popup brush-settings-popup">
+        <div class="mobile-popup-title" id="mobileBrushTitle">Fırça Ayarları</div>
+        <div class="brush-setting-item" id="brushSettingLineStyles">
+            <div class="brush-setting-header">
+                <span class="label">Çizgi Tipi</span>
+            </div>
+            <div style="display: flex; gap: 4px; justify-content: flex-start;">
+                <button class="tool-btn active" data-linestyle="solid" title="Düz Çizgi">
+                    <img src="assets/icons/line-solid.svg" alt="line-solid" class="icon">
+                </button>
+                <button class="tool-btn" data-linestyle="dashed" title="Kesik Çizgi">
+                    <img src="assets/icons/line-dashed.svg" alt="line-dashed" class="icon">
+                </button>
+                <button class="tool-btn" data-linestyle="dotted" title="Noktalı Çizgi">
+                    <img src="assets/icons/line-dotted.svg" alt="line-dotted" class="icon">
+                </button>
+                <button class="tool-btn" data-linestyle="dash-dot" title="Kesik-Nokta Çizgi">
+                    <img src="assets/icons/line-dashdot.svg" alt="line-dashdot" class="icon">
+                </button>
+                <button class="tool-btn" data-linestyle="wavy" title="Dalgalı Çizgi">
+                    <img src="assets/icons/wavy.svg" alt="wavy" class="icon">
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Only: Colors section inside brush settings -->
+        <div class="brush-setting-item mobile-only" id="mobileBrushColors" style="display: none;">
+            <div class="brush-setting-header">
+                <span class="label">Renkler</span>
+            </div>
+            <div id="popupColorGridMobile" class="color-grid-mobile"
+                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; justify-items: center; padding: 10px 0;">
+                <!-- Dynamically filled -->
+            </div>
+        </div>
+
+        <div class="brush-setting-item" id="brushSettingHighlighterCap">
+            <div class="brush-setting-header">
+                <span class="label">Uç Tipi</span>
+            </div>
+            <div style="display: flex; gap: 4px; justify-content: flex-start;">
+                <button class="tool-btn active" data-highlighter-cap="round" title="Yuvarlak Uç">
+                    <img src="assets/icons/cap-round.svg" alt="cap-round" class="icon">
+                </button>
+                <button class="tool-btn" data-highlighter-cap="butt" title="Düz Uç">
+                    <img src="assets/icons/cap-butt.svg" alt="cap-butt" class="icon">
+                </button>
+            </div>
+        </div>
+        <div class="brush-setting-item">
+            <div class="brush-setting-header">
+                <img src="assets/icons/width.svg" alt="width" class="icon">
+
+                <span class="label">Kalınlık</span>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
+                    <input type="number" class="slider-input" id="strokeWidthInput" min="1" max="80" value="4">
+                    <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">px</span>
+                </div>
+            </div>
+            <input type="range" class="stroke-width-slider" id="strokeWidthSlider" min="1" max="80" value="4">
+        </div>
+        <div class="brush-setting-item">
+            <div class="brush-setting-header">
+                <img src="assets/icons/opacity.svg" alt="opacity" class="icon">
+
+                <span class="label">Opaklık</span>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
+                    <input type="number" class="slider-input" id="opacityInput" min="0" max="100" value="100">
+                    <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">%</span>
+                </div>
+            </div>
+            <input type="range" class="opacity-slider" id="opacitySlider" min="0" max="100" value="100" step="1">
+        </div>
+        <div class="brush-setting-item">
+            <div class="brush-setting-header">
+                <img src="assets/icons/stabilization.svg" alt="stabilization" class="icon">
+
+                <span class="label">Stabilizasyon</span>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
+                    <input type="number" class="slider-input" id="stabilizationInput" min="0" max="100" value="50">
+                    <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">%</span>
+                </div>
+            </div>
+            <input type="range" class="stabilization-slider" id="stabilizationSlider" min="0" max="100" value="50">
+        </div>
+        <div class="brush-setting-item">
+            <div class="brush-setting-header">
+                <img src="assets/icons/decimation.svg" alt="decimation" class="icon">
+
+                <span class="label">Örnekleme</span>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
+                    <input type="number" class="slider-input" id="decimationInput" min="0" max="50" value="10">
+                    <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">%</span>
+                </div>
+            </div>
+            <input type="range" class="decimation-slider" id="decimationSlider" min="0" max="50" value="10">
+        </div>
+        <div class="mobile-reset-container">
+            <a href="#" class="mobile-reset-link"
+                onclick="window.app.propertiesSidebar?.resetToDefaults(); return false;">Ayarları Sıfırla</a>
+        </div>
+    </div>
+
+    <div id="popupArrowStart" class="property-popup">
+        <div class="mobile-popup-title">Başlangıç Ucu</div>
+        <button class="tool-btn active" data-arrow-start="none" title="Uç Yok">
+            <img src="assets/icons/arrow-none.svg" alt="arrow-none" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-start="triangle" title="Dolu ok">
+            <img src="assets/icons/arrow-triangle-left.svg" alt="arrow-triangle-left" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-start="line" title="Ok">
+            <img src="assets/icons/arrow-line-left.svg" alt="arrow-line-left" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-start="circle" title="Yuvarlak">
+            <img src="assets/icons/arrow-circle-start.svg" alt="arrow-circle-start" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-start="square" title="Kare">
+            <img src="assets/icons/arrow-square-start.svg" alt="arrow-square-start" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-start="bar" title="Dikey Çizgi">
+            <img src="assets/icons/arrow-bar-start.svg" alt="arrow-bar-start" class="icon">
+
+        </button>
+    </div>
+
+    <div id="popupArrowEnd" class="property-popup">
+        <div class="mobile-popup-title">Bitiş Ucu</div>
+        <button class="tool-btn" data-arrow-end="none" title="Uç Yok">
+            <img src="assets/icons/arrow-none.svg" alt="arrow-none" class="icon">
+
+        </button>
+        <button class="tool-btn active" data-arrow-end="triangle" title="Dolu ok">
+            <img src="assets/icons/arrow-triangle-right.svg" alt="arrow-triangle-right" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-end="line" title="Ok">
+            <img src="assets/icons/arrow-line-right.svg" alt="arrow-line-right" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-end="circle" title="Yuvarlak">
+            <img src="assets/icons/arrow-circle-end.svg" alt="arrow-circle-end" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-end="open" title="Açık ok">
+            <img src="assets/icons/arrow-line-right.svg" alt="arrow-line-right" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-end="square" title="Kare">
+            <img src="assets/icons/arrow-square-end.svg" alt="arrow-square-end" class="icon">
+
+        </button>
+        <button class="tool-btn" data-arrow-end="bar" title="Dikey Çizgi">
+            <img src="assets/icons/arrow-bar-end.svg" alt="arrow-bar-end" class="icon">
+
+        </button>
+    </div>
+
+    <div id="popupTapeCustomPatterns" class="property-popup tape-patterns-popup">
+        <div class="tape-patterns-grid" id="tapeCustomPatternsList">
+            <!-- Dinamik olarak doldurulacak -->
+            <div style="padding: 10px; color: #999; font-size: 11px; text-align: center; width: 100%;">Henüz desen
+                eklenmedi</div>
+        </div>
+    </div>
+
+    <!-- Quick Color Palette Popup -->
+    <div id="popupColorPalette" class="property-popup color-palette-popup"
+        style="display: none; padding: 12px; min-width: 140px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);">
+        <div class="mobile-popup-title">Renk Seçimi</div>
+        <div id="popupColorGrid"
+            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;"></div>
+        <div
+            style="display: flex; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); justify-content: center; align-items: center; width: 100%;">
+            <button id="btnPopupEyedropper" class="tool-btn" title="Damlalık"
+                style="width: 36px; height: 36px; border-radius: 10px; background: #f8fafc; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                <img src="assets/icons/eyedropper.svg" class="icon" style="width: 18px; height: 18px; opacity: 0.7;">
+            </button>
+            <button id="btnPopupMoreColors" class="tool-btn" title="Daha Fazla Renk"
+                style="width: 36px; height: 36px; border-radius: 10px; background: #f8fafc; border: 1px solid #f1f5f9; font-size: 20px; display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 500; transition: all 0.2s;">+</button>
+        </div>
+        <div class="mobile-reset-container">
+            <a href="#" class="mobile-reset-link"
+                onclick="window.app.propertiesSidebar?.resetToDefaults(); return false;">Ayarları Sıfırla</a>
+        </div>
+    </div>
+
+
+    <!-- Notebook Cover Modal -->
+    <div id="coverModal" class="cover-modal">
+        <div class="cover-modal-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Defter Kapağı Seç</h3>
+                <button id="btnCloseCoverModal" class="close-sidebar-btn"
+                    style="position: static; font-size: 24px;">×</button>
+            </header>
+
+            <div class="cover-grid" id="coverGrid">
+                <!-- Cover options will be here -->
+            </div>
+
+            <div class="custom-cover-creator">
+                <div class="creator-section">
+                    <label
+                        style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Özel
+                        Renk Ekle</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="color" id="customCoverColor" value="#4a90e2"
+                            style="height: 40px; border: none; padding: 0; background: none; cursor: pointer; flex: 1;">
+                        <button id="btnAddCustomCover" class="btn btn-secondary" style="flex: 2;">Kapağa Ekle</button>
+                    </div>
+                </div>
+
+                <div class="creator-section" style="margin-top: 15px;">
+                    <label
+                        style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Resim
+                        Kapak Yükle</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" id="customCoverImage" accept="image/*" style="display: none;">
+                        <button id="btnUploadCoverImage" class="btn btn-secondary" style="width: 100%;">Cihazdan Resim
+                            Seç</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-menu-dropdown" id="appMenuDropdown">
+        <div class="menu-item" id="menuUpdateApp"
+            style="display: none; background: #fff4f2; color: #e03131; font-weight: 600;">
+            <img src="assets/icons/undo.svg" class="icon-small"
+                style="filter: invert(24%) sepia(85%) saturate(2466%) hue-rotate(346deg) brightness(91%) contrast(92%);">
+            <span>Güncelleme Hazır</span>
+        </div>
+        <div class="menu-separator" id="menuUpdateSeparator" style="display: none;"></div>
+        <div class="menu-item" id="menuSave">
+            <img src="assets/icons/save.svg" class="icon-small">
+            <span>Kaydet</span>
+            <span class="shortcut">Ctrl+S</span>
+        </div>
+        <!-- <div class="menu-item" id="menuOpenTom">
+            <img src="assets/icons/dot-tik.svg" class="icon-small">
+            <span>Betik Dosyası Aç (.tik)</span>
+        </div> -->
+        <div class="menu-item" id="menuSaveTom">
+            <img src="assets/icons/save.svg" class="icon-small">
+            <span>Betik Olarak Kaydet (.tik)</span>
+        </div>
+        <div class="menu-item" id="btnSaveAsTemplate">
+            <img src="assets/icons/template.svg" class="icon-small">
+            <span>Şablon Olarak Kaydet</span>
+        </div>
+
+
+        <div class="menu-separator"></div>
+        <div class="menu-label">Dışa Aktar</div>
+
+        <div class="menu-item" id="btnExportPNG">
+            <img src="assets/icons/png.svg" class="icon-small">
+            <span>Resim (PNG)</span>
+        </div>
+        <div class="menu-item" id="btnExportSVG">
+            <img src="assets/icons/svg.svg" class="icon-small">
+            <span>Vektör (SVG)</span>
+        </div>
+        <div class="menu-item" id="btnExportPDF">
+            <img src="assets/icons/pdf.svg" class="icon-small">
+            <span>Belge (PDF)</span>
+        </div>
+
+        <div class="menu-separator"></div>
+        <div class="menu-label">Ek Özellikler</div>
+
+        <div class="menu-item" id="menuCanvasSettings">
+            <img src="assets/icons/canvas.svg" class="icon-small">
+            <span>Tuval Ayarları</span>
+            <span class="shortcut">C</span>
+        </div>
+        <div class="menu-item" id="btnTimerTool">
+            <img src="assets/icons/clock.svg" class="icon-small">
+            <span>Geri Sayım</span>
+        </div>
+        <div class="menu-item" id="btnInsertImage">
+            <img src="assets/icons/picture.svg" class="icon-small">
+            <span>Resim Ekle</span>
+        </div>
+
+    </div>
+
+    <!-- Template Gallery Modal -->
+    <div id="templateGalleryModal" class="template-modal" style="display: none;">
+        <div class="template-modal-overlay"></div>
+        <div class="template-modal-content">
+            <div class="template-modal-header">
+                <div class="template-header-top">
+                    <h2>Şablon Galerisi</h2>
+                    <button class="template-modal-close" id="btnCloseTemplateModal">×</button>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div class="template-tabs" id="templateTabs">
+                    <button class="template-tab active" data-category="Tümü">Tümü</button>
+                    <button class="template-tab" data-category="Favoriler">⭐ Favoriler</button>
+                    <button class="template-tab" data-category="Kendi Şablonlarım">Şablonlarım</button>
+                    <button class="template-tab" data-category="İş Planlama">İş</button>
+                    <button class="template-tab" data-category="Eğitim">Eğitim</button>
+                    <button class="template-tab" data-category="Yazılım">Yazılım</button>
+                    <button class="template-tab" data-category="Tasarım">Tasarım</button>
+                    <button class="template-tab" data-category="Diğer">Diğer</button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="template-search">
+                <input type="text" id="templateSearchInput" placeholder="Şablon ara...">
+            </div>
+
+            <!-- Grid Container -->
+            <div class="template-grid-container">
+                <div class="template-grid" id="templateGrid">
+                    <!-- Templates will be rendered here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Template Modal -->
+    <div id="saveTemplateModal" class="template-modal" style="display: none;">
+        <div class="template-modal-overlay"></div>
+        <div class="save-template-modal-content">
+            <div class="template-modal-header">
+                <h2>Şablon Olarak Kaydet</h2>
+                <button class="template-modal-close" id="btnCloseSaveTemplateModal">×</button>
+            </div>
+
+            <div class="save-template-form">
+                <div class="form-group">
+                    <label for="templateNameInput">Şablon Adı *</label>
+                    <input type="text" id="templateNameInput" placeholder="Örn: Haftalık Toplantı Notları" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="templateCategorySelect">Kategori</label>
+                    <select id="templateCategorySelect">
+                        <option value="Kendi Şablonlarım">Kendi Şablonlarım</option>
+                        <option value="İş Planlama">İş Planlama</option>
+                        <option value="Eğitim">Eğitim</option>
+                        <option value="Yazılım">Yazılım</option>
+                        <option value="Tasarım">Tasarım</option>
+                        <option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="templateDescriptionInput">Açıklama (İsteğe Bağlı)</label>
+                    <textarea id="templateDescriptionInput" rows="3"
+                        placeholder="Bu şablonun ne için kullanıldığını kısaca açıklayın..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-cancel" id="btnCancelSaveTemplate">İptal</button>
+                    <button class="btn-save" id="btnConfirmSaveTemplate">Şablonu Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Settings Modal -->
+    <div id="storageSettingsModal" class="modal-backdrop">
+        <div class="settings-modal" style="max-width: 450px;">
+            <div class="sidebar-header"
+                style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; font-size: 18px;">Depolama Ayarları</span>
+                <button class="template-modal-close" id="btnCloseStorageSettingsModal"
+                    style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+            </div>
+            <div class="sidebar-content"
+                style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 0;">
+
+                <!-- ── Bölüm 1: Yerel Klasör (Masaüstü / Android) ── -->
+                <div class="form-group" id="local-storage-section">
+                    <p
+                        style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 12px;">
+                        💾 Yerel Depolama</p>
+
+                    <div class="storage-status-card" style="margin-bottom: 16px;">
+                        <div class="status-icon">📂</div>
+                        <div class="status-info">
+                            <div class="status-label">Mevcut Durum</div>
+                            <div id="currentStorageLocation" class="status-value">Tarayıcı Depolaması</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button id="btnChangeStorageLocation" class="btn btn-primary"
+                            style="justify-content: center; height: 42px;">
+                            <img src="assets/icons/folder.svg"
+                                style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);">
+                            Yerel Klasör Seç veya Oluştur
+                        </button>
+                        <button id="btnResetStorageLocation" class="btn btn-secondary"
+                            style="justify-content: center; height: 38px; font-size: 13px;">
+                            Sıfırla (Tarayıcıya Dön)
+                        </button>
+                    </div>
+
+                    <p id="folderPickerSupportNote"
+                        style="font-size: 11px; color: #888; margin-top: 10px; display: none; text-align: center; line-height: 1.4;">
+                        Depolama bilgisi yükleniyor...
+                    </p>
+                </div>
+
+                <!-- ── Bölüm 2: Google Drive (Tüm Platformlar) ── -->
+                <div id="gdrive-storage-section"
+                    style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+
+                    <p
+                        style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 12px;">
+                        ☁️ Google Drive Senkronizasyonu</p>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 14px; line-height: 1.5;">
+                        Notlarınızı Google Drive'a yedekleyin veya farklı cihazlardan erişin.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-gdrive-save" class="btn btn-secondary"
+                            style="justify-content: center; height: 42px; font-size: 13px; gap: 8px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                width="16" style="vertical-align: middle; margin-right: 6px;">
+                            Buluta Eşitle (Yedekle)
+                        </button>
+                        <button id="btn-gdrive-load" class="btn btn-secondary"
+                            style="justify-content: center; height: 42px; font-size: 13px; gap: 8px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
+                                width="16" style="vertical-align: middle; margin-right: 6px;">
+                            Buluttan Geri Yükle
+                        </button>
+                        <button id="btn-gdrive-signout" class="btn"
+                            style="justify-content: center; height: 34px; font-size: 11px; color: #aaa; background: none; border: 1px solid #eee; display: none;">
+                            Google hesabından çıkış yap
+                        </button>
+                    </div>
+                    <p id="gdrive-status" style="font-size: 12px; color: #555; margin-top: 10px; min-height: 18px;"></p>
+                </div>
+
+                <!-- ── Bölüm 3: JSON Yedek (Sadece Mobil) ── -->
+                <div id="mobile-storage-section"
+                    style="display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+
+                    <p
+                        style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 12px;">
+                        📁 Dosya Yedekleme</p>
+                    <p style="font-size: 12px; color: #888; margin-bottom: 14px; line-height: 1.5;">
+                        JSON dosyası olarak indirip Dosyalar uygulaması → iCloud Drive'a taşıyabilirsiniz.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-export-json" class="btn btn-secondary"
+                            style="justify-content: center; height: 42px; font-size: 13px;">
+                            ⬇️ Dosya Olarak İndir (.json)
+                        </button>
+                        <button id="btn-import-json" class="btn btn-secondary"
+                            style="justify-content: center; height: 42px; font-size: 13px;">
+                            ⬆️ Dosyadan Yükle (.json)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-actions"
+                style="padding: 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary" id="btnCancelStorageSettings">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="pdfInput" accept="application/pdf" style="display: none;">
+    <input type="file" id="tomInput" accept=".tik,.tik" style="display: none;">
+    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+    <script src="./js/constants.js?v=0.8.0"></script>
+    <script src="js/FileSystemManager.js?v=0.8.0"></script>
+    <script src="js/utils.js?v=0.8.0"></script>
+    <script src="./js/ZoomManager.js?v=0.8.0"></script>
+    <script src="./js/CanvasSettings.js?v=0.8.0"></script>
+    <script src="./js/FillManager.js?v=0.8.0"></script>
+    <script src="./js/WebGPURenderer.js?v=1.0.0"></script>
+    <script src="./js/PenTool.js?v=0.8.0"></script>
+    <script src="./js/CharcoalTool.js?v=0.8.0"></script>
+    <script src="./js/FountainPenTool.js?v=0.8.0"></script>
+    <script src="./js/VectorPenTool.js?v=0.8.0"></script>
+    <script src="./js/LineTool.js?v=0.8.0"></script>
+    <script src="./js/ShapeTool.js?v=0.8.0"></script>
+    <script src="./js/ArrowTool.js?v=0.8.0"></script>
+    <script src="./js/EraserTool.js?v=0.8.0"></script>
+    <script src="./js/HandTool.js?v=0.8.0"></script>
+    <script src="./js/ImageTool.js?v=0.8.0"></script>
+    <script src="./js/SelectTool.js?v=0.8.0"></script>
+    <script src="./js/ColorPalette.js?v=0.8.0"></script>
+    <script src="./js/PropertiesSidebar.js?v=0.8.0"></script>
+    <script src="./js/HistoryManager.js?v=0.8.0"></script>
+    <script src="./js/StickerTool.js?v=0.8.0"></script>
+    <script src="./js/TapeTool.js?v=0.8.0"></script>
+    <script src="./js/TabManager.js?v=0.8.0"></script>
+    <script src="./js/pdfTextSelector.js"></script>
+    <script src="./js/PDFManager.js?v=0.8.0"></script>
+    <script src="./js/OCRManager.js?v=1.0.0"></script>
+    <script src="./js/ExportManager.js?v=0.8.0"></script>
+    <script src="./js/TikFileManager.js?v=0.8.0"></script>
+    <script src="./js/PageManager.js?v=0.8.0"></script>
+    <script src="./js/Dashboard.js?v=0.8.2"></script>
+    <script src="./js/TableTool.js?v=0.8.0"></script>
+    <script src="./js/TextTool.js?v=0.8.0"></script>
+    <script src="./js/TimerTool.js?v=0.8.0"></script>
+    <script src="./js/GrabImageTool.js?v=0.8.0"></script>
+    <script src="./js/VerticalSpaceTool.js?v=0.8.0"></script>
+    <!-- Şablon Tanımları -->
+    <script src="./templates/kanban.js?v=0.8.0"></script>
+    <script src="./templates/dotted-notes.js?v=0.8.0"></script>
+    <script src="./templates/swot.js?v=0.8.0"></script>
+    <script src="./templates/ruled.js?v=0.8.0"></script>
+    <script src="./templates/grid.js?v=0.8.0"></script>
+    <script src="./templates/dot-grid.js?v=0.8.0"></script>
+    <script src="./templates/cornell.js?v=0.8.0"></script>
+    <script src="./templates/to-do-list.js?v=0.8.0"></script>
+    <script src="./templates/calendar.js?v=0.8.0"></script>
+    <script src="./templates/storyboard.js?v=0.8.0"></script>
+    <script src="./templates/isometric-grid.js?v=0.8.0"></script>
+    <script src="./templates/meeting-notes.js?v=0.8.0"></script>
+    <script src="./js/TemplateManager.js?v=0.8.0"></script>
+    <script src="./js/CloudStorageManager.js?v=0.8.0"></script>
+    <script src="./js/app.js?v=0.8.1"></script>
+    <!-- PWA Güncelleme Tanımları -->
+    <script src="./js/pwa-updates.js?v=0.8.1"></script>
+</body>
+
+</html>

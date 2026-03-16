@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="8.440136mm"
+   height="5.5696859mm"
+   viewBox="0 0 31.899727 21.050782"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="translate(-0.09937699,-0.06206562)"
+     id="g12001"
+     style="stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path13714-6"
+       style="color:#000000;fill:#262626;stroke:#262626;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+       d="m 13.660266,0.56206562 c -0.884606,0 -1.768171,0.36582506 -2.445313,1.04296878 L 1.6524531,11.167534 c -1.41076313,1.269687 -1.39075061,3.497921 -0.037109,4.851563 l 4.59375,4.59375 h 6.8281249 1.498047 l 3.964843,-3.966797 h -1.496093 l 4.625,-4.626953 -0.03906,0.03516 c 1.410763,-1.269687 1.392705,-3.4959679 0.03906,-4.8496093 l -5.564454,-5.5625 C 15.430007,0.9370265 14.544873,0.56206572 13.660266,0.56206562 Z M 20.277453,16.64605 16.291125,20.612847 h 4.283203 l 3.966797,-3.966797 z m 6.039063,0 -3.988282,3.966797 h 4.458985 l 3.998047,-3.966797 z" /></g></svg>

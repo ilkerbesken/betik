@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.1823425mm"
+   height="4.9187646mm"
+   viewBox="0 0 23.366334 18.590606"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="matrix(0.73550089,0,0,0.73550089,-373.18545,3.3227916)"
+     id="g3422"
+     style="stroke:#262626;stroke-width:1.35962;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"><path
+       id="path3420"
+       style="fill:none;fill-opacity:1;stroke:#262626;stroke-width:1.35962;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 508.87074,-3.8379173 h 17.35303 c 0.94453,0 1.70493,1.1852038 1.70493,2.6574005 V 17.421196 c 0,1.472197 -0.7604,2.657385 -1.70493,2.657385 h -18.15452 l 4.67615,-4.966149 -2.35823,-1.724076 2.39143,-3.113467 -3.9684,-7.0806534 3.59026,-2.61554779 z" /><path
+       id="path3456"
+       style="color:#000000;fill:#262626;fill-opacity:1;stroke:#262626;stroke-width:1.35962;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       d="m 532.47903,2.1203318 v 5.0000001 h -10 a 1,1 0 0 0 -1,1 1,1 0 0 0 1,1 h 10 v 5.0000001 l 6,-6.0000001 z" /></g></svg>

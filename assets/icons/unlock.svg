@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="5.636416mm"
+   height="6.1232557mm"
+   viewBox="0 0 21.30299 23.143014"
+   version="1.1"
+   id="svg1172"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs820"><style
+       id="style818">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style><style
+       id="style818-7">
+      .icon-stroke {
+        fill: none;
+        stroke: #262626;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .icon-fill {
+        fill: #262626;
+        stroke: none;
+      }
+      .label {
+        fill: #999;
+        stroke: none;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+      }
+    </style></defs><g
+     transform="matrix(0.92849388,0,0,0.92849388,-0.76400951,1.1593576)"
+     id="g461"
+     style="stroke:#262626;stroke-width:1.07701;stroke-dasharray:none;stroke-opacity:1"><path
+       id="path457"
+       style="fill:none;stroke:#262626;stroke-width:1.07701;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       d="m 12.32829,-0.7101367 c 3.42188,4e-7 6.044725,2.7739826 6.044725,6.195863 V 7.1631891 M 1.9922487,8.0600863 H 22.597045 c 0.349516,0 0.630894,0.2813787 0.630894,0.630894 V 22.507282 c 0,0.349515 -0.281378,0.630894 -0.630894,0.630894 H 1.9922487 c -0.3495153,0 -0.630894,-0.281379 -0.630894,-0.630894 V 8.6909803 c 0,-0.3495153 0.2813787,-0.630894 0.630894,-0.630894 z" /><path
+       id="path459"
+       style="fill:#262626;stroke:#262626;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       transform="matrix(1.077013,0,0,1.077013,-591.40576,-907.91176)"
+       d="m 563.01016,857.47418 a 2.4780519,2.4780519 0 0 1 -2.47806,2.47805 2.4780519,2.4780519 0 0 1 -2.47805,-2.47805 2.4780519,2.4780519 0 0 1 2.47805,-2.47805 2.4780519,2.4780519 0 0 1 2.47806,2.47805 z" /></g></svg>
