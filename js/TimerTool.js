@@ -193,7 +193,7 @@ class TimerTool {
         // Pomodoro bittiğinde bildirim
         // Sesin duyulması için alert'i biraz geciktiriyoruz
         setTimeout(() => {
-            alert("Süre doldu!");
+            Utils.showToast("Süre doldu!", "info");
         }, 600);
     }
 

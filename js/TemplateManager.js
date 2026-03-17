@@ -261,7 +261,7 @@ class TemplateManager {
         } catch (e) {
             console.error('Error saving user templates:', e);
             if (e.name === 'QuotaExceededError') {
-                alert('Depolama alanı doldu! Bazı şablonları silmeyi deneyin.');
+                Utils.showToast('Depolama alanı doldu! Bazı şablonları silmeyi deneyin.', 'error');
             }
         }
     }
@@ -271,7 +271,7 @@ class TemplateManager {
      */
     async saveCurrentPageAsTemplate(name, category = 'Kendi Şablonlarım', description = '') {
         if (!name || !name.trim()) {
-            alert('Lütfen şablon için bir isim girin.');
+            Utils.showToast('Lütfen şablon için bir isim girin.', 'warning');
             return false;
         }
 
@@ -280,7 +280,7 @@ class TemplateManager {
             const objects = JSON.parse(JSON.stringify(this.app.state.objects));
 
             if (objects.length === 0) {
-                alert('Boş bir sayfa şablon olarak kaydedilemez.');
+                Utils.showToast('Boş bir sayfa şablon olarak kaydedilemez.', 'info');
                 return false;
             }
 
@@ -308,7 +308,7 @@ class TemplateManager {
             return true;
         } catch (e) {
             console.error('Error saving template:', e);
-            alert('Şablon kaydedilirken bir hata oluştu.');
+            Utils.showToast('Şablon kaydedilirken bir hata oluştu.', 'error');
             return false;
         }
     }
@@ -391,7 +391,7 @@ class TemplateManager {
     /**
      * Kullanıcı şablonunu siler
      */
-    deleteUserTemplate(templateId) {
+    async deleteUserTemplate(templateId) {
         const index = this.userTemplates.findIndex(t => t.id === templateId);
         if (index === -1) {
             console.error('Şablon bulunamadı:', templateId);
@@ -404,7 +404,14 @@ class TemplateManager {
             return false;
         }
 
-        if (confirm(`"${template.name}" şablonunu silmek istediğinize emin misiniz?`)) {
+        const confirmed = await Utils.showConfirm({
+            title: 'Şablonu Sil',
+            message: `"${template.name}" şablonunu silmek istediğinize emin misiniz?`,
+            confirmText: 'Sil',
+            type: 'danger'
+        });
+
+        if (confirmed) {
             this.userTemplates.splice(index, 1);
             this.saveUserTemplates();
 
@@ -484,7 +491,7 @@ class TemplateManager {
             return true;
         } catch (e) {
             console.error('Şablon içe aktarma hatası:', e);
-            alert('Şablon dosyası okunamadı. Lütfen geçerli bir JSON dosyası seçin.');
+            Utils.showToast('Şablon dosyası okunamadı. Lütfen geçerli bir JSON dosyası seçin.', 'error');
             return false;
         }
     }

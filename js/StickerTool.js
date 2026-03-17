@@ -409,7 +409,7 @@ class StickerTool {
         const selectTool = this.app.tools.select;
         if (!selectTool || !selectTool.selectedObjects ||
             selectTool.selectedObjects.length === 0) {
-            alert('Lütfen önce bir veya daha fazla nesne seçin.');
+            Utils.showToast('Lütfen önce bir veya daha fazla nesne seçin.', 'warning');
             return;
         }
 
@@ -449,8 +449,15 @@ class StickerTool {
     /**
      * Delete a sticker
      */
-    deleteSticker(index) {
-        if (confirm('Bu sticker\'ı silmek istediğinizden emin misiniz?')) {
+    async deleteSticker(index) {
+        const confirmed = await Utils.showConfirm({
+            title: 'Sticker\'ı Sil',
+            message: 'Bu sticker\'ı silmek istediğinizden emin misiniz?',
+            confirmText: 'Sil',
+            type: 'danger'
+        });
+
+        if (confirmed) {
             this.stickers.splice(index, 1);
             this.saveStickers();
             this.renderStickers();

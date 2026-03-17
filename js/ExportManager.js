@@ -95,7 +95,7 @@ class ExportManager {
     async exportToPDF() {
         if (!window.jspdf) {
             console.error("jsPDF library not loaded");
-            alert("PDF dışa aktarma kütüphanesi yüklenemedi.");
+            Utils.showToast("PDF dışa aktarma kütüphanesi yüklenemedi.", "error");
             return;
         }
 

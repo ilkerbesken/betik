@@ -707,7 +707,9 @@
 
             <!-- Reset Settings -->
             <div class="tool-group reset-group" style="border-right: none; margin-left: auto;">
-                <a href="#" id="btnResetProperties" class="reset-link">Ayarları Sıfırla🔄</a>
+                <button id="btnResetProperties" class="tool-btn" title="Ayarları Sıfırla">
+                    <img src="assets/icons/renew.svg" class="icon" alt="Ayarları Sıfırla">
+                </button>
             </div>
         </div>
 
@@ -1399,21 +1401,21 @@
     <!-- Save Template Modal -->
     <div id="saveTemplateModal" class="template-modal" style="display: none;">
         <div class="template-modal-overlay"></div>
-        <div class="save-template-modal-content">
-            <div class="template-modal-header">
+        <div class="template-modal-content" style="width: 440px; height: auto; max-height: 90vh;">
+            <div class="template-modal-header" style="border-bottom: none; padding-bottom: 0;">
                 <h2>Şablon Olarak Kaydet</h2>
                 <button class="template-modal-close" id="btnCloseSaveTemplateModal">×</button>
             </div>
 
-            <div class="save-template-form">
-                <div class="form-group">
-                    <label for="templateNameInput">Şablon Adı *</label>
-                    <input type="text" id="templateNameInput" placeholder="Örn: Haftalık Toplantı Notları" required>
+            <div class="save-template-form" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="templateNameInput" style="font-size: 13px; font-weight: 600; color: #495057;">Şablon Adı *</label>
+                    <input type="text" id="templateNameInput" placeholder="Örn: Haftalık Toplantı Notları" required style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;">
                 </div>
 
-                <div class="form-group">
-                    <label for="templateCategorySelect">Kategori</label>
-                    <select id="templateCategorySelect">
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="templateCategorySelect" style="font-size: 13px; font-weight: 600; color: #495057;">Kategori</label>
+                    <select id="templateCategorySelect" style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; background-color: white;">
                         <option value="Kendi Şablonlarım">Kendi Şablonlarım</option>
                         <option value="İş Planlama">İş Planlama</option>
                         <option value="Eğitim">Eğitim</option>
@@ -1423,15 +1425,15 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="templateDescriptionInput">Açıklama (İsteğe Bağlı)</label>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="templateDescriptionInput" style="font-size: 13px; font-weight: 600; color: #495057;">Açıklama (İsteğe Bağlı)</label>
                     <textarea id="templateDescriptionInput" rows="3"
-                        placeholder="Bu şablonun ne için kullanıldığını kısaca açıklayın..."></textarea>
+                        placeholder="Bu şablonun ne için kullanıldığını kısaca açıklayın..." style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; resize: vertical; min-height: 80px;"></textarea>
                 </div>
 
-                <div class="form-actions">
-                    <button class="btn-cancel" id="btnCancelSaveTemplate">İptal</button>
-                    <button class="btn-save" id="btnConfirmSaveTemplate">Şablonu Kaydet</button>
+                <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px;">
+                    <button class="btn-cancel" id="btnCancelSaveTemplate" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f8f9fa; color: #495057; cursor: pointer; font-size: 13px; font-weight: 600;">İptal</button>
+                    <button class="btn-save" id="btnConfirmSaveTemplate" style="padding: 8px 16px; border-radius: 10px; border: none; background: #228be6; color: white; cursor: pointer; font-size: 13px; font-weight: 600;">Şablonu Kaydet</button>
                 </div>
             </div>
         </div>

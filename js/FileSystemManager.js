@@ -192,7 +192,7 @@ class FileSystemManager {
 
     async pickStorageFolder() {
         if (!window.showDirectoryPicker) {
-            alert('Tarayıcınız yerel klasör erişimini desteklemiyor. IndexedDB kullanılmaya devam edilecek.');
+            Utils.showToast('Tarayıcınız yerel klasör erişimini desteklemiyor. IndexedDB kullanılmaya devam edilecek.', 'info');
             return false;
         }
         try {

@@ -377,7 +377,7 @@ class GrabImageTool {
                 this.app.needsRender = true;
             } catch (err) {
                 console.error('Panoya kopyalanamadı:', err);
-                alert('Panoya kopyalanamadı. Tarayıcınız desteklemiyor olabilir.');
+                Utils.showToast('Panoya kopyalanamadı. Tarayıcınız desteklemiyor olabilir.', 'error');
             }
         });
     }
@@ -401,7 +401,7 @@ class GrabImageTool {
                     console.error('Paylaşılamadı:', err);
                 }
             } else {
-                alert('Tarayıcınız dosya paylaşımını desteklemiyor.');
+                Utils.showToast('Tarayıcınız dosya paylaşımını desteklemiyor.', 'info');
             }
         });
     }
@@ -448,19 +448,19 @@ class GrabImageTool {
         const fileName = 'betik_capture_' + Date.now() + '.png';
         const csm = this.app.cloudStorageManager;
         if (!csm) {
-            alert('Bulut depolama sistemi hazır değil.');
+            Utils.showToast('Bulut depolama sistemi hazır değil.', 'warning');
             return;
         }
 
         canvas.toBlob(async blob => {
             try {
                 await csm.uploadImage(blob, fileName);
-                alert('Google Drive\'a kaydedildi!');
+                Utils.showToast('Google Drive\'a kaydedildi!', 'success');
                 this.selection = null;
                 this.app.needsRender = true;
             } catch (err) {
                 console.error('Google Drive hatası:', err);
-                alert('Google Drive\'a kaydedilemedi: ' + err.message);
+                Utils.showToast('Google Drive\'a kaydedilemedi: ' + err.message, 'error');
             }
         });
     }
@@ -477,7 +477,7 @@ class GrabImageTool {
             const subject = encodeURIComponent('Betik Ekran Görüntüsü');
             const body = encodeURIComponent('Ekran görüntüsünü kopyalayıp buraya yapıştırabilirsiniz.');
             window.location.href = `mailto:?subject=${subject}&body=${body}`;
-            alert('E-posta açıldı. Lütfen görüntüyü kopyalayıp yapıştırın (bazı istemciler attachments desteklemez).');
+            Utils.showToast('E-posta açıldı. Lütfen görüntüyü kopyalayıp yapıştırın.', 'info');
         }
     }
 }

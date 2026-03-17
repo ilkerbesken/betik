@@ -303,5 +303,104 @@ const Utils = {
                 tx.onerror = () => reject(tx.error);
             });
         }
+    },
+
+    // Toast Notification System
+    showToast(message, type = 'info') {
+        let toast = document.getElementById('betik-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'betik-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 110px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(40,40,40,0.95);
+                color: white;
+                padding: 10px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                z-index: 20000;
+                pointer-events: none;
+                transition: opacity 0.3s, transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                border: 1px solid rgba(255,255,255,0.1);
+            `;
+            document.body.appendChild(toast);
+        }
+
+        const icons = {
+            'success': '✅',
+            'error': '❌',
+            'info': 'ℹ️',
+            'warning': '⚠️'
+        };
+
+        toast.innerHTML = `<span style="font-size: 16px;">${icons[type] || ''}</span> <span style="font-weight: 500;">${message}</span>`;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+
+        if (this._toastTimeout) clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2500);
+    },
+
+    // Global Confirmation Dialog
+    showConfirm({ title, message, confirmText = 'Onayla', cancelText = 'İptal', type = 'danger' }) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-dialog-overlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 30000; animation: fadeIn 0.2s ease-out;
+            `;
+
+            const btnClass = type === 'danger' ? 'btn-danger' : 'btn-primary';
+            
+            overlay.innerHTML = `
+                <div class="confirm-dialog" style="
+                    background: white; width: 320px; padding: 24px;
+                    border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+                    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                ">
+                    <h3 style="margin-top: 0; font-size: 18px; margin-bottom: 12px;">${title}</h3>
+                    <p style="color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">${message}</p>
+                    <div class="confirm-dialog-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="btn-cancel" style="
+                            padding: 8px 16px; border-radius: 10px; border: 1px solid #e0e0e0;
+                            background: #f8f9fa; color: #495057; cursor: pointer; font-size: 13px; font-weight: 600;
+                        ">${cancelText}</button>
+                        <button class="${btnClass}" style="
+                            padding: 8px 16px; border-radius: 10px; border: none;
+                            background: ${type === 'danger' ? '#fa5252' : '#228be6'};
+                            color: white; cursor: pointer; font-size: 13px; font-weight: 600;
+                        ">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const cancelBtn = overlay.querySelector('.btn-cancel');
+            const confirmBtn = overlay.querySelector(`.${btnClass}`);
+
+            const cleanup = (result) => {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 200);
+                resolve(result);
+            };
+
+            cancelBtn.onclick = () => cleanup(false);
+            confirmBtn.onclick = () => cleanup(true);
+            overlay.onclick = (e) => { if (e.target === overlay) cleanup(false); };
+        });
     }
 };

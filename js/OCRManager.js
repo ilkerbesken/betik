@@ -221,7 +221,14 @@ class OCRManager {
         if (this.isProcessing) return null;
 
         const totalPages = this.app.pdfManager.pdfDoc.numPages;
-        if (!confirm(`Tüm belge (${totalPages} sayfa) taranacak. Bu işlem birkaç dakika sürebilir. Devam etmek istiyor musunuz?`)) return;
+        const confirmed = await Utils.showConfirm({
+            title: 'Tüm Belgeyi Tara',
+            message: `Tüm belge (${totalPages} sayfa) taranacak. Bu işlem birkaç dakika sürebilir. Devam etmek istiyor musunuz?`,
+            confirmText: 'Taramayı Başlat',
+            type: 'primary'
+        });
+
+        if (!confirmed) return;
 
         this.isProcessing = true;
         this._showProgress(`Hazırlanıyor (1 / ${totalPages})...`, 2);

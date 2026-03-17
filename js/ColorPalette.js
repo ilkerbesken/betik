@@ -80,8 +80,15 @@ class ColorPalette {
         });
     }
 
-    deleteColor(index) {
-        if (confirm('Bu rengi silmek istediğinizden emin misiniz?')) {
+    async deleteColor(index) {
+        const confirmed = await Utils.showConfirm({
+            title: 'Rengi Sil',
+            message: 'Bu rengi silmek istediğinizden emin misiniz?',
+            confirmText: 'Sil',
+            type: 'danger'
+        });
+
+        if (confirmed) {
             this.colors.splice(index, 1);
             this.saveColors();
             this.renderColors();

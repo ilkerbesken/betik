@@ -56,7 +56,7 @@ class TikFileManager {
         await this._waitForPako();
 
         const dashboard = window.dashboard;
-        if (!dashboard) { alert('Dashboard bulunamadı.'); return; }
+        if (!dashboard) { Utils.showToast('Dashboard bulunamadı.', 'error'); return; }
 
         // Mevcut sayfa durumunu diske/belleğe kaydet
         if (this.app.pageManager) {
@@ -151,7 +151,7 @@ class TikFileManager {
         await this._waitForPako();
 
         if (!template || !template.objects) {
-            alert('Geçerli bir şablon bulunamadı.');
+            Utils.showToast('Geçerli bir şablon bulunamadı.', 'warning');
             return;
         }
 
@@ -275,7 +275,7 @@ class TikFileManager {
             const content = JSON.parse(jsonStr);
 
             if (!content || (!content.pages && !content.objects)) {
-                alert('Geçersiz .tik dosyası.');
+                Utils.showToast('Geçersiz .tik dosyası.', 'error');
                 return;
             }
 
@@ -370,8 +370,7 @@ class TikFileManager {
             this._showToast(`📂 "${board.name}" açıldı`);
 
         } catch (err) {
-            console.error('[TikFileManager] Yükleme hatası:', err);
-            alert('Dosya açılamadı. Geçerli bir .tik dosyası seçin.\n\nHata: ' + err.message);
+            Utils.showToast('Dosya açılamadı. Geçerli bir .tik dosyası seçin.', 'error');
         }
     }
 
@@ -664,33 +663,6 @@ class TikFileManager {
     // ─────────────────────────────────────────────
 
     _showToast(message) {
-        let toast = document.getElementById('tom-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'tom-toast';
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 30px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0,0,0,0.85);
-                color: white;
-                padding: 10px 24px;
-                border-radius: 10px;
-                font-size: 14px;
-                font-family: sans-serif;
-                z-index: 99999;
-                pointer-events: none;
-                transition: opacity 0.3s;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            `;
-            document.body.appendChild(toast);
-        }
-        toast.textContent = message;
-        toast.style.opacity = '1';
-        clearTimeout(this._toastTimer);
-        this._toastTimer = setTimeout(() => {
-            toast.style.opacity = '0';
-        }, 3000);
+        Utils.showToast(message, message.includes('✅') || message.includes('📂') ? 'success' : 'info');
     }
 }

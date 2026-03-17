@@ -764,7 +764,7 @@ class BetikApp {
         };
         img.onerror = () => {
             console.error('Image failed to load:', src.substring(0, 50) + '...');
-            alert('Resim yüklenemedi. Lütfen başka bir dosya deneyin.');
+                Utils.showToast('Resim yüklenemedi. Lütfen başka bir dosya deneyin.', 'error');
         };
         img.src = src;
     }
@@ -859,7 +859,7 @@ class BetikApp {
 
     async triggerPaste() {
         if (!navigator.clipboard || !navigator.clipboard.read) {
-            alert('Tarayıcınız panoya erişimi desteklemiyor. Lütfen Ctrl+V kullanın.');
+                Utils.showToast('Tarayıcınız panoya erişimi desteklemiyor. Lütfen Ctrl+V kullanın.', 'warning');
             return;
         }
         try {
@@ -888,14 +888,14 @@ class BetikApp {
                 }
             }
             if (!foundImage) {
-                alert('Panoda yapıştırılacak bir resim bulunamadı.');
+                Utils.showToast('Panoda yapıştırılacak bir resim bulunamadı.', 'info');
             }
         } catch (err) {
             console.error('Clipboard access denied:', err);
             if (err.name === 'NotAllowedError') {
-                alert('Pano erişim izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya Ctrl+V kullanın.');
+                Utils.showToast('Pano erişim izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya Ctrl+V kullanın.', 'error');
             } else {
-                alert('Panoya erişilemedi. Lütfen Ctrl+V kullanın.');
+                Utils.showToast('Panoya erişilemedi. Lütfen Ctrl+V kullanın.', 'error');
             }
         }
     }
@@ -1108,7 +1108,7 @@ class BetikApp {
             const description = document.getElementById('templateDescriptionInput').value;
 
             if (!name || !name.trim()) {
-                alert('Lütfen şablon için bir isim girin.');
+                Utils.showToast('Lütfen şablon için bir isim girin.', 'warning');
                 document.getElementById('templateNameInput').focus();
                 return;
             }
@@ -1118,7 +1118,7 @@ class BetikApp {
 
             if (success) {
                 this.closeSaveTemplateModal();
-                alert(`"${name}" şablonu başarıyla kaydedildi!`);
+                Utils.showToast(`"${name}" şablonu başarıyla kaydedildi!`, 'success');
             }
         });
 
@@ -2291,47 +2291,7 @@ class BetikApp {
     }
 
     showToast(message, type = 'info') {
-        let toast = document.getElementById('betik-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'betik-toast';
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 110px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(40,40,40,0.95);
-                color: white;
-                padding: 10px 24px;
-                border-radius: 24px;
-                font-size: 14px;
-                z-index: 10000;
-                pointer-events: none;
-                transition: opacity 0.3s, transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                border: 1px solid rgba(255,255,255,0.1);
-            `;
-            document.body.appendChild(toast);
-        }
-
-        const icons = {
-            'success': '✅',
-            'error': '❌',
-            'info': 'ℹ️'
-        };
-
-        toast.innerHTML = `<span style="font-size: 16px;">${icons[type] || ''}</span> <span style="font-weight: 500;">${message}</span>`;
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(-50%) translateY(0)';
-
-        if (this._toastTimeout) clearTimeout(this._toastTimeout);
-        this._toastTimeout = setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-50%) translateY(20px)';
-        }, 2500);
+        Utils.showToast(message, type);
     }
 }
 

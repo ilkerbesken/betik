@@ -1098,7 +1098,14 @@ class Dashboard {
         };
 
         btnReset.onclick = async () => {
-            if (confirm('Depolama konumunu tarayıcıya geri döndürmek istediğinize emin misiniz? (Mevcut verileriniz silinmez, sadece tarayıcı içinde saklanmaya devam eder)')) {
+            const confirmed = await Utils.showConfirm({
+                title: 'Depolama Konumunu Sıfırla',
+                message: 'Depolama konumunu tarayıcıya geri döndürmek istediğinize emin misiniz? (Mevcut verileriniz silinmez, sadece tarayıcı içinde saklanmaya devam eder)',
+                confirmText: 'Sıfırla',
+                type: 'warning'
+            });
+
+            if (confirmed) {
                 await window.fileSystemManager.db.settings.delete('folder_handle');
                 window.fileSystemManager.dirHandle = null;
                 window.fileSystemManager.storedHandle = null;
@@ -1136,7 +1143,7 @@ class Dashboard {
                 const result = await getCloud().exportToFile();
                 btnExport.disabled = false;
                 btnExport.innerHTML = '⬇️ Dosya Olarak İndir (.json)';
-                alert(result.message);
+                Utils.showToast(result.message, 'info');
             };
         }
 
@@ -1146,10 +1153,10 @@ class Dashboard {
             btnImport.onclick = async () => {
                 const result = await getCloud().importFromFile();
                 if (result.success) {
-                    alert(result.message);
+                    Utils.showToast(result.message, 'success');
                     await this.initAsync();
                 } else if (result.message) {
-                    alert('Hata: ' + result.message);
+                    Utils.showToast('Hata: ' + result.message, 'error');
                 }
             };
         }
@@ -1305,24 +1312,40 @@ class Dashboard {
         }
     }
 
-    deleteFolderConfirmation(id) {
+    async deleteFolderConfirmation(id) {
         const folder = this.folders.find(f => f.id === id);
         if (!folder) return;
 
-        if (confirm(`'${folder.name}' klasörünü silmek istediğinize emin misiniz? (İçindeki notlar ve alt klasörler silinmez)`)) {
+        const confirmed = await Utils.showConfirm({
+            title: 'Klasörü Sil',
+            message: `'${folder.name}' klasörünü silmek istediğinize emin misiniz? (İçindeki notlar ve alt klasörler silinmez)`,
+            confirmText: 'Sil',
+            type: 'danger'
+        });
+
+        if (confirmed) {
             this.deleteFolder(id);
         }
     }
 
-    deleteBoardConfirmation(id) {
+    async deleteBoardConfirmation(id) {
         const board = this.boards.find(b => b.id === id);
         if (!board) return;
 
-        const msg = board.deleted 
+        const msg = board.deleted
             ? `'${board.name}' notunu kalıcı olarak silmek istediğinize emin misiniz?`
             : `'${board.name}' notunu çöp kutusuna taşımak istediğinize emin misiniz?`;
+        const title = board.deleted ? 'Kalıcı Olarak Sil' : 'Çöp Kutusuna Taşı';
+        const btnText = board.deleted ? 'Kalıcı Sil' : 'Çöp Kutusuna Taşı';
 
-        if (confirm(msg)) {
+        const confirmed = await Utils.showConfirm({
+            title,
+            message: msg,
+            confirmText: btnText,
+            type: 'danger'
+        });
+
+        if (confirmed) {
             this.deleteBoard(id);
         }
     }
@@ -1434,7 +1457,7 @@ class Dashboard {
             event.target.value = '';
         } catch (error) {
             console.error('Error saving PDF to IndexedDB:', error);
-            alert('PDF kaydedilirken bir hata oluştu.');
+            Utils.showToast('PDF kaydedilirken bir hata oluştu.', 'error');
         } finally {
             this.hideLoading();
         }
@@ -1757,7 +1780,14 @@ class Dashboard {
         const trashedBoards = this.boards.filter(b => b.deleted);
         if (trashedBoards.length === 0) return;
 
-        if (confirm(`Çöp kutusundaki ${trashedBoards.length} öğeyi kalıcı olarak silmek istediğinize emin misiniz?`)) {
+        const confirmed = await Utils.showConfirm({
+            title: 'Çöp Kutusunu Boşalt',
+            message: `Çöp kutusundaki ${trashedBoards.length} öğeyi kalıcı olarak silmek istediğinize emin misiniz?`,
+            confirmText: 'Kalıcı Sil',
+            type: 'danger'
+        });
+
+        if (confirmed) {
             // FileSystemManager üzerinden sil (IndexedDB + native klasör)
             await Promise.all(trashedBoards.map(async b => {
                 await window.fileSystemManager.removeItem(`wb_content_${b.id}`);
@@ -1871,7 +1901,7 @@ class Dashboard {
 
         const handleSave = () => {
             this.saveCurrentBoard();
-            alert('Beyaz tahta kaydedildi!');
+            Utils.showToast('Beyaz tahta kaydedildi!', 'success');
             const dropdown = document.getElementById('appMenuDropdown');
             if (dropdown) dropdown.classList.remove('show');
         };
@@ -2555,7 +2585,14 @@ class Dashboard {
                 const count = this.selectedBoards.size;
                 if (count === 0) return;
                 
-                if (confirm(`${count} notu silmek istediğinize emin misiniz?`)) {
+                const confirmed = await Utils.showConfirm({
+                    title: 'Notları Sil',
+                    message: `${count} notu silmek istediğinize emin misiniz?`,
+                    confirmText: 'Sil',
+                    type: 'danger'
+                });
+
+                if (confirmed) {
                     // Collect IDs first to avoid set modification during iteration
                     const idsToArchive = Array.from(this.selectedBoards);
                     for (const id of idsToArchive) {
