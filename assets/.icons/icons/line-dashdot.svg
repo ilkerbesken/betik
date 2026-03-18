@@ -1,0 +1,12 @@
+<svg width="21" height="1" viewBox="0 0 21 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="line-dashdot" clip-path="url(#clip0_2315_13)">
+<g id="g1140">
+<path id="line1136" d="M0.5 0.5H20.5" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 3 0.5 3"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_2315_13">
+<rect width="20.5" height="1" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -314,13 +314,13 @@ class TableTool {
         toolbar.style.zIndex = "3000";
 
         const buttons = [
-            { icon: '<img src="assets/icons/text-bold.svg" class="icon">', command: 'bold', title: 'Kalın' },
-            { icon: '<img src="assets/icons/text-italic.svg" class="icon">', command: 'italic', title: 'İtalik' },
-            { icon: '<img src="assets/icons/text-underline.svg" class="icon">', command: 'underline', title: 'Altı Çizili' },
+            { icon: '<app-icon name="text-bold" class="icon"></app-icon>', command: 'bold', title: 'Kalın' },
+            { icon: '<app-icon name="text-italic" class="icon"></app-icon>', command: 'italic', title: 'İtalik' },
+            { icon: '<app-icon name="text-underline" class="icon"></app-icon>', command: 'underline', title: 'Altı Çizili' },
             { separator: true },
-            { icon: '<img src="assets/icons/text-align-left.svg" class="icon">', action: 'align', value: 'left', title: 'Sola Yasla' },
-            { icon: '<img src="assets/icons/text-align-center.svg" class="icon">', action: 'align', value: 'center', title: 'Ortala' },
-            { icon: '<img src="assets/icons/text-align-right.svg" class="icon">', action: 'align', value: 'right', title: 'Sağa Yasla' }
+            { icon: '<app-icon name="text-align-left" class="icon"></app-icon>', action: 'align', value: 'left', title: 'Sola Yasla' },
+            { icon: '<app-icon name="text-align-center" class="icon"></app-icon>', action: 'align', value: 'center', title: 'Ortala' },
+            { icon: '<app-icon name="text-align-right" class="icon"></app-icon>', action: 'align', value: 'right', title: 'Sağa Yasla' }
         ];
 
         buttons.forEach(btn => {

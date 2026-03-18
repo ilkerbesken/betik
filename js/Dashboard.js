@@ -70,7 +70,7 @@ class Dashboard {
         if (localStorage.getItem('betik_gdrive_token')) {
             setTimeout(async () => {
                 const cloud = new CloudStorageManager(this.app);
-                
+
                 // If local storage is empty, attempt a full restore from Drive
                 if (this.boards.length === 0) {
                     console.log('[Dashboard] Local storage empty, attempting to restore from Google Drive...');
@@ -173,7 +173,7 @@ class Dashboard {
             const btnImportMobile = document.getElementById('btnImportMobile');
             this.importModal = document.getElementById('importModal');
             const btnCloseImportModal = document.getElementById('btnCloseImportModal');
-            
+
             const btnModalUploadPDF = document.getElementById('btnModalUploadPDF');
             const btnModalOpenTom = document.getElementById('btnModalOpenTom');
             this.pdfInput = document.getElementById('pdfInput');
@@ -210,7 +210,7 @@ class Dashboard {
                     toggleImportModal(false);
                 };
             }
-            
+
             // Close modal when clicking outside
             this.importModal?.addEventListener('click', (e) => {
                 if (e.target === this.importModal) {
@@ -422,17 +422,17 @@ class Dashboard {
                     noteItem.className = `tree-note-item ${this.currentBoardId === note.id ? 'active' : ''}`;
                     noteItem.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
-                            <img src="assets/icons/text.svg" class="note-icon" style="width: 14px; height: 14px; opacity: 0.6;">
+                            <app-icon name="text" class="note-icon" style="width: 14px; height: 14px; opacity: 0.6;"></app-icon>
                             <span class="note-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.name}</span>
                         </div>
                         <div class="folder-menu-trigger">⋮</div>
                         <div class="folder-dropdown" style="width: 130px;">
                             <div class="dropdown-item" data-action="rename">
-                                <img src="assets/icons/text-cursor.svg" style="width: 12px; opacity: 0.6;">
+                                <app-icon name="text-cursor" style="width: 12px; opacity: 0.6;"></app-icon>
                                 İsmi Değiştir
                             </div>
                             <div class="dropdown-item" data-action="delete" style="color: #fa5252;">
-                                <img src="assets/icons/trash.svg" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);">
+                                <app-icon name="trash" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);"></app-icon>
                                 Sil
                             </div>
                         </div>
@@ -528,29 +528,29 @@ class Dashboard {
             const folderColor = folder.color || '#ccc';
             item.innerHTML = `
                 <div class="folder-content">
-                    <img src="assets/icons/arrow-dashboard.svg" class="folder-chevron ${isExpanded ? 'rotated' : ''}" style="width: 6px; opacity: 0.4; transition: transform 0.2s; margin-right: 4px; ${hasChildren ? '' : 'visibility: hidden;'}">
+                    <app-icon name="arrow-dashboard" class="folder-chevron ${isExpanded ? 'rotated' : ''}" style="width: 6px; opacity: 0.4; transition: transform 0.2s; margin-right: 4px; ${hasChildren ? '' : 'visibility: hidden;'}"></app-icon>
                     <div class="folder-color-bar" style="background: ${folderColor};"></div>
-                    <img src="assets/icons/folder.svg" class="folder-icon">
+                    <app-icon name="folder" class="folder-icon"></app-icon>
                     <span class="folder-name" spellcheck="false" style="color: ${folderColor === '#ccc' ? 'inherit' : folderColor};">${folder.name}</span>
                 </div>
                 <div class="folder-menu-trigger">⋮</div>
                 <div class="folder-dropdown">
                     <div class="dropdown-item" data-action="addSub">
-                        <img src="assets/icons/subfolder.svg" style="width: 12px; opacity: 0.6;">
+                        <app-icon name="git-branch-01" style="width: 12px; opacity: 0.6;"></app-icon>
                         Alt Klasör Ekle
                     </div>
                     ${this.isMobile() ? `
                     <div class="dropdown-item" data-action="addNote">
-                        <img src="assets/icons/add-page.svg" style="width: 12px; opacity: 0.6;">
+                        <app-icon name="add-page" style="width: 12px; opacity: 0.6;"></app-icon>
                         Yeni Not Ekle
                     </div>
                     ` : ''}
                     <div class="dropdown-item" data-action="rename">
-                        <img src="assets/icons/text-cursor.svg" style="width: 12px; opacity: 0.6;">
+                        <app-icon name="text-input" style="width: 12px; opacity: 0.6;"></app-icon>
                         İsmi Değiştir
                     </div>
                     <div class="dropdown-item" data-action="delete" style="color: #fa5252;">
-                        <img src="assets/icons/trash.svg" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);">
+                        <app-icon name="trash-02" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);"></app-icon>
                         Klasörü Sil
                     </div>
                     <div class="folder-color-palette">
@@ -666,17 +666,17 @@ class Dashboard {
                         noteItem.style.paddingLeft = `${32 + level * 20}px`;
                         noteItem.innerHTML = `
                             <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
-                                <img src="assets/icons/text.svg" class="note-icon" style="width: 14px; height: 14px; opacity: 0.6;">
+                                <app-icon name="text" class="note-icon" style="width: 14px; height: 14px; opacity: 0.6;"></app-icon>
                                 <span class="note-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${note.name}</span>
                             </div>
                             <div class="folder-menu-trigger">⋮</div>
                             <div class="folder-dropdown" style="width: 130px;">
                                 <div class="dropdown-item" data-action="rename">
-                                    <img src="assets/icons/text-cursor.svg" style="width: 10px; opacity: 0.6;">
+                                    <app-icon name="text-cursor" style="width: 10px; opacity: 0.6;"></app-icon>
                                     İsmi Değiştir
                                 </div>
                                 <div class="dropdown-item" data-action="delete" style="color: #fa5252;">
-                                    <img src="assets/icons/trash.svg" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);">
+                                    <app-icon name="trash" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);"></app-icon>
                                     Sil
                                 </div>
                             </div>
@@ -832,10 +832,10 @@ class Dashboard {
 
             const notebookCoverHTML = `<div class="notebook-cover ${hasImage ? '' : `cover-texture-${coverTexture}`}"
                          style="background-color: ${coverBg}; ${hasImage ? `background-image: url(${board.coverImage}); background-size: cover; background-position: center;` : ''}">
-                        ${board.isPDF 
-                            ? `<img src="assets/icons/pdf.svg" style="width: 64px; height: 64px; opacity: 0.8; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">`
-                            : ''
-                        }
+                        ${board.isPDF
+                    ? `<app-icon name="pdf" style="width: 64px; height: 64px; opacity: 0.8; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></app-icon>`
+                    : ''
+                }
                         <div class="notebook-spine"></div>
                    </div>`;
 
@@ -1012,7 +1012,7 @@ class Dashboard {
             const hasStored = !!window.fileSystemManager.storedHandle;
             const isFileSystemSupported = !!window.showDirectoryPicker;
             const platform = window.CloudStorageManager ? window.CloudStorageManager.detect() : { isMobile: false };
-            
+
             // 1. Durum Metni UI
             if (mode === 'native' && hasDir) {
                 statusText.innerHTML = `Mevcut Konum: <strong style="color: #2b8a3e">Yerel Klasör (${window.fileSystemManager.dirHandle.name})</strong>`;
@@ -1024,18 +1024,18 @@ class Dashboard {
 
             // 2. Buton ve Destek Notu Yönetimi
             const supportNote = document.getElementById('folderPickerSupportNote');
-            
+
             if (isFileSystemSupported) {
                 // Desteklenen sistem (Chromium Desktop/Android)
                 btnPick.style.display = 'flex';
                 if (hasDir) {
-                    btnPick.innerHTML = '<img src="assets/icons/folder.svg" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"> Klasörü Değiştir';
+                    btnPick.innerHTML = '<app-icon name="folder" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"></app-icon> Klasörü Değiştir';
                     btnPick.className = 'btn btn-primary';
                 } else if (hasStored) {
-                    btnPick.innerHTML = '<img src="assets/icons/folder.svg" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"> Erişime İzin Ver';
+                    btnPick.innerHTML = '<app-icon name="folder" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"></app-icon> Erişime İzin Ver';
                     btnPick.className = 'btn btn-warning';
                 } else {
-                    btnPick.innerHTML = '<img src="assets/icons/folder.svg" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"> Yerel Klasör Seç veya Oluştur';
+                    btnPick.innerHTML = '<app-icon name="folder" style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"></app-icon> Yerel Klasör Seç veya Oluştur';
                     btnPick.className = 'btn btn-primary';
                 }
                 if (supportNote) supportNote.style.display = 'none';
@@ -1269,8 +1269,8 @@ class Dashboard {
                     for (let i = 0; i < rootFolderPath.length - 1; i++) {
                         parentDir = await parentDir.getDirectoryHandle(rootFolderPath[i], { create: false });
                     }
-                    await parentDir.removeEntry(rootFolderPath[rootFolderPath.length - 1], { recursive: true }).catch(() => {});
-                } catch (e) {}
+                    await parentDir.removeEntry(rootFolderPath[rootFolderPath.length - 1], { recursive: true }).catch(() => { });
+                } catch (e) { }
             }
         }
 
@@ -1286,7 +1286,7 @@ class Dashboard {
         // Senkronizasyon için silindiğini işaretle (Klasörler + Boardlar)
         const deletedIds = await this.loadDataAsync('wb_deleted_ids', []);
         let changed = false;
-        
+
         // Klasör ID'lerini ekle
         idsToDelete.forEach(id => {
             if (!deletedIds.includes(id)) {
@@ -1443,7 +1443,7 @@ class Dashboard {
 
             this.boards.push(newBoard);
             await this.saveDataAsync('wb_boards', this.boards);
-            
+
             // Sync metadata'yı güncelle (Drive PUSH'u tetiklemek için)
             await window.fileSystemManager.updateSyncMetadata(id);
 
@@ -1497,7 +1497,7 @@ class Dashboard {
 
     async loadBoardContent(id, templateId = null) {
         console.log(`[Dashboard] Loading content for board: ${id}`);
-        
+
         // Reset state
         if (this.app.pageManager) this.app.pageManager.clear();
         this.app.state.objects = [];
@@ -1574,7 +1574,7 @@ class Dashboard {
                     this.app.pageManager.switchPage(0, true, false);
                 }
             }
-            
+
             // APPLY TEMPLATE ATOMICALLY IF REQUESTED
             if (templateId && this.app.templateManager) {
                 console.log(`[Dashboard] Applying template ${templateId} to new board.`);
@@ -1607,11 +1607,11 @@ class Dashboard {
             if (boardIndex !== -1) {
                 const board = this.boards[boardIndex];
                 const now = Date.now();
-                
+
                 // Only generate preview if forced or 60s passed since last preview
                 let preview = null;
                 const shouldUpdatePreview = force || !board._lastPreviewTime || (now - board._lastPreviewTime > 60000);
-                
+
                 if (shouldUpdatePreview) {
                     try {
                         preview = this.app.canvas.toDataURL('image/webp', 0.4); // Lower quality (0.4) for faster generation
@@ -1624,7 +1624,7 @@ class Dashboard {
 
                 board.lastModified = now;
                 board.objectCount = (this.app.state.objects || []).length;
-                
+
                 // Only save wb_boards (heavy file) if forced or 30s passed since last meta save
                 const shouldSaveMeta = force || !board._lastMetaSaveTime || (now - board._lastMetaSaveTime > 30000);
                 if (shouldSaveMeta) {
@@ -1637,13 +1637,13 @@ class Dashboard {
             const tomFM = this.app.tikFileManager;
             const serializeObj = (obj) => {
                 if (!obj) return null;
-                
+
                 let o;
                 if (tomFM) {
                     o = tomFM._serializeObject(obj);
                 } else {
                     o = Object.assign({}, obj);
-                    
+
                     // Coordinates rounding
                     if (o.x !== undefined) o.x = Math.round(o.x * 100000) / 100000;
                     if (o.y !== undefined) o.y = Math.round(o.y * 100000) / 100000;
@@ -1674,7 +1674,7 @@ class Dashboard {
                         delete o[key];
                     }
                 }
-                
+
                 return o;
             };
 
@@ -1751,7 +1751,7 @@ class Dashboard {
                 this.boards = this.boards.filter(b => b.id !== id);
                 // FileSystemManager üzerinden sil (native klasörü de temizler)
                 await window.fileSystemManager.removeItem(`wb_content_${id}`);
-                
+
                 // Senkronizasyon için silindiğini işaretle
                 const deletedIds = await this.loadDataAsync('wb_deleted_ids', []);
                 if (!deletedIds.includes(id)) {
@@ -1839,7 +1839,7 @@ class Dashboard {
             board.name = newName.trim();
             board.lastModified = Date.now();
             await this.saveDataAsync('wb_boards', this.boards);
-            
+
             // Sync metadata'yı güncelle (Drive PUSH'u tetiklemek için)
             await window.fileSystemManager.updateSyncMetadata(id);
 
@@ -1938,6 +1938,35 @@ class Dashboard {
                     btn.classList.add('active');
                 }
             });
+
+            // Icon color picker
+            const iconColorPicker = document.getElementById('uiIconColorPicker');
+            const btnResetIconColor = document.getElementById('btnResetIconColor');
+
+            if (iconColorPicker) {
+                // Initialize from settings
+                if (this.viewSettings.iconColor) {
+                    iconColorPicker.value = this.viewSettings.iconColor;
+                    document.documentElement.style.setProperty('--app-icon-color', this.viewSettings.iconColor);
+                }
+
+                iconColorPicker.oninput = () => {
+                    const color = iconColorPicker.value;
+                    this.viewSettings.iconColor = color;
+                    this.saveData('wb_view_settings', this.viewSettings);
+                    document.documentElement.style.setProperty('--app-icon-color', color);
+                };
+            }
+
+            if (btnResetIconColor) {
+                btnResetIconColor.onclick = () => {
+                    const defaultColor = '#262626';
+                    if (iconColorPicker) iconColorPicker.value = defaultColor;
+                    this.viewSettings.iconColor = defaultColor;
+                    this.saveData('wb_view_settings', this.viewSettings);
+                    document.documentElement.style.setProperty('--app-icon-color', defaultColor);
+                };
+            }
 
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
@@ -2584,7 +2613,7 @@ class Dashboard {
             btnDelete.onclick = async () => {
                 const count = this.selectedBoards.size;
                 if (count === 0) return;
-                
+
                 const confirmed = await Utils.showConfirm({
                     title: 'Notları Sil',
                     message: `${count} notu silmek istediğinize emin misiniz?`,

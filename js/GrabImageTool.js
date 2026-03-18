@@ -153,12 +153,12 @@ class GrabImageTool {
         const hs = this.handleSize / zoom;
 
         ctx.save();
-        
+
         // Draw Overlay (dim outside)
         // This is tricky because we are inside a clipped/translated context in app.js.
         // But app.js calls this within the page's translate.
         // We'll just draw a dashed rect for now.
-        
+
         ctx.strokeStyle = '#00a8ff';
         ctx.setLineDash([5 / zoom, 5 / zoom]);
         ctx.lineWidth = 2 / zoom;
@@ -292,16 +292,16 @@ class GrabImageTool {
         // Ensure subMenu is within viewport
         const rect = subMenu.getBoundingClientRect();
         const mainRect = this.menu.getBoundingClientRect();
-        
+
         // Try Right
         let left = mainRect.right + 10;
         if (left + rect.width > window.innerWidth) {
             // Try Left
             left = mainRect.left - rect.width - 10;
         }
-        
+
         subMenu.style.left = left + 'px';
-        
+
         if (rect.bottom > window.innerHeight) {
             subMenu.style.top = (window.innerHeight - rect.height - 10) + 'px';
         }
@@ -312,7 +312,7 @@ class GrabImageTool {
         if (!canvas) return;
 
         const dataUrl = canvas.toDataURL('image/png');
-        
+
         // Use app.insertImage to add it to canvas
         this.app.insertImage(dataUrl);
 
@@ -327,11 +327,11 @@ class GrabImageTool {
         if (w < 1 || h < 1) return null;
 
         const pageY = this.app.pageManager.getPageY(this.app.pageManager.currentPageIndex);
-        
+
         // We need to capture from the offscreen canvas but at full resolution if possible,
         // or just capture what's visible.
         // Actually, we can draw the relevant area to a new canvas.
-        
+
         const captureCanvas = document.createElement('canvas');
         captureCanvas.width = w;
         captureCanvas.height = h;
@@ -343,7 +343,7 @@ class GrabImageTool {
         // Draw everything from current page to this canvas
         // We need a version of drawObject that works for any context.
         // BetikApp.drawObject is available.
-        
+
         // Draw background
         const page = this.app.pageManager.pages[this.app.pageManager.currentPageIndex];
         const pageWidth = this.app.pageManager.getPageWidth();
@@ -436,7 +436,7 @@ class GrabImageTool {
         link.download = fileName;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
+
         this.selection = null;
         this.app.needsRender = true;
     }

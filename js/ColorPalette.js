@@ -43,6 +43,12 @@ class ColorPalette {
     selectColor(color) {
         this.app.state.strokeColor = color;
 
+        // Save to active tool if it's a tool that supports independent colors
+        const currentTool = this.app.state.currentTool;
+        if (this.app.tools[currentTool] && this.app.tools[currentTool].currentColor !== undefined) {
+            this.app.tools[currentTool].currentColor = color;
+        }
+
         // UI Güncelle (Main sidebar is gone, so we only update properties sidebar if it exists)
 
         // Seçili nesne varsa güncelle
@@ -216,7 +222,7 @@ class ColorPalette {
                     <input type="text" class="picker-hex-input" value="${selectedColor}" maxlength="7">
                     ${window.EyeDropper ? `
                     <button class="picker-eyedropper-btn" title="Ekranda Renk Seç">
-                        <img src="assets/icons/eyedropper.svg" class="icon" style="width: 14px; height: 14px;">
+                        <app-icon name="eyedropper" class="icon" style="width: 14px; height: 14px;"></app-icon>
                     </button>
                     ` : ''}
                 </div>

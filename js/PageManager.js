@@ -222,12 +222,12 @@ class PageManager {
                 page.backgroundColor = this.app.canvasSettings.settings.backgroundColor;
                 page.backgroundPattern = this.app.canvasSettings.settings.pattern;
             }
-            
+
             // Only update thumbnail if forced or enough time has passed (30s)
             // This prevents lag during heavy drawing/autosaving
             const now = Date.now();
             const shouldUpdateThumb = force || !page._lastThumbTime || (now - page._lastThumbTime > 30000);
-            
+
             if (shouldUpdateThumb) {
                 this.updateCurrentPageThumbnail(force);
             }
@@ -236,7 +236,7 @@ class PageManager {
 
     updateCurrentPageThumbnail(force = false) {
         if (!this.app.canvas) return;
-        
+
         // If not forced, only update if the sidebar is actually visible to save CPU
         const sidebarVisible = this.sidebar && !this.sidebar.classList.contains('collapsed');
         if (!force && !sidebarVisible) return;
@@ -279,7 +279,7 @@ class PageManager {
             console.warn("Could not generate thumbnail due to security restrictions (tainted canvas).", e);
             page.thumbnail = null; // Fallback
         }
-        
+
         if (sidebarVisible || force) {
             this.renderPageList();
         }
@@ -416,7 +416,7 @@ class PageManager {
             // Duplicate Button
             const duplicateBtn = document.createElement('button');
             duplicateBtn.className = 'btn-duplicate-page';
-            duplicateBtn.innerHTML = `<img src="assets/icons/duplicate.svg" style="width: 14px; height: 14px; opacity: 0.6;">`;
+            duplicateBtn.innerHTML = `<app-icon name="copy-03" style="width: 14px; height: 14px; opacity: 0.6;"></app-icon>`;
             duplicateBtn.title = 'Sayfayı Çoğalt';
             duplicateBtn.onclick = (e) => this.duplicatePage(index, e);
             actions.appendChild(duplicateBtn);

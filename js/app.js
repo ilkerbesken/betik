@@ -58,7 +58,7 @@ class BetikApp {
 
         this.tools = {
             pen: new PenTool(() => { this.needsRender = true; }),
-            highlighter: new PenTool(() => { this.needsRender = true; }), // Re-use PenTool
+            highlighter: new HighlighterTool(() => { this.needsRender = true; }),
             line: new LineTool(),
             rectangle: shapeTool,
             ellipse: shapeTool,
@@ -376,12 +376,28 @@ class BetikApp {
 
         // --- Tool Specific Defaults (Apply only when switching TO the tool) ---
         if (tool !== prevTool) {
+            const hasColor = (t) => ['pen', 'highlighter', 'charcoal', 'fountain-pen', 'vector-pen', 'rectangle', 'rect', 'ellipse', 'triangle', 'trapezoid', 'star', 'diamond', 'parallelogram', 'oval', 'heart', 'cloud', 'line', 'arrow'].includes(t);
+
+            // Save previous tool's color if it supports it
+            if (hasColor(prevTool) && this.tools[prevTool] && this.tools[prevTool].currentColor !== undefined) {
+                this.tools[prevTool].currentColor = this.state.strokeColor;
+            } else if (hasColor(prevTool) && shapeTypes.concat(['line', 'arrow']).includes(prevTool)) {
+                // Shapes share the same color logic usually, but let's check if we want them independent too.
+                // The user only specified Pen tools.
+            }
+
+            // Load new tool's color
+            if (hasColor(tool) && this.tools[tool] && this.tools[tool].currentColor !== undefined) {
+                this.state.strokeColor = this.tools[tool].currentColor;
+            }
+
             if (tool === 'highlighter') {
                 this.state.opacity = 0.5;
                 this.state.strokeWidth = 14;
                 this.state.highlighterCap = 'butt';
                 
-                // User requested colors: #E4FF30, #FF5FCF, #B6FFA1
+                // User requested color: #E4FF30
+                // If it's the first time, currentColor would be #E4FF30.
                 if (this.propertiesSidebar) {
                     this.propertiesSidebar.quickColors = ['#E4FF30', '#FF5FCF', '#B6FFA1'];
                     this.propertiesSidebar.renderQuickColors();
@@ -389,6 +405,8 @@ class BetikApp {
             } else if (tool === 'pen') {
                 this.state.opacity = 1.0;
                 this.state.strokeWidth = 3;
+            } else if (tool === 'charcoal' || tool === 'fountain-pen' || tool === 'vector-pen') {
+                this.state.opacity = 1.0;
             } else if (tool === 'tape') {
                 this.state.opacity = 1.0;
                 this.state.strokeWidth = 20;
@@ -675,6 +693,8 @@ class BetikApp {
             btnToolbarPaste.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.triggerPaste();
+                const dropdown = document.getElementById('appMenuDropdown');
+                if (dropdown) dropdown.classList.remove('show');
             });
         }
 
@@ -764,7 +784,7 @@ class BetikApp {
         };
         img.onerror = () => {
             console.error('Image failed to load:', src.substring(0, 50) + '...');
-                Utils.showToast('Resim yüklenemedi. Lütfen başka bir dosya deneyin.', 'error');
+            alert('Resim yüklenemedi. Lütfen başka bir dosya deneyin.');
         };
         img.src = src;
     }
@@ -859,7 +879,7 @@ class BetikApp {
 
     async triggerPaste() {
         if (!navigator.clipboard || !navigator.clipboard.read) {
-                Utils.showToast('Tarayıcınız panoya erişimi desteklemiyor. Lütfen Ctrl+V kullanın.', 'warning');
+            alert('Tarayıcınız panoya erişimi desteklemiyor. Lütfen Ctrl+V kullanın.');
             return;
         }
         try {
@@ -888,14 +908,14 @@ class BetikApp {
                 }
             }
             if (!foundImage) {
-                Utils.showToast('Panoda yapıştırılacak bir resim bulunamadı.', 'info');
+                alert('Panoda yapıştırılacak bir resim bulunamadı.');
             }
         } catch (err) {
             console.error('Clipboard access denied:', err);
             if (err.name === 'NotAllowedError') {
-                Utils.showToast('Pano erişim izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya Ctrl+V kullanın.', 'error');
+                alert('Pano erişim izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya Ctrl+V kullanın.');
             } else {
-                Utils.showToast('Panoya erişilemedi. Lütfen Ctrl+V kullanın.', 'error');
+                alert('Panoya erişilemedi. Lütfen Ctrl+V kullanın.');
             }
         }
     }
@@ -933,7 +953,11 @@ class BetikApp {
 
         const btnTimer = document.getElementById('btnTimerTool');
         if (btnTimer) {
-            btnTimer.onclick = () => this.timerTool.toggle();
+            btnTimer.onclick = () => {
+                this.timerTool.toggle();
+                const dropdown = document.getElementById('appMenuDropdown');
+                if (dropdown) dropdown.classList.remove('show');
+            };
         }
 
         const btnTextSelect = document.getElementById('btnTextSelect');
@@ -1059,6 +1083,12 @@ class BetikApp {
                 this.openSaveTemplateModal();
                 dropdown.classList.remove('show');
             });
+
+            // Grab Image Tool
+            document.getElementById('btnGrabImage')?.addEventListener('click', () => {
+                this.setTool('grab-image');
+                dropdown.classList.remove('show');
+            });
         }
 
         // Setup Save Template Modal
@@ -1108,7 +1138,7 @@ class BetikApp {
             const description = document.getElementById('templateDescriptionInput').value;
 
             if (!name || !name.trim()) {
-                Utils.showToast('Lütfen şablon için bir isim girin.', 'warning');
+                alert('Lütfen şablon için bir isim girin.');
                 document.getElementById('templateNameInput').focus();
                 return;
             }
@@ -1118,7 +1148,7 @@ class BetikApp {
 
             if (success) {
                 this.closeSaveTemplateModal();
-                Utils.showToast(`"${name}" şablonu başarıyla kaydedildi!`, 'success');
+                alert(`"${name}" şablonu başarıyla kaydedildi!`);
             }
         });
 
@@ -2291,7 +2321,47 @@ class BetikApp {
     }
 
     showToast(message, type = 'info') {
-        Utils.showToast(message, type);
+        let toast = document.getElementById('betik-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'betik-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 110px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(40,40,40,0.95);
+                color: white;
+                padding: 10px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                z-index: 10000;
+                pointer-events: none;
+                transition: opacity 0.3s, transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                border: 1px solid rgba(255,255,255,0.1);
+            `;
+            document.body.appendChild(toast);
+        }
+
+        const icons = {
+            'success': '✅',
+            'error': '❌',
+            'info': 'ℹ️'
+        };
+
+        toast.innerHTML = `<span style="font-size: 16px;">${icons[type] || ''}</span> <span style="font-weight: 500;">${message}</span>`;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+
+        if (this._toastTimeout) clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2500);
     }
 }
 

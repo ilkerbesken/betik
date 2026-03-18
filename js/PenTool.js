@@ -12,6 +12,7 @@ class PenTool {
         this.streamlinePoints = [];
         this.lastStreamlined = null;
         this.lastPressure = 0.5;
+        this.currentColor = '#000000';
     }
 
     handlePointerDown(e, pos, canvas, ctx, state) {
@@ -22,7 +23,7 @@ class PenTool {
         this.streamlinePoints = [];
         this.lastStreamlined = null;
         this.lastPoint = null;
-        this.lastPressure = (state.pressureEnabled !== false && state.currentTool !== 'highlighter')
+        this.lastPressure = (state.pressureEnabled !== false)
             ? Utils.normalizePressure(pos.pressure)
             : 0.5;
 
@@ -36,14 +37,14 @@ class PenTool {
         this.streamlinePoints = [point];
 
         this.currentPath = {
-            type: state.currentTool === 'highlighter' ? 'highlighter' : 'pen',
+            type: 'pen',
             points: [...this.points],
             color: state.strokeColor,
             width: state.strokeWidth,
             opacity: state.opacity,
             lineStyle: state.lineStyle || 'solid',
-            cap: state.currentTool === 'highlighter' ? state.highlighterCap : 'round',
-            isHighlighter: state.currentTool === 'highlighter',
+            cap: 'round',
+            isHighlighter: false,
             filled: state.fillEnabled,
             fillColor: state.strokeColor
         };
@@ -55,7 +56,7 @@ class PenTool {
         const point = {
             x: pos.x,
             y: pos.y,
-            pressure: (state.pressureEnabled !== false && state.currentTool !== 'highlighter')
+            pressure: (state.pressureEnabled !== false)
                 ? Utils.normalizePressure(pos.pressure)
                 : 0.5,
             time: Date.now()
@@ -100,7 +101,6 @@ class PenTool {
         this.lastPoint = point;
 
         // ZOOM-RESPONSIVE USER STABILIZATION
-        // Combines user preference (from slider) with zoom-based precision adjustment
         const userStab = state.stabilization !== undefined ? state.stabilization : 0.5;
         const zoomDampener = (Math.min(zoom, 5) - 1) * 0.1;
         const streamlineFactor = Math.max(0.0, (userStab * 0.98) - zoomDampener);
@@ -115,13 +115,8 @@ class PenTool {
         this.lastStreamlined = streamlined;
         this.streamlinePoints.push(streamlined);
 
-        // REAL-TIME SMOOTHING 
-        // Apply a lightweight smoothing pass during drawing so the preview matches 
-        // the final high-quality output and doesn't look "angular".
-        // Performance optimization: Use only 1 iteration during move for 120Hz responsiveness.
         if (this.streamlinePoints.length > 5) {
             let pts = [...this.streamlinePoints];
-            // Lightweight sanitize during move
             const precision = 0.4 / zoom;
             if (pts.length > 10) {
                 const head = pts.slice(0, 2);
@@ -136,7 +131,6 @@ class PenTool {
                 const tail = pts.slice(-2);
                 pts = [...head, ...mid, ...tail];
             }
-            // Use 1 iteration instead of 3 for real-time preview (Performance)
             pts = Utils.chaikin(pts, 1);
             this.currentPath.points = Utils.smoothPressure(pts);
         } else {
@@ -156,13 +150,9 @@ class PenTool {
         this.isDrawing = false;
         clearTimeout(this.straightenTimer);
 
-        const zoom = ctx.getTransform().a || 1.0;
-        const precision = 0.4 / zoom;
-
         if (!this.currentPath.isStraightened) {
             let pts = [...this.streamlinePoints];
 
-            // Catch-up
             if (this.lastPoint && pts.length > 0) {
                 const endPos = this.lastPoint;
                 pts.push({
@@ -172,20 +162,7 @@ class PenTool {
                 });
             }
 
-            const sanitize = (arr, thresh) => {
-                if (arr.length < 4) return arr;
-                let result = [...arr];
-                // Only remove intermediate points that are too close, 
-                // but NEVER shift/pop the actual start and end points as it causes "shortening".
-                return result; 
-            };
-
-            pts = sanitize(pts, precision);
-
-            // Use only 1 iteration of Chaikin instead of 3 to preserve fine details.
-            // 3 iterations was causing the "regularization" and shrinking the user complained about.
             if (pts.length > 3) pts = Utils.chaikin(pts, 1);
-            
             this.currentPath.points = Utils.smoothPressure(pts);
         }
 
@@ -208,31 +185,21 @@ class PenTool {
     draw(ctx, object) {
         if (!object.points || object.points.length < 1) return;
 
-        // ── WebGPU fast path ──────────────────────────────────────
-        // Solid strokes ≥ 20 points benefit from GPU batch rendering.
-        // Rainbow, dashed, wavy styles fall back to Canvas2D (complexity).
         const style = object.lineStyle || 'solid';
         const gpu = window.webGPURenderer;
         if (
             style === 'solid'
             && object.points.length >= 20
-            && !object.isHighlighter   // highlighter blending handled separately
             && gpu && gpu.isSupported
         ) {
-            // Pull zoom/pan from the context's current transform
             const tx = ctx.getTransform();
             const zoom = tx.a || 1;
             const pan  = { x: tx.e || 0, y: tx.f || 0 };
-
-            // Canvas dimensions (logical pixels)
             const canvas  = ctx.canvas;
             const viewW   = canvas.clientWidth  || canvas.width;
             const viewH   = canvas.clientHeight || canvas.height;
-
-            // GPU draw returns true on success
             if (gpu.drawStroke(ctx, object, zoom, viewW, viewH, pan)) return;
         }
-        // ── Canvas2D fallback ────────────────────────────────────-
         ctx.save();
         ctx.globalAlpha = object.opacity !== undefined ? object.opacity : 1.0;
         if (style === 'solid') this.drawSolid(ctx, object);
@@ -253,17 +220,7 @@ class PenTool {
         }
 
         ctx.fillStyle = color;
-        ctx.strokeStyle = color; // Pre-set for highlighter/seam sealer
-
-        if (object.isHighlighter) {
-            ctx.lineWidth = object.width;
-            ctx.lineCap = object.cap || 'round'; ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x, pts[0].y);
-            for (let i = 1; i < len; i++) ctx.lineTo(pts[i].x, pts[i].y);
-            ctx.stroke();
-            return;
-        }
+        ctx.strokeStyle = color;
 
         if (len === 1) {
             const r = Utils.getPressureWidth(object.width, pts[0].pressure || 0.5) / 2;

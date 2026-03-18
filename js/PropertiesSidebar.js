@@ -1523,11 +1523,10 @@ class PropertiesSidebar {
 
     loadQuickColors() {
         const tool = this.app.state.currentTool;
-        let storageKey = 'betik_quick_colors';
+        let storageKey = `betik_quick_colors_${tool}`;
         let defaults = ['#000000', '#ff5c5c', '#5c9bfe'];
         
         if (tool === 'highlighter') {
-            storageKey = 'betik_quick_colors_highlighter';
             defaults = ['#E4FF30', '#FF5FCF', '#B6FFA1'];
         }
         
@@ -1535,13 +1534,19 @@ class PropertiesSidebar {
         if (saved) {
             this.quickColors = JSON.parse(saved);
         } else {
-            this.quickColors = defaults;
+            // Check for a legacy generic key for backward compatibility if not specifically set for this tool
+            const legacy = localStorage.getItem('betik_quick_colors');
+            if (legacy && tool !== 'highlighter') {
+                this.quickColors = JSON.parse(legacy);
+            } else {
+                this.quickColors = defaults;
+            }
         }
     }
 
     saveQuickColors() {
         const tool = this.app.state.currentTool;
-        let storageKey = (tool === 'highlighter') ? 'betik_quick_colors_highlighter' : 'betik_quick_colors';
+        let storageKey = `betik_quick_colors_${tool}`;
         localStorage.setItem(storageKey, JSON.stringify(this.quickColors));
     }
 

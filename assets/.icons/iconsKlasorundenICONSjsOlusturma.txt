@@ -1,0 +1,4 @@
+terminalde asagidaki kodu calistirmak yeterli;
+
+
+node convert.js

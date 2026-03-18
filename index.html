@@ -44,19 +44,19 @@
             <!-- Mobile Search and Actions -->
             <div class="mobile-dashboard-actions mobile-only">
                 <div class="search-bar">
-                    <img src="assets/icons/select.svg" class="search-icon" style="opacity: 0.5;">
+                    <app-icon name="select" class="search-icon" style="opacity: 0.5;"></app-icon>
                     <input type="text" placeholder="Notlarda ara..." id="mobileSearchInput">
                     <button class="search-clear-btn" id="mobileSearchClear" style="display: none;">✕</button>
                 </div>
                 <div class="mobile-action-buttons">
                     <button id="btnSelectAllMobile" class="mobile-action-btn" title="Tümünü Seç">
-                        <img src="assets/icons/select-all.svg" alt="select-all">
+                        <app-icon name="check-square-broken" alt="select-all"></app-icon>
                     </button>
                     <button id="btnImportMobile" class="mobile-action-btn" title="İçe Aktar">
-                        <img src="assets/icons/import.svg" alt="import">
+                        <app-icon name="file-download-03" alt="import"></app-icon>
                     </button>
                     <button id="btnOpenTemplatesMobile" class="mobile-action-btn" title="Şablonlar">
-                        <img src="assets/icons/pages.svg" alt="templates">
+                        <app-icon name="table" alt="templates"></app-icon>
                     </button>
                     <button id="btnNewBoardMobile" class="mobile-action-btn primary" title="Yeni Not">
                         <span>+</span>
@@ -67,22 +67,22 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-item active" data-view="all">
-                        <img src="assets/icons/pages.svg" class="nav-icon">
+                        <app-icon name="file-04" class="nav-icon"></app-icon>
                         <span>Tüm Sayfalar</span>
                     </div>
                     <div class="nav-item" data-view="recent">
-                        <img src="assets/icons/undo.svg" class="nav-icon">
+                        <app-icon name="hourglass-03" class="nav-icon"></app-icon>
                         <span>Son Kullanılanlar</span>
                     </div>
                 </div>
                 <div class="nav-section">
                     <div class="section-title">KOLEKSİYONLAR</div>
                     <div class="nav-item" data-view="favorites">
-                        <img src="assets/icons/star.svg" class="nav-icon">
+                        <app-icon name="star-01" class="nav-icon"></app-icon>
                         <span>Favoriler</span>
                     </div>
                     <div class="nav-item" data-view="trash">
-                        <img src="assets/icons/trash.svg" class="nav-icon">
+                        <app-icon name="trash-01" class="nav-icon"></app-icon>
                         <span>Çöp Kutusu</span>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                 <div class="nav-section"
                     style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                     <div class="nav-item" id="btnStorageSettings">
-                        <img src="assets/icons/settings.svg" class="nav-icon" style="opacity: 0.6;">
+                        <app-icon name="settings" class="nav-icon" style="opacity: 0.6;"></app-icon>
                         <span>Depolama Ayarları</span>
                     </div>
                 </div>
@@ -113,15 +113,15 @@
                 <div class="breadcrumb">Betik / Tüm Sayfalar</div>
                 <div class="header-actions">
                     <div class="search-bar">
-                        <img src="assets/icons/select.svg" class="search-icon" style="opacity: 0.5;">
+                        <app-icon name="select" class="search-icon" style="opacity: 0.5;"></app-icon>
                         <input type="text" placeholder="Ara..." id="searchInput">
                         <button class="search-clear-btn" id="searchClear" style="display: none;">✕</button>
                     </div>
 
                     <div class="view-options-container">
                         <button id="btnViewOptions" class="btn btn-secondary" title="Görünüm Ayarları">
-                            <img src="assets/icons/view.svg" alt="view" class="icon-small"
-                                style="width: 14px; margin-right: 5px;">
+                            <app-icon name="ruler" alt="view" class="icon-small"
+                                style="width: 14px; margin-right: 5px;"></app-icon>
                             Görünüm
                         </button>
                         <div class="view-options-dropdown" id="viewOptionsDropdown">
@@ -136,6 +136,17 @@
                                     <button class="size-btn" data-size="large" title="Büyük">Büyük</button>
                                 </div>
                             </div>
+
+                            <div class="option-group"
+                                style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                                <label>Icon Rengi</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <input type="color" id="uiIconColorPicker" value="#262626"
+                                        style="width: 40px; height: 30px; border: 1px solid #ddd; border-radius: 4px; padding: 2px; background: white; cursor: pointer;">
+                                    <button id="btnResetIconColor" class="btn btn-secondary"
+                                        style="font-size: 11px; padding: 4px 8px; height: auto;">Sıfırla</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -146,13 +157,13 @@
 
                     <div class="secondary-actions">
                         <button id="btnSelectAll" class="btn-icon" title="Tümünü Seç (Ctrl+A)">
-                            <img src="assets/icons/select-all.svg" alt="select-all">
+                            <app-icon name="select-all" alt="select-all"></app-icon>
                         </button>
                         <button id="btnImport" class="btn btn-secondary btn-icon" title="İçe Aktar">
-                            <img src="assets/icons/import.svg" alt="import" class="icon-small" style="width: 14px;">
+                            <app-icon name="import" alt="import" class="icon-small" style="width: 14px;"></app-icon>
                         </button>
                         <button id="btnOpenTemplates" class="btn-icon" title="Şablonlar">
-                            <img src="assets/icons/template.svg" alt="templates">
+                            <app-icon name="template" alt="templates"></app-icon>
                         </button>
                     </div>
 
@@ -178,19 +189,19 @@
             <div id="bulkActionsToolbar" class="bulk-actions-toolbar" style="display: none;">
                 <span class="selected-count">0 not seçildi</span>
                 <button id="btnBulkChangeCover" title="Kapak Değiştir">
-                    <img src="assets/icons/cover.svg">
+                    <app-icon name="brush-02"></app-icon>
                     <span>Kapak</span>
                 </button>
                 <button id="btnBulkMove" title="Klasöre Taşı">
-                    <img src="assets/icons/subfolder.svg">
+                    <app-icon name="folder-search"></app-icon>
                     <span>Taşı</span>
                 </button>
                 <button id="btnBulkFavorite" title="Favorile">
-                    <img src="assets/icons/star.svg">
+                    <app-icon name="star-01"></app-icon>
                     <span>Favorile</span>
                 </button>
                 <button id="btnBulkDelete" title="Sil">
-                    <img src="assets/icons/trash.svg">
+                    <app-icon name="trash-02"></app-icon>
                     <span>Sil</span>
                 </button>
                 <div class="bulk-divider"></div>
@@ -215,7 +226,7 @@
             <div class="modal-body">
                 <button class="import-option-btn" id="btnModalUploadPDF">
                     <div class="option-icon-wrapper">
-                        <img src="assets/icons/pdf-anno.svg" alt="pdf">
+                        <app-icon name="pdf-anno" alt="pdf"></app-icon>
                     </div>
                     <div class="option-content">
                         <span class="option-title">PDF içe aktar</span>
@@ -223,7 +234,7 @@
                 </button>
                 <button class="import-option-btn" id="btnModalOpenTom">
                     <div class="option-icon-wrapper">
-                        <img src="assets/icons/dot-tik.svg" alt="tik">
+                        <app-icon name="dot-tik" alt="tik"></app-icon>
                     </div>
                     <div class="option-content">
                         <span class="option-title">betik dosyası aç (.tik)</span>
@@ -246,7 +257,7 @@
                 <div class="tab-selector-container">
                     <button id="current-tab-btn" class="current-tab-btn">
                         <span id="active-tab-name">Sekme Seçin</span>
-                        <img src="assets/icons/arrow-dashboard.svg" class="dropdown-arrow">
+                        <app-icon name="arrow-dashboard" class="dropdown-arrow"></app-icon>
                     </button>
                     <div id="tab-dropdown" class="tab-dropdown">
                         <!-- Tabs will be rendered here -->
@@ -254,93 +265,86 @@
                 </div>
 
                 <div class="tool-btn" id="btnHome" title="Dashboard'a Dön">
-                    <img src="assets/icons/home.svg" alt="home" class="icon">
+                    <app-icon name="home-02" alt="home" class="icon"></app-icon>
                 </div>
 
                 <button class="tool-btn" id="btnPageSidebarTrigger" title="Sayfalar">
-                    <img src="assets/icons/side-page.svg" alt="pages" class="icon">
+                    <app-icon name="layout-left" alt="pages" class="icon"></app-icon>
                 </button>
 
                 <button class="tool-btn" id="btnAddPage" title="Sayfa Ekle">
-                    <img src="assets/icons/add-page.svg" alt="add-page" class="icon">
+                    <app-icon name="file-plus-03" alt="add-page" class="icon"></app-icon>
                 </button>
 
                 <button class="tool-btn" id="undoBtn" title="Geri Al (Ctrl+Z)">
-                    <img src="assets/icons/undo.svg" alt="undo" class="icon">
+                    <app-icon name="flip-backward" alt="undo" class="icon"></app-icon>
                 </button>
 
                 <button class="tool-btn" id="redoBtn" title="İleri Al (Ctrl+Y)">
-                    <img src="assets/icons/redo.svg" alt="redo" class="icon">
+                    <app-icon name="flip-forward" alt="redo" class="icon"></app-icon>
                 </button>
             </div>
 
             <div class="toolbar-center">
                 <div class="tool-group">
                     <button class="tool-btn" data-tool="select" title="Seç (V)">
-                        <img src="assets/icons/select.svg" alt="select" class="icon">
+                        <app-icon name="cursor-01" alt="select" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="hand" title="El (H)">
-                        <img src="assets/icons/hand.svg" alt="hand" class="icon">
+                        <app-icon name="hand" alt="hand" class="icon"></app-icon>
                     </button>
                     <div class="tool-btn" id="btnTextSelect" title="PDF Metin Seçimi">
-                        <img src="assets/icons/text-cursor.svg" alt="Seç" class="icon">
+                        <app-icon name="text-input" alt="Seç" class="icon"></app-icon>
                     </div>
-                    <button class="tool-btn" data-tool="grab-image" title="Ekran Yakala (G)">
-                        <img src="assets/icons/grab-image.svg" alt="grab" class="icon">
-                    </button>
+
                 </div>
 
                 <div class="tool-group">
                     <button class="tool-btn active" data-tool="pen" title="Kalem (P)">
-                        <img src="assets/icons/pen.svg" alt="pen" class="icon">
+                        <app-icon name="pencil-01" alt="pen" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="charcoal" title="Karakalem (K)">
-                        <img src="assets/icons/charcoal.svg" alt="charcoal" class="icon">
+                        <app-icon name="pencil-02" alt="charcoal" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="fountain-pen" title="Dolma Kalem (D)">
-                        <img src="assets/icons/fountain-pen.svg" alt="fountain-pen" class="icon">
+                        <app-icon name="pen-tool-02" alt="fountain-pen" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="vector-pen" title="Vektör Kalemi (V)">
-                        <img src="assets/icons/pen-edit.svg" alt="vector-pen" class="icon">
+                        <app-icon name="bezier-curve-01" alt="vector-pen" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="highlighter" title="Vurgulayıcı Pen (I)">
-                        <img src="assets/icons/highlighter.svg" alt="highlighter" class="icon">
+                        <app-icon name="highlighter-01" alt="highlighter" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="eraser" title="Silgi (X)">
-                        <img src="assets/icons/eraser.svg" alt="eraser" class="icon">
+                        <app-icon name="eraser" alt="eraser" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="text" title="Metin (T)">
-                        <img src="assets/icons/text.svg" alt="text" class="icon">
+                        <app-icon name="type-square" alt="text" class="icon"></app-icon>
                     </button>
-                    <button class="tool-btn" id="btnToolbarInsertImage" title="Resim Ekle">
-                        <img src="assets/icons/picture.svg" alt="image" class="icon">
-                    </button>
-                    <button class="tool-btn" id="btnToolbarPaste" title="Yapıştır (Ctrl+V)">
-                        <img src="assets/icons/paste.svg" alt="paste" class="icon">
-                    </button>
+
                 </div>
 
                 <div class="tool-group">
                     <button class="tool-btn" id="shapePickerBtn" data-tool="rectangle" title="Şekiller (O)">
-                        <img src="assets/icons/rectangle.svg" alt="rectangle" class="icon">
+                        <app-icon name="pentagon" alt="rectangle" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="arrow" title="Ok (A)">
-                        <img src="assets/icons/arrow.svg" alt="arrow" class="icon">
+                        <app-icon name="arrow-narrow-down-left" alt="arrow" class="icon"></app-icon>
                     </button>
                 </div>
 
                 <div class="tool-group">
                     <button class="tool-btn" data-tool="sticker" title="Stickerlar (S)">
-                        <img src="assets/icons/sticker.svg" alt="sticker" class="icon">
+                        <app-icon name="sticker-circle" alt="sticker" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tool="tape" title="Bant Aracı (T)">
-                        <img src="assets/icons/tape.svg" alt="tape" class="icon">
+                        <app-icon name="tape" alt="tape" class="icon"></app-icon>
                     </button>
                 </div>
 
                 <div class="tool-group" style="border-right: none;">
                     <button class="tool-btn" data-tool="table" title="Tablo Ekle">
-                        <img src="assets/icons/table.svg" alt="table" class="icon">
+                        <app-icon name="layout-grid-02" alt="table" class="icon"></app-icon>
                     </button>
                 </div>
 
@@ -351,10 +355,10 @@
                 <!-- Sayfa Kontrolleri -->
                 <div class="page-navigation-group-top">
                     <button class="tool-btn" id="btnPrevPage" title="Önceki Sayfa">
-                        <img src="assets/icons/arrow-line-left.svg" alt="prev" class="icon">
+                        <app-icon name="arrow-line-left" alt="prev" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" id="btnNextPage" title="Sonraki Sayfa">
-                        <img src="assets/icons/arrow-line-right.svg" alt="next" class="icon">
+                        <app-icon name="arrow-line-right" alt="next" class="icon"></app-icon>
                     </button>
                 </div>
                 <!-- More Actions Menu -->
@@ -392,13 +396,13 @@
             <!-- Select Tool Settings -->
             <div class="tool-group" id="selectSettings" style="display: none;">
                 <button class="tool-btn active" data-select-mode="normal" title="Seç ve Taşı">
-                    <img src="assets/icons/select.svg" alt="select" class="icon">
+                    <app-icon name="cursor-01" alt="select" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-select-mode="area" title="Bölge Seç">
-                    <img src="assets/icons/select-area.svg" alt="select-area" class="icon">
+                    <app-icon name="cursor-box" alt="select-area" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" id="btnVerticalSpaceTool" title="Dikey Boşluk">
-                    <img src="assets/icons/vertical-space.svg" alt="vertical-space" class="icon">
+                    <app-icon name="spacing-height-01" alt="vertical-space" class="icon"></app-icon>
                 </button>
             </div>
 
@@ -440,7 +444,7 @@
                 <button class="tool-btn" id="btnOcrImage"
                     title="Resmi Metne Dönüştür (OCR) — Görünmez metin katmanı oluşturur"
                     style="gap:5px; padding: 4px 8px; min-width: auto;">
-                    <img src="assets/icons/OCRpicture.svg" alt="vertical-space" class="icon">
+                    <app-icon name="OCRpicture" alt="vertical-space" class="icon"></app-icon>
                 </button>
             </div>
 
@@ -448,18 +452,18 @@
             <div class="tool-group" id="pdfOcrSettings" style="display: none; align-items: center; gap: 8px;">
                 <button class="tool-btn" id="btnOcrPdfPage" title="Bu Sayfayı Metne Dönüştür"
                     style="gap:5px; padding: 4px 10px; min-width: auto;">
-                    <img src="assets/icons/OCR-onepage.svg" alt="vertical-space" class="icon">
+                    <app-icon name="OCR-onepage" alt="vertical-space" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" id="btnOcrPdfAll" title="Tüm Belgeyi Metne Dönüştür (Bu işlem zaman alabilir)"
                     style="gap:5px; padding: 4px 10px; min-width: auto; background: rgba(99,99,255,0.1); border-color: rgba(99,99,255,0.3);">
-                    <img src="assets/icons/OCR-all.svg" alt="vertical-space" class="icon">
+                    <app-icon name="OCR-all" alt="vertical-space" class="icon"></app-icon>
                 </button>
             </div>
 
             <!-- PDF Text Highlight Settings -->
             <div class="tool-group" id="pdfTextHighlightSettings" style="display: none; align-items: center; gap: 8px;">
                 <button class="tool-btn" id="btnHighlightPdfText" title="Seçili Metni Vurgula">
-                    <img src="assets/icons/highlighter.svg" alt="highlight" class="icon">
+                    <app-icon name="highlighter-01" alt="highlight" class="icon"></app-icon>
                 </button>
                 <div class="quick-colors" id="pdfHighlightColors" style="display: flex; gap: 4px;">
                     <button class="quick-color-btn" data-highlight-color="#ffff00"
@@ -497,7 +501,7 @@
             <!-- Brush Settings Group (Hidden) -->
             <div class="tool-group" id="toolGroupBrushSettings" style="display: none !important;">
                 <button id="btnBrushSettingsTrigger" class="property-trigger-btn" title="Araç Seçenekleri">
-                    <img src="assets/icons/settings.svg" alt="settings" class="icon">
+                    <app-icon name="settings" alt="settings" class="icon"></app-icon>
                     <span class="label" style="font-size: 8px;"></span>
                 </button>
             </div>
@@ -510,52 +514,52 @@
             <div class="tool-group" id="shapeSettings" style="display: none;">
                 <button class="tool-btn active" data-tool="rectangle" title="Dikdörtgen">
 
-                    <img src="assets/icons/rectangle.svg" alt="rectangle" class="icon">
+                    <app-icon name="rectangle" alt="rectangle" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="ellipse" title="Elips">
 
-                    <img src="assets/icons/ellipse.svg" alt="ellipse" class="icon">
+                    <app-icon name="ellipse" alt="ellipse" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="triangle" title="Üçgen">
 
-                    <img src="assets/icons/triangle.svg" alt="triangle" class="icon">
+                    <app-icon name="triangle" alt="triangle" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="trapezoid" title="Yamuk">
 
-                    <img src="assets/icons/trapezoid.svg" alt="trapezoid" class="icon">
+                    <app-icon name="trapezoid" alt="trapezoid" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="star" title="Yıldız">
 
-                    <img src="assets/icons/star.svg" alt="star" class="icon">
+                    <app-icon name="star" alt="star" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="diamond" title="Karo">
 
-                    <img src="assets/icons/diamond.svg" alt="diamond" class="icon">
+                    <app-icon name="diamond" alt="diamond" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="parallelogram" title="Paralel Kenar">
 
-                    <img src="assets/icons/parallelogram.svg" alt="parallelogram" class="icon">
+                    <app-icon name="parallelogram" alt="parallelogram" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="oval" title="Oval">
 
-                    <img src="assets/icons/oval.svg" alt="oval" class="icon">
+                    <app-icon name="oval" alt="oval" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="heart" title="Kalp">
 
-                    <img src="assets/icons/heart.svg" alt="heart" class="icon">
+                    <app-icon name="heart" alt="heart" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-tool="cloud" title="Bulut">
 
-                    <img src="assets/icons/cloud.svg" alt="cloud" class="icon">
+                    <app-icon name="cloud" alt="cloud" class="icon"></app-icon>
 
                 </button>
             </div>
@@ -564,7 +568,7 @@
             <div class="tool-group" id="fillSettings" style="display: none;">
                 <button id="btnFillToggle" class="tool-btn" title="İçini Doldur">
 
-                    <img src="assets/icons/fill.svg" alt="fill" class="icon">
+                    <app-icon name="paint-pour" alt="fill" class="icon"></app-icon>
 
                 </button>
             </div>
@@ -572,7 +576,7 @@
             <div class="tool-group">
                 <button class="tool-btn active" id="pressureBtn" title="Basınç Hassasiyeti">
 
-                    <img src="assets/icons/pressure.svg" alt="pressure" class="icon">
+                    <app-icon name="pressure" alt="pressure" class="icon"></app-icon>
 
                 </button>
             </div>
@@ -581,12 +585,12 @@
                 <label class="label">Silgi</label>
                 <button class="tool-btn active" data-eraser-mode="object" title="Nesne Silgisi">
 
-                    <img src="assets/icons/eraser-object.svg" alt="eraser-object" class="icon">
+                    <app-icon name="eraser-object" alt="eraser-object" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-eraser-mode="partial" title="Kısmi Silgi (Piksel)">
 
-                    <img src="assets/icons/eraser-partial.svg" alt="eraser-partial" class="icon">
+                    <app-icon name="eraser-partial" alt="eraser-partial" class="icon"></app-icon>
 
                 </button>
 
@@ -605,14 +609,14 @@
                 <!-- Start Style Wrap -->
                 <div style="position: relative;">
                     <button id="btnArrowStartTrigger" class="property-trigger-btn" title="Başlangıç Ucu">
-                        <img src="assets/icons/arrow-trigger-start.svg" alt="arrow-trigger-start" class="icon">
+                        <app-icon name="arrow-trigger-start" alt="arrow-trigger-start" class="icon"></app-icon>
 
                     </button>
                 </div>
                 <!-- End Style Wrap -->
                 <div style="position: relative;">
                     <button id="btnArrowEndTrigger" class="property-trigger-btn" title="Bitiş Ucu">
-                        <img src="assets/icons/arrow-trigger-end.svg" alt="arrow-trigger-end" class="icon">
+                        <app-icon name="arrow-trigger-end" alt="arrow-trigger-end" class="icon"></app-icon>
 
                     </button>
                 </div>
@@ -623,11 +627,11 @@
             <div class="tool-group" id="arrowPathSettings" style="display: none;">
                 <label class="label">Şekil</label>
                 <button class="tool-btn" data-arrow-path="curved" title="Eğri">
-                    <img src="assets/icons/arrow-curved.svg" alt="arrow-curved" class="icon">
+                    <app-icon name="arrow-curved" alt="arrow-curved" class="icon"></app-icon>
 
                 </button>
                 <button class="tool-btn" data-arrow-path="elbow" title="Dirsek">
-                    <img src="assets/icons/arrow-elbow.svg" alt="arrow-elbow" class="icon">
+                    <app-icon name="arrow-elbow" alt="arrow-elbow" class="icon"></app-icon>
 
                 </button>
             </div>
@@ -638,7 +642,8 @@
                     <!-- Stickers will be added here -->
                 </div>
                 <button id="btnStickerMore" class="tool-btn" title="Yönet" style="margin-left: auto; flex-shrink: 0;">
-                    <img src="assets/icons/settings.svg" alt="settings" class="icon" style="width: 16px; height: 16px;">
+                    <app-icon name="settings-03" alt="settings" class="icon"
+                        style="width: 16px; height: 16px;"></app-icon>
                 </button>
             </div>
 
@@ -647,13 +652,13 @@
                 <!-- Mod Grubu -->
                 <div class="mode-options" style="display: flex; gap: 4px;">
                     <button class="tool-btn active" data-tape-mode="line" title="Düz Bant Çizgisi">
-                        <img src="assets/icons/tape-line.svg" alt="line" class="icon">
+                        <app-icon name="tape-line" alt="line" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tape-mode="freehand" title="Serbest Bant">
-                        <img src="assets/icons/tape-freehand.svg" alt="freehand" class="icon">
+                        <app-icon name="tape-freehand" alt="freehand" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" data-tape-mode="rectangle" title="Dikdörtgen Bant">
-                        <img src="assets/icons/tape-rectangle.svg" alt="rectangle" class="icon">
+                        <app-icon name="tape-rectangle" alt="rectangle" class="icon"></app-icon>
                     </button>
                 </div>
 
@@ -685,8 +690,8 @@
                     <!-- Özel Desenler Listesi Tetikleyici -->
                     <button class="tool-btn" id="btnTapeCustomPatterns" title="Özel Desenlerim"
                         style="padding: 2px; width: 24px; height: 24px;">
-                        <img src="assets/icons/arrow-tape.svg" alt="more" class="icon"
-                            style="width: 12px; height: 12px;">
+                        <app-icon name="chevron-down" alt="more" class="icon"
+                            style="width: 12px; height: 12px;"></app-icon>
                     </button>
                 </div>
 
@@ -695,10 +700,10 @@
                 <!-- Özel Seçenekler -->
                 <div style="display: flex; gap: 4px;">
                     <button class="tool-btn" id="btnTapeImageUpload" title="Resimden Bant Yap">
-                        <img src="assets/icons/picture-to-tape.svg" alt="image" class="icon">
+                        <app-icon name="picture-to-tape" alt="image" class="icon"></app-icon>
                     </button>
                     <button class="tool-btn" id="btnTapePickShape" title="Şekilden Bant Yap">
-                        <img src="assets/icons/draw-to-tape.svg" alt="pick" class="icon">
+                        <app-icon name="draw-to-tape" alt="pick" class="icon"></app-icon>
                     </button>
                 </div>
 
@@ -707,9 +712,9 @@
 
             <!-- Reset Settings -->
             <div class="tool-group reset-group" style="border-right: none; margin-left: auto;">
-                <button id="btnResetProperties" class="tool-btn" title="Ayarları Sıfırla">
-                    <img src="assets/icons/renew.svg" class="icon" alt="Ayarları Sıfırla">
-                </button>
+                <a href="#" id="btnResetProperties" class="reset-link">
+                    <app-icon name="refresh-ccw-01" alt="image" class="icon"></app-icon>
+                </a>
             </div>
         </div>
 
@@ -769,15 +774,15 @@
                                 <span>Boş</span>
                             </button>
                             <button class="pattern-item" data-pattern="dots" title="Noktalı">
-                                <img src="assets/icons/pattern-dots.svg" alt="dots" class="icon-tiny">
+                                <app-icon name="pattern-dots" alt="dots" class="icon-tiny"></app-icon>
                                 <span>Noktalı</span>
                             </button>
                             <button class="pattern-item" data-pattern="grid" title="Kareli">
-                                <img src="assets/icons/pattern-grid.svg" alt="grid" class="icon-tiny">
+                                <app-icon name="pattern-grid" alt="grid" class="icon-tiny"></app-icon>
                                 <span>Kareli</span>
                             </button>
                             <button class="pattern-item" data-pattern="lines" title="Çizgili">
-                                <img src="assets/icons/pattern-lines.svg" alt="lines" class="icon-tiny">
+                                <app-icon name="pattern-lines" alt="lines" class="icon-tiny"></app-icon>
                                 <span>Çizgili</span>
                             </button>
                         </div>
@@ -828,7 +833,7 @@
         <div id="contextMenu" class="context-menu">
             <div class="context-menu-item" data-action="cut">
                 <span class="menu-icon">
-                    <img src="assets/icons/cut.svg" alt="cut" class="icon">
+                    <app-icon name="scissors-01" alt="cut" class="icon"></app-icon>
 
                 </span>
                 <span>Kes</span>
@@ -836,7 +841,7 @@
             </div>
             <div class="context-menu-item" data-action="copy">
                 <span class="menu-icon">
-                    <img src="assets/icons/copy.svg" alt="copy" class="icon">
+                    <app-icon name="copy-07" alt="copy" class="icon"></app-icon>
 
                 </span>
                 <span>Kopyala</span>
@@ -844,7 +849,7 @@
             </div>
             <div class="context-menu-item" data-action="paste">
                 <span class="menu-icon">
-                    <img src="assets/icons/paste.svg" alt="paste" class="icon">
+                    <app-icon name="roller-brush" alt="paste" class="icon"></app-icon>
 
                 </span>
                 <span>Yapıştır</span>
@@ -853,7 +858,7 @@
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="duplicate">
                 <span class="menu-icon">
-                    <img src="assets/icons/duplicate.svg" alt="duplicate" class="icon">
+                    <app-icon name="copy-03" alt="duplicate" class="icon"></app-icon>
 
                 </span>
                 <span>Çoğalt</span>
@@ -861,7 +866,7 @@
             </div>
             <div class="context-menu-item" data-action="delete">
                 <span class="menu-icon">
-                    <img src="assets/icons/trash.svg" alt="trash" class="icon">
+                    <app-icon name="trash-02" alt="trash" class="icon"></app-icon>
 
                 </span>
                 <span>Sil</span>
@@ -870,14 +875,14 @@
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="lock">
                 <span class="menu-icon">
-                    <img src="assets/icons/lock.svg" alt="lock" class="icon">
+                    <app-icon name="lock-01" alt="lock" class="icon"></app-icon>
                 </span>
                 <span>Kilitle</span>
                 <span class="menu-shortcut">K</span>
             </div>
             <div class="context-menu-item" data-action="unlock">
                 <span class="menu-icon">
-                    <img src="assets/icons/unlock.svg" alt="unlock" class="icon">
+                    <app-icon name="lock-unlocked-01" alt="unlock" class="icon"></app-icon>
                 </span>
                 <span>Kilidi Aç</span>
                 <span class="menu-shortcut">J</span>
@@ -896,51 +901,51 @@
             <div class="context-menu-separator table-option"></div>
             <div class="context-menu-item table-option" data-action="addRowAbove">
                 <span class="menu-icon">
-                    <img src="assets/icons/add-row-above.svg" class="icon">
+                    <app-icon name="add-row-above" class="icon"></app-icon>
                 </span>
                 <span>Satır Ekle (Üst)</span>
             </div>
             <div class="context-menu-item table-option" data-action="addRowBelow">
                 <span class="menu-icon">
-                    <img src="assets/icons/add-row-below.svg" class="icon">
+                    <app-icon name="add-row-below" class="icon"></app-icon>
                 </span>
                 <span>Satır Ekle (Alt)</span>
             </div>
             <div class="context-menu-item table-option" data-action="addColLeft">
                 <span class="menu-icon">
-                    <img src="assets/icons/add-col-left.svg" class="icon">
+                    <app-icon name="add-col-left" class="icon"></app-icon>
                 </span>
                 <span>Sütun Ekle (Sol)</span>
             </div>
             <div class="context-menu-item table-option" data-action="addColRight">
                 <span class="menu-icon">
-                    <img src="assets/icons/add-col-right.svg" class="icon">
+                    <app-icon name="add-col-right" class="icon"></app-icon>
                 </span>
                 <span>Sütun Ekle (Sağ)</span>
             </div>
             <div class="context-menu-item table-option" data-action="deleteRow">
                 <span class="menu-icon">
-                    <img src="assets/icons/delete-row.svg" class="icon">
+                    <app-icon name="delete-row" class="icon"></app-icon>
                 </span>
                 <span>Satırı Sil</span>
             </div>
             <div class="context-menu-item table-option" data-action="deleteCol">
                 <span class="menu-icon">
-                    <img src="assets/icons/delete-col.svg" class="icon">
+                    <app-icon name="delete-col" class="icon"></app-icon>
                 </span>
                 <span>Sütunu Sil</span>
             </div>
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="flipHorizontal">
                 <span class="menu-icon">
-                    <img src="assets/icons/flip-h.svg" alt="flip-h" class="icon">
+                    <app-icon name="flip-h" alt="flip-h" class="icon"></app-icon>
 
                 </span>
                 <span>Yatay Döndür</span>
             </div>
             <div class="context-menu-item" data-action="flipVertical">
                 <span class="menu-icon">
-                    <img src="assets/icons/flip-v.svg" alt="flip-v" class="icon">
+                    <app-icon name="flip-v" alt="flip-v" class="icon"></app-icon>
 
                 </span>
                 <span>Dikey Döndür</span>
@@ -948,28 +953,28 @@
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="bringToFront">
                 <span class="menu-icon">
-                    <img src="assets/icons/bring-front.svg" alt="bring-front" class="icon">
+                    <app-icon name="bring-front" alt="bring-front" class="icon"></app-icon>
 
                 </span>
                 <span>En Öne Getir</span>
             </div>
             <div class="context-menu-item" data-action="bringForward">
                 <span class="menu-icon">
-                    <img src="assets/icons/bring-forward.svg" alt="bring-forward" class="icon">
+                    <app-icon name="bring-forward" alt="bring-forward" class="icon"></app-icon>
 
                 </span>
                 <span>Bir Öne Getir</span>
             </div>
             <div class="context-menu-item" data-action="sendBackward">
                 <span class="menu-icon">
-                    <img src="assets/icons/send-backward.svg" alt="send-backward" class="icon">
+                    <app-icon name="send-backward" alt="send-backward" class="icon"></app-icon>
 
                 </span>
                 <span>Bir Arkaya Gönder</span>
             </div>
             <div class="context-menu-item" data-action="sendToBack">
                 <span class="menu-icon">
-                    <img src="assets/icons/send-back.svg" alt="send-back" class="icon">
+                    <app-icon name="send-back" alt="send-back" class="icon"></app-icon>
 
                 </span>
                 <span>En Arkaya Gönder</span>
@@ -977,14 +982,14 @@
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="group">
                 <span class="menu-icon">
-                    <img src="assets/icons/group.svg" alt="group" class="icon">
+                    <app-icon name="group" alt="group" class="icon"></app-icon>
                 </span>
                 <span>Grupla</span>
                 <span class="menu-shortcut">G</span>
             </div>
             <div class="context-menu-item" data-action="ungroup">
                 <span class="menu-icon">
-                    <img src="assets/icons/ungroup.svg" alt="ungroup" class="icon">
+                    <app-icon name="ungroup" alt="ungroup" class="icon"></app-icon>
                 </span>
                 <span>Grubu Çöz</span>
                 <span class="menu-shortcut">U</span>
@@ -992,7 +997,7 @@
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" data-action="saveAsSticker">
                 <span class="menu-icon">
-                    <img src="assets/icons/sticker.svg" alt="sticker" class="icon">
+                    <app-icon name="sticker-circle" alt="sticker" class="icon"></app-icon>
                 </span>
                 <span>Sticker Olarak Kaydet</span>
             </div>
@@ -1003,8 +1008,7 @@
                 <span>Sayfalar</span>
                 <div class="header-actions">
                     <button id="btnTogglePageView" class="view-toggle-btn" title="Görünümü Değiştir">
-                        <img src="assets/icons/grid-view.svg" alt="view" class="icon"
-                            style="width: 14px; height: 14px;">
+                        <app-icon name="grid-01" alt="view" class="icon" style="width: 14px; height: 14px;"></app-icon>
                     </button>
                     <button id="btnTogglePageSidebar" class="close-sidebar-btn" title="Kapat">×</button>
                 </div>
@@ -1038,20 +1042,20 @@
 
                 <button class="tool-btn" id="clearBtn" title="Temizle">
 
-                    <img src="assets/icons/trash.svg" alt="trash" class="icon">
+                    <app-icon name="trash-02" alt="trash" class="icon"></app-icon>
 
                 </button>
             </div>
             <div class="zoom-controls">
 
                 <button class=" zoom-btn" id="zoomFitBtn" title="Genişliğe Sığdır">
-                    <img src="assets/icons/zoom-fit-width.svg" alt="fit-width" class="icon">
+                    <app-icon name="maximize-01" alt="fit-width" class="icon"></app-icon>
                 </button>
 
                 <div style="width: 1px; height: 16px; background: #ddd; margin: 0 4px;"></div>
 
                 <button class="zoom-btn" id="zoomOutBtn" title="Uzaklaş (-)">
-                    <img src="assets/icons/zoom-out.svg" alt="zoom-out" class="icon">
+                    <app-icon name="zoom-out" alt="zoom-out" class="icon"></app-icon>
                 </button>
 
                 <button class="zoom-btn zoom-level" id="zoomResetBtn" title="Sıfırla">
@@ -1059,7 +1063,7 @@
                 </button>
 
                 <button class="zoom-btn" id="zoomInBtn" title="Yakınlaş (+)">
-                    <img src="assets/icons/zoom-in.svg" alt="zoom-in" class="icon">
+                    <app-icon name="zoom-in" alt="zoom-in" class="icon"></app-icon>
                 </button>
 
             </div>
@@ -1075,19 +1079,19 @@
             </div>
             <div style="display: flex; gap: 4px; justify-content: flex-start;">
                 <button class="tool-btn active" data-linestyle="solid" title="Düz Çizgi">
-                    <img src="assets/icons/line-solid.svg" alt="line-solid" class="icon">
+                    <app-icon name="line-solid" alt="line-solid" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-linestyle="dashed" title="Kesik Çizgi">
-                    <img src="assets/icons/line-dashed.svg" alt="line-dashed" class="icon">
+                    <app-icon name="line-dashed" alt="line-dashed" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-linestyle="dotted" title="Noktalı Çizgi">
-                    <img src="assets/icons/line-dotted.svg" alt="line-dotted" class="icon">
+                    <app-icon name="line-dotted" alt="line-dotted" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-linestyle="dash-dot" title="Kesik-Nokta Çizgi">
-                    <img src="assets/icons/line-dashdot.svg" alt="line-dashdot" class="icon">
+                    <app-icon name="line-dashdot" alt="line-dashdot" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-linestyle="wavy" title="Dalgalı Çizgi">
-                    <img src="assets/icons/wavy.svg" alt="wavy" class="icon">
+                    <app-icon name="wavy" alt="wavy" class="icon"></app-icon>
                 </button>
             </div>
         </div>
@@ -1109,16 +1113,16 @@
             </div>
             <div style="display: flex; gap: 4px; justify-content: flex-start;">
                 <button class="tool-btn active" data-highlighter-cap="round" title="Yuvarlak Uç">
-                    <img src="assets/icons/cap-round.svg" alt="cap-round" class="icon">
+                    <app-icon name="cap-round" alt="cap-round" class="icon"></app-icon>
                 </button>
                 <button class="tool-btn" data-highlighter-cap="butt" title="Düz Uç">
-                    <img src="assets/icons/cap-butt.svg" alt="cap-butt" class="icon">
+                    <app-icon name="cap-butt" alt="cap-butt" class="icon"></app-icon>
                 </button>
             </div>
         </div>
         <div class="brush-setting-item">
             <div class="brush-setting-header">
-                <img src="assets/icons/width.svg" alt="width" class="icon">
+                <app-icon name="width" alt="width" class="icon"></app-icon>
 
                 <span class="label">Kalınlık</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
@@ -1130,7 +1134,7 @@
         </div>
         <div class="brush-setting-item">
             <div class="brush-setting-header">
-                <img src="assets/icons/opacity.svg" alt="opacity" class="icon">
+                <app-icon name="opacity" alt="opacity" class="icon"></app-icon>
 
                 <span class="label">Opaklık</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
@@ -1142,7 +1146,7 @@
         </div>
         <div class="brush-setting-item">
             <div class="brush-setting-header">
-                <img src="assets/icons/stabilization.svg" alt="stabilization" class="icon">
+                <app-icon name="stabilization" alt="stabilization" class="icon"></app-icon>
 
                 <span class="label">Stabilizasyon</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
@@ -1154,7 +1158,7 @@
         </div>
         <div class="brush-setting-item">
             <div class="brush-setting-header">
-                <img src="assets/icons/decimation.svg" alt="decimation" class="icon">
+                <app-icon name="decimation" alt="decimation" class="icon"></app-icon>
 
                 <span class="label">Örnekleme</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
@@ -1173,27 +1177,27 @@
     <div id="popupArrowStart" class="property-popup">
         <div class="mobile-popup-title">Başlangıç Ucu</div>
         <button class="tool-btn active" data-arrow-start="none" title="Uç Yok">
-            <img src="assets/icons/arrow-none.svg" alt="arrow-none" class="icon">
+            <app-icon name="arrow-none" alt="arrow-none" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-start="triangle" title="Dolu ok">
-            <img src="assets/icons/arrow-triangle-left.svg" alt="arrow-triangle-left" class="icon">
+            <app-icon name="arrow-triangle-left" alt="arrow-triangle-left" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-start="line" title="Ok">
-            <img src="assets/icons/arrow-line-left.svg" alt="arrow-line-left" class="icon">
+            <app-icon name="arrow-line-left" alt="arrow-line-left" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-start="circle" title="Yuvarlak">
-            <img src="assets/icons/arrow-circle-start.svg" alt="arrow-circle-start" class="icon">
+            <app-icon name="arrow-circle-start" alt="arrow-circle-start" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-start="square" title="Kare">
-            <img src="assets/icons/arrow-square-start.svg" alt="arrow-square-start" class="icon">
+            <app-icon name="arrow-square-start" alt="arrow-square-start" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-start="bar" title="Dikey Çizgi">
-            <img src="assets/icons/arrow-bar-start.svg" alt="arrow-bar-start" class="icon">
+            <app-icon name="arrow-bar-start" alt="arrow-bar-start" class="icon"></app-icon>
 
         </button>
     </div>
@@ -1201,31 +1205,31 @@
     <div id="popupArrowEnd" class="property-popup">
         <div class="mobile-popup-title">Bitiş Ucu</div>
         <button class="tool-btn" data-arrow-end="none" title="Uç Yok">
-            <img src="assets/icons/arrow-none.svg" alt="arrow-none" class="icon">
+            <app-icon name="arrow-none" alt="arrow-none" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn active" data-arrow-end="triangle" title="Dolu ok">
-            <img src="assets/icons/arrow-triangle-right.svg" alt="arrow-triangle-right" class="icon">
+            <app-icon name="arrow-triangle-right" alt="arrow-triangle-right" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-end="line" title="Ok">
-            <img src="assets/icons/arrow-line-right.svg" alt="arrow-line-right" class="icon">
+            <app-icon name="arrow-line-right" alt="arrow-line-right" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-end="circle" title="Yuvarlak">
-            <img src="assets/icons/arrow-circle-end.svg" alt="arrow-circle-end" class="icon">
+            <app-icon name="arrow-circle-end" alt="arrow-circle-end" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-end="open" title="Açık ok">
-            <img src="assets/icons/arrow-line-right.svg" alt="arrow-line-right" class="icon">
+            <app-icon name="arrow-line-right" alt="arrow-line-right" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-end="square" title="Kare">
-            <img src="assets/icons/arrow-square-end.svg" alt="arrow-square-end" class="icon">
+            <app-icon name="arrow-square-end" alt="arrow-square-end" class="icon"></app-icon>
 
         </button>
         <button class="tool-btn" data-arrow-end="bar" title="Dikey Çizgi">
-            <img src="assets/icons/arrow-bar-end.svg" alt="arrow-bar-end" class="icon">
+            <app-icon name="arrow-bar-end" alt="arrow-bar-end" class="icon"></app-icon>
 
         </button>
     </div>
@@ -1248,7 +1252,7 @@
             style="display: flex; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); justify-content: center; align-items: center; width: 100%;">
             <button id="btnPopupEyedropper" class="tool-btn" title="Damlalık"
                 style="width: 36px; height: 36px; border-radius: 10px; background: #f8fafc; border: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                <img src="assets/icons/eyedropper.svg" class="icon" style="width: 18px; height: 18px; opacity: 0.7;">
+                <app-icon name="eyedropper" class="icon" style="width: 18px; height: 18px; opacity: 0.7;"></app-icon>
             </button>
             <button id="btnPopupMoreColors" class="tool-btn" title="Daha Fazla Renk"
                 style="width: 36px; height: 36px; border-radius: 10px; background: #f8fafc; border: 1px solid #f1f5f9; font-size: 20px; display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 500; transition: all 0.2s;">+</button>
@@ -1302,26 +1306,26 @@
     <div class="app-menu-dropdown" id="appMenuDropdown">
         <div class="menu-item" id="menuUpdateApp"
             style="display: none; background: #fff4f2; color: #e03131; font-weight: 600;">
-            <img src="assets/icons/undo.svg" class="icon-small"
-                style="filter: invert(24%) sepia(85%) saturate(2466%) hue-rotate(346deg) brightness(91%) contrast(92%);">
+            <app-icon name="undo" class="icon-small"
+                style="filter: invert(24%) sepia(85%) saturate(2466%) hue-rotate(346deg) brightness(91%) contrast(92%);"></app-icon>
             <span>Güncelleme Hazır</span>
         </div>
         <div class="menu-separator" id="menuUpdateSeparator" style="display: none;"></div>
         <div class="menu-item" id="menuSave">
-            <img src="assets/icons/save.svg" class="icon-small">
+            <app-icon name="save-01" class="icon-small"></app-icon>
             <span>Kaydet</span>
             <span class="shortcut">Ctrl+S</span>
         </div>
         <!-- <div class="menu-item" id="menuOpenTom">
-            <img src="assets/icons/dot-tik.svg" class="icon-small">
+            <app-icon name="dot-tik" class="icon-small"></app-icon>
             <span>Betik Dosyası Aç (.tik)</span>
         </div> -->
         <div class="menu-item" id="menuSaveTom">
-            <img src="assets/icons/save.svg" class="icon-small">
+            <app-icon name="save-01" class="icon-small"></app-icon>
             <span>Betik Olarak Kaydet (.tik)</span>
         </div>
         <div class="menu-item" id="btnSaveAsTemplate">
-            <img src="assets/icons/template.svg" class="icon-small">
+            <app-icon name="layout-alt-04" class="icon-small"></app-icon>
             <span>Şablon Olarak Kaydet</span>
         </div>
 
@@ -1330,15 +1334,15 @@
         <div class="menu-label">Dışa Aktar</div>
 
         <div class="menu-item" id="btnExportPNG">
-            <img src="assets/icons/png.svg" class="icon-small">
+            <app-icon name="image-up" class="icon-small"></app-icon>
             <span>Resim (PNG)</span>
         </div>
         <div class="menu-item" id="btnExportSVG">
-            <img src="assets/icons/svg.svg" class="icon-small">
+            <app-icon name="bezier-curve-01" class="icon-small"></app-icon>
             <span>Vektör (SVG)</span>
         </div>
         <div class="menu-item" id="btnExportPDF">
-            <img src="assets/icons/pdf.svg" class="icon-small">
+            <app-icon name="file-04" class="icon-small"></app-icon>
             <span>Belge (PDF)</span>
         </div>
 
@@ -1346,18 +1350,27 @@
         <div class="menu-label">Ek Özellikler</div>
 
         <div class="menu-item" id="menuCanvasSettings">
-            <img src="assets/icons/canvas.svg" class="icon-small">
+            <app-icon name="settings-03" class="icon-small"></app-icon>
             <span>Tuval Ayarları</span>
             <span class="shortcut">C</span>
         </div>
         <div class="menu-item" id="btnTimerTool">
-            <img src="assets/icons/clock.svg" class="icon-small">
+            <app-icon name="alarm-clock" class="icon-small"></app-icon>
             <span>Geri Sayım</span>
         </div>
         <div class="menu-item" id="btnInsertImage">
-            <img src="assets/icons/picture.svg" class="icon-small">
+            <app-icon name="image-01" class="icon-small"></app-icon>
             <span>Resim Ekle</span>
         </div>
+        <div class="menu-item" id="btnGrabImage" data-tool="grab-image">
+            <app-icon name="grid-03" class="icon-small"></app-icon>
+            <span>Ekran Yakala</span>
+        </div>
+        <div class="menu-item" id="btnToolbarPaste">
+            <app-icon name="roller-brush" class="icon-small"></app-icon>
+            <span>Yapıştır</span>
+        </div>
+
 
     </div>
 
@@ -1401,21 +1414,21 @@
     <!-- Save Template Modal -->
     <div id="saveTemplateModal" class="template-modal" style="display: none;">
         <div class="template-modal-overlay"></div>
-        <div class="template-modal-content" style="width: 440px; height: auto; max-height: 90vh;">
-            <div class="template-modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <div class="save-template-modal-content">
+            <div class="template-modal-header">
                 <h2>Şablon Olarak Kaydet</h2>
                 <button class="template-modal-close" id="btnCloseSaveTemplateModal">×</button>
             </div>
 
-            <div class="save-template-form" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
-                    <label for="templateNameInput" style="font-size: 13px; font-weight: 600; color: #495057;">Şablon Adı *</label>
-                    <input type="text" id="templateNameInput" placeholder="Örn: Haftalık Toplantı Notları" required style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s;">
+            <div class="save-template-form">
+                <div class="form-group">
+                    <label for="templateNameInput">Şablon Adı *</label>
+                    <input type="text" id="templateNameInput" placeholder="Örn: Haftalık Toplantı Notları" required>
                 </div>
 
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
-                    <label for="templateCategorySelect" style="font-size: 13px; font-weight: 600; color: #495057;">Kategori</label>
-                    <select id="templateCategorySelect" style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; background-color: white;">
+                <div class="form-group">
+                    <label for="templateCategorySelect">Kategori</label>
+                    <select id="templateCategorySelect">
                         <option value="Kendi Şablonlarım">Kendi Şablonlarım</option>
                         <option value="İş Planlama">İş Planlama</option>
                         <option value="Eğitim">Eğitim</option>
@@ -1425,15 +1438,15 @@
                     </select>
                 </div>
 
-                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
-                    <label for="templateDescriptionInput" style="font-size: 13px; font-weight: 600; color: #495057;">Açıklama (İsteğe Bağlı)</label>
+                <div class="form-group">
+                    <label for="templateDescriptionInput">Açıklama (İsteğe Bağlı)</label>
                     <textarea id="templateDescriptionInput" rows="3"
-                        placeholder="Bu şablonun ne için kullanıldığını kısaca açıklayın..." style="padding: 10px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 14px; outline: none; resize: vertical; min-height: 80px;"></textarea>
+                        placeholder="Bu şablonun ne için kullanıldığını kısaca açıklayın..."></textarea>
                 </div>
 
-                <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px;">
-                    <button class="btn-cancel" id="btnCancelSaveTemplate" style="padding: 8px 16px; border-radius: 10px; border: 1px solid #e0e0e0; background: #f8f9fa; color: #495057; cursor: pointer; font-size: 13px; font-weight: 600;">İptal</button>
-                    <button class="btn-save" id="btnConfirmSaveTemplate" style="padding: 8px 16px; border-radius: 10px; border: none; background: #228be6; color: white; cursor: pointer; font-size: 13px; font-weight: 600;">Şablonu Kaydet</button>
+                <div class="form-actions">
+                    <button class="btn-cancel" id="btnCancelSaveTemplate">İptal</button>
+                    <button class="btn-save" id="btnConfirmSaveTemplate">Şablonu Kaydet</button>
                 </div>
             </div>
         </div>
@@ -1468,8 +1481,8 @@
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <button id="btnChangeStorageLocation" class="btn btn-primary"
                             style="justify-content: center; height: 42px;">
-                            <img src="assets/icons/folder.svg"
-                                style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);">
+                            <app-icon name="folder"
+                                style="width: 16px; margin-right: 8px; filter: brightness(0) invert(1);"></app-icon>
                             Yerel Klasör Seç veya Oluştur
                         </button>
                         <button id="btnResetStorageLocation" class="btn btn-secondary"
@@ -1553,6 +1566,7 @@
     <input type="file" id="tomInput" accept=".tik,.tik" style="display: none;">
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
 
+    <script src="js/icons.js"></script>
     <script src="./js/constants.js?v=0.8.0"></script>
     <script src="js/FileSystemManager.js?v=0.8.0"></script>
     <script src="js/utils.js?v=0.8.0"></script>
@@ -1560,6 +1574,7 @@
     <script src="./js/CanvasSettings.js?v=0.8.0"></script>
     <script src="./js/FillManager.js?v=0.8.0"></script>
     <script src="./js/WebGPURenderer.js?v=1.0.0"></script>
+    <script src="js/HighlighterTool.js"></script>
     <script src="./js/PenTool.js?v=0.8.0"></script>
     <script src="./js/CharcoalTool.js?v=0.8.0"></script>
     <script src="./js/FountainPenTool.js?v=0.8.0"></script>

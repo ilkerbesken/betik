@@ -1,3 +1,0 @@
-ilgili klasörde asagidaki komutu terminade calistir.
-
-rename 's/icons_//' *.svg

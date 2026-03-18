@@ -21,6 +21,7 @@ const VectorPenStates = {
 class VectorPenTool {
     constructor(onRepaint) {
         this.onRepaint = onRepaint;
+        this.currentColor = '#000000';
         this.currentPath = null;
         this.state = VectorPenStates.UNUSED;
         this.isDrawing = false;
@@ -42,7 +43,7 @@ class VectorPenTool {
                 points: [new VectorPenPoint(pos.x, pos.y)],
                 color: state.strokeColor || '#000000',
                 width: state.strokeWidth || 3,
-                opacity: state.opacity || 1.0,
+                opacity: state.opacity !== undefined ? state.opacity : 1.0,
                 filled: state.fillEnabled || false,
                 fillColor: state.strokeColor || '#000000',
                 id: Date.now() + Math.random().toString(36).substr(2, 9)

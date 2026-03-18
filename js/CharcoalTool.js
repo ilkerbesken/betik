@@ -5,6 +5,7 @@ class CharcoalTool {
         this.points = [];
         this.lastPoint = null;
         this.onRepaint = onRepaint;
+        this.currentColor = '#000000'; // Charcoal default
     }
 
     handlePointerDown(e, pos, canvas, ctx, state) {
@@ -22,7 +23,7 @@ class CharcoalTool {
             points: [...this.points],
             color: state.strokeColor,
             width: state.strokeWidth * 1.5,
-            opacity: state.opacity * 0.9
+            opacity: state.opacity
         };
     }
 

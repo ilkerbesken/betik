@@ -382,7 +382,7 @@ class TextTool {
 
                 <!-- Clear Formatting -->
                 <button class="text-toolbar-btn" id="clearStylesBtn" title="Stilleri Temizle">
-                    <img src="assets/icons/clean.svg" alt="clean" class="icon">
+                    <app-icon name="clean" alt="clean" class="icon"></app-icon>
                 </button>
             </div>
         `;

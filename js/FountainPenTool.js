@@ -5,6 +5,7 @@ class FountainPenTool {
         this.points = [];
         this.lastPoint = null;
         this.onRepaint = onRepaint;
+        this.currentColor = '#000000';
         this.lastPressure = 0.5;
         this.nibAngle = Math.PI / 4; // 45 degrees
         this.minWidthRatio = 0.2;
@@ -133,30 +134,30 @@ class FountainPenTool {
         const rightPoints = [];
 
         // Calculation of width should ideally be smoothed across segments
-        const look = 3; 
+        const look = 3;
 
         for (let i = 0; i < len; i++) {
             const p = pts[i];
-            
+
             // Smoothed direction at this point
             let dx = 0, dy = 0;
             const s = Math.max(0, i - look), e = Math.min(len - 1, i + look);
             for (let j = s; j < e; j++) {
-                dx += (pts[j+1].x - pts[j].x);
-                dy += (pts[j+1].y - pts[j].y);
+                dx += (pts[j + 1].x - pts[j].x);
+                dy += (pts[j + 1].y - pts[j].y);
             }
             if (dx === 0 && dy === 0) {
-                if (i < len - 1) { dx = pts[i+1].x - p.x; dy = pts[i+1].y - p.y; }
-                else if (i > 0) { dx = p.x - pts[i-1].x; dy = p.y - pts[i-1].y; }
+                if (i < len - 1) { dx = pts[i + 1].x - p.x; dy = pts[i + 1].y - p.y; }
+                else if (i > 0) { dx = p.x - pts[i - 1].x; dy = p.y - pts[i - 1].y; }
             }
-            
+
             const angle = Math.atan2(dy, dx);
             const diff = Math.abs(Math.sin(angle - nibAngle));
             const w = baseWidth * (minRatio + (1 - minRatio) * diff) * (p.pressure || 0.5) * 2;
-            
+
             const nx = -Math.sin(nibAngle) * (w / 2);
             const ny = Math.cos(nibAngle) * (w / 2);
-            
+
             leftPoints.push({ x: p.x - nx, y: p.y - ny });
             rightPoints.push({ x: p.x + nx, y: p.y + ny });
         }
