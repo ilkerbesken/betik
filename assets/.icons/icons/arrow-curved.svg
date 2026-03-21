@@ -1,12 +1,7 @@
-<svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="arrow-curved" clip-path="url(#clip0_2314_686)">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="arrow-curved">
 <g id="g507">
-<path id="path572" d="M0.5 22.5583C0.5 16.0449 2.81196 11.6748 9.52939 11.6748C15.7559 11.6748 18.5588 7.54395 18.5588 0.5" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path572" d="M3 22C3 16.3897 5.43246 12.6254 12.5 12.6254C19.0511 12.6254 22 9.06734 22 3" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 </g>
-<defs>
-<clipPath id="clip0_2314_686">
-<rect width="19.0588" height="23.0583" fill="white"/>
-</clipPath>
-</defs>
 </svg>

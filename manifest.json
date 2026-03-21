@@ -24,11 +24,12 @@
     "file_handlers": [
         {
             "action": "./",
+            "name": "Betik Notu",
             "accept": {
-                "application/x-betik": [
-                    ".tik",
-                    ".tik"
-                ]
+                "application/x-betik": [".tik"],
+                "application/betik": [".tik"],
+                "application/octet-stream": [".tik"],
+                "text/plain": [".tik"]
             },
             "icons": [
                 {
@@ -36,9 +37,11 @@
                     "sizes": "any",
                     "type": "image/svg+xml"
                 }
-            ],
-            "launch_type": "single-client"
+            ]
         }
     ],
+    "launch_handler": {
+        "client_mode": "focus-existing"
+    },
     "protocol_handlers": []
 }

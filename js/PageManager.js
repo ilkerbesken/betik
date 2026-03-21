@@ -318,7 +318,8 @@ class PageManager {
             backgroundColor: sourcePage.backgroundColor,
             backgroundPattern: sourcePage.backgroundPattern,
             thumbnail: sourcePage.thumbnail,
-            pdfDimensions: sourcePage.pdfDimensions ? { ...sourcePage.pdfDimensions } : null
+            pdfDimensions: sourcePage.pdfDimensions ? { ...sourcePage.pdfDimensions } : null,
+            ocrData: sourcePage.ocrData ? Utils.deepClone(sourcePage.ocrData) : null
         };
 
         // Insert after the source page

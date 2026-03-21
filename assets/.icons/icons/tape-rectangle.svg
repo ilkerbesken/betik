@@ -1,5 +1,8 @@
-<svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="24" height="23" viewBox="0 0 24 23" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="tape-rectangle">
-<path id="rect1016-6" d="M16.8788 11.6667C16.8788 12.4053 16.2708 13 15.5156 13H1L4.73885 10.5083L2.85329 9.64321L4.76539 8.08104L1.59242 4.52835L4.46302 3.21601L1.64083 1H15.5156C16.2708 1 16.8788 1.59467 16.8788 2.33334M12.6936 2.69874H20.5114C20.7821 2.69874 21 2.91189 21 3.17666V10.8233C21 11.0881 20.7821 11.3013 20.5114 11.3013H12.6936C12.4229 11.3013 12.2049 11.0881 12.2049 10.8233V3.17666C12.2049 2.91189 12.4229 2.69874 12.6936 2.69874Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="Group 1">
+<path id="Icon" d="M10.55 2C12.5452 2 13.5428 2 14.3048 2.38829C14.9752 2.72984 15.5202 3.27483 15.8617 3.94516C16.25 4.70722 16.25 5.70481 16.25 7.7V15.3C16.25 17.2952 16.25 18.2927 15.8617 19.0549C15.5202 19.7252 14.9752 20.2702 14.3048 20.6117C13.5428 21 12.5452 21 10.55 21H2L4.375 17.7344L2 14.7656L4.375 11.5L2 8.23438L4.375 5.26562L2 2H10.55Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect id="Rectangle 1" x="11.5" y="6.75" width="9.5" height="9.5" fill="black" stroke="black" stroke-width="2" stroke-linejoin="round"/>
+</g>
 </g>
 </svg>

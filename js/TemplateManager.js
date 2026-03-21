@@ -79,6 +79,21 @@ class TemplateManager {
             return;
         }
 
+        // Canvas ayarlarını şablondan geri yükle
+        if (template.canvasSettings && this.app.canvasSettings) {
+            const cs = template.canvasSettings;
+            if (cs.backgroundColor) this.app.canvasSettings.settings.backgroundColor = cs.backgroundColor;
+            if (cs.pattern !== undefined) this.app.canvasSettings.settings.pattern = cs.pattern;
+            if (cs.patternColor) this.app.canvasSettings.settings.patternColor = cs.patternColor;
+            if (cs.patternSpacing !== undefined) this.app.canvasSettings.settings.patternSpacing = cs.patternSpacing;
+            if (cs.patternThickness !== undefined) this.app.canvasSettings.settings.patternThickness = cs.patternThickness;
+
+            // Panel açıksa güncelle
+            if (typeof this.app.canvasSettings.loadSettingsToPanel === 'function') {
+                this.app.canvasSettings.loadSettingsToPanel();
+            }
+        }
+
         // Şablon nesnelerini topla ve en başa (arka plana) ekle
         const templateObjectsToApply = [];
 
@@ -279,7 +294,15 @@ class TemplateManager {
             // Mevcut canvas durumunu kopyala
             const objects = JSON.parse(JSON.stringify(this.app.state.objects));
 
-            if (objects.length === 0) {
+            // Canvas ayarlarını al
+            const cs = this.app.canvasSettings ? this.app.canvasSettings.settings : null;
+            const hasCustomBackground = cs && (
+                (cs.backgroundColor && cs.backgroundColor !== 'white') ||
+                (cs.pattern && cs.pattern !== 'none')
+            );
+
+            // Boşluk kontrolü: hem nesneler hem arkaplan ayarları varsayılan ise reddet
+            if (objects.length === 0 && !hasCustomBackground) {
                 Utils.showToast('Boş bir sayfa şablon olarak kaydedilemez.', 'info');
                 return false;
             }
@@ -299,6 +322,17 @@ class TemplateManager {
                 createdAt: Date.now(),
                 updatedAt: Date.now()
             };
+
+            // Canvas ayarlarını şablona ekle (arkaplan rengi, desen vb.)
+            if (cs) {
+                template.canvasSettings = {
+                    backgroundColor: cs.backgroundColor || 'white',
+                    pattern: cs.pattern || 'none',
+                    patternColor: cs.patternColor || 'rgba(0,0,0,0.15)',
+                    patternSpacing: cs.patternSpacing || 20,
+                    patternThickness: cs.patternThickness || 1
+                };
+            }
 
             // Kullanıcı şablonlarına ekle
             this.userTemplates.push(template);

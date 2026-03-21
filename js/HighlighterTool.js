@@ -12,7 +12,7 @@ class HighlighterTool {
         this.streamlinePoints = [];
         this.lastStreamlined = null;
         this.lastPressure = 0.5;
-        this.currentColor = '#E4FF30'; // Default color for highlighter
+        this.currentColor = '#e3ff00'; // Default color for highlighter
     }
 
     handlePointerDown(e, pos, canvas, ctx, state) {
@@ -169,9 +169,9 @@ class HighlighterTool {
 
         ctx.strokeStyle = color;
         ctx.lineWidth = object.width;
-        ctx.lineCap = object.cap || 'butt'; 
+        ctx.lineCap = object.cap || 'butt';
         ctx.lineJoin = 'round';
-        
+
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
         for (let i = 1; i < len; i++) ctx.lineTo(pts[i].x, pts[i].y);

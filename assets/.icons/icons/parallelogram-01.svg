@@ -1,7 +1,12 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="parallelogram-01">
+<g id="parallelogram-01" clip-path="url(#clip0_2315_32)">
 <g id="g1062">
-<path id="path1058" d="M3 21.8416L7.75 3H22L17.25 21.8416H3Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path1058" d="M3 22L7.75 3H22L17.25 22H3Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 </g>
+<defs>
+<clipPath id="clip0_2315_32">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
 </svg>

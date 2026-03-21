@@ -1,12 +1,7 @@
-<svg width="21" height="1" viewBox="0 0 21 1" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="line-dotted" clip-path="url(#clip0_2315_18)">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="line-dotted">
 <g id="g1134">
-<path id="line1130" d="M0.5 0.5H20.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.5 4"/>
+<path id="line1130" d="M2 12H22" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.5 4"/>
 </g>
 </g>
-<defs>
-<clipPath id="clip0_2315_18">
-<rect width="20.5" height="1" fill="white"/>
-</clipPath>
-</defs>
 </svg>

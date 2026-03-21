@@ -177,7 +177,7 @@ class CloudStorageManager {
                     const meta = await fsm.getSyncMetadata(board.id) || { id: board.id };
                     const content = await fsm.getItem(`wb_content_${board.id}`, null);
                     if (content) {
-                        const driveFileId = await this._uploadBoardTom(board, content, folders, betikFolderId, meta.googleDriveFileId);
+                        const driveFileId = await this._uploadBoardTik(board, content, folders, betikFolderId, meta.googleDriveFileId);
                         await fsm.setSyncMetadata(board.id, {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
@@ -257,7 +257,7 @@ class CloudStorageManager {
                         }
 
                         for (const rb of boardsToSync) {
-                            const tikContent = await this._downloadBoardTom(rb, remoteFolders, betikFolderId);
+                            const tikContent = await this._downloadBoardTik(rb, remoteFolders, betikFolderId);
                             if (tikContent) {
                                 await fsm.saveItem(`wb_content_${rb.id}`, tikContent, true);
                                 // Local listeyi güncelle/ekle
@@ -322,7 +322,7 @@ class CloudStorageManager {
                 if (needsUpload) {
                     const content = await fsm.getItem(`wb_content_${board.id}`, null);
                     if (content) {
-                        const driveFileId = await this._uploadBoardTom(board, content, folders, betikFolderId, meta.googleDriveFileId);
+                        const driveFileId = await this._uploadBoardTik(board, content, folders, betikFolderId, meta.googleDriveFileId);
                         await fsm.setSyncMetadata(board.id, {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
@@ -559,7 +559,7 @@ class CloudStorageManager {
      * Bir board'un içeriğini .tik formatında Drive'a yükle.
      * Board'un klasörüne göre doğru Drive alt klasörünü kullanır.
      */
-    async _uploadBoardTom(board, content, folders, betikFolderId, existingFileId) {
+    async _uploadBoardTik(board, content, folders, betikFolderId, existingFileId) {
         // Hedef Drive klasörünü bul
         const targetFolderId = await this._getDriveTargetFolder(board, folders, betikFolderId);
 
@@ -567,7 +567,7 @@ class CloudStorageManager {
         const fileName = board.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
 
         // .tik formatında sıkıştır (pako/gzip) - PDF verisi dahil
-        const tikBytes = await this._contentToTom(content, board.id);
+        const tikBytes = await this._contentToTik(content, board.id);
 
         const appProperties = { boardId: board.id, type: 'board' };
         return await this._uploadRawToDrive(fileName, tikBytes, 'application/x-betik', targetFolderId, existingFileId, appProperties);
@@ -617,7 +617,7 @@ class CloudStorageManager {
      * TikFileManager._serializeObject kullanarak canvas/tape/image gibi
      * nesneleri doğru şekilde serialize eder.
      */
-    async _contentToTom(content, boardId = null) {
+    async _contentToTik(content, boardId = null) {
         // pako beklenmiyorsa yükle
         if (typeof pako === 'undefined') {
             await new Promise((resolve, reject) => {
@@ -661,7 +661,7 @@ class CloudStorageManager {
 
         const jsonStr = JSON.stringify({
             version: content.version || '2.1',
-            format: 'tom',
+            format: 'tik',
             savedAt: new Date().toISOString(),
             pages: serializedPages,
             objects: serializedPages ? null : (content.objects || null),
@@ -676,7 +676,7 @@ class CloudStorageManager {
     /**
      * Bir board'un .tik dosyasını Drive'dan indir ve içeriği parse et.
      */
-    async _downloadBoardTom(boardMeta, folders, betikFolderId) {
+    async _downloadBoardTik(boardMeta, folders, betikFolderId) {
         try {
             // Önce .tik dosyasını ara
             const targetFolderId = await this._getDriveTargetFolder(boardMeta, folders, betikFolderId);

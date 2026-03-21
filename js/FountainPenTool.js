@@ -27,7 +27,7 @@ class FountainPenTool {
             color: state.strokeColor,
             width: state.strokeWidth,
             opacity: state.opacity,
-            nibAngle: this.nibAngle,
+            nibAngle: state.nibAngle !== undefined ? state.nibAngle : this.nibAngle,
             minWidthRatio: this.minWidthRatio
         };
     }
@@ -87,103 +87,87 @@ class FountainPenTool {
     }
 
     draw(ctx, object) {
-        if (!object.points || object.points.length < 1) return;
+        if (!object.points || object.points.length < 2) return;
 
-        // WebGPU Path
-        const gpu = window.webGPURenderer;
-        if (gpu && gpu.isSupported && object.points.length >= 20) {
-            const tx = ctx.getTransform();
-            const zoom = tx.a || 1;
-            const pan = { x: tx.e, y: tx.f };
-            const canvas = ctx.canvas;
-            const viewW = canvas.clientWidth || canvas.width;
-            const viewH = canvas.clientHeight || canvas.height;
-            if (gpu.drawFountainPen(ctx, object, zoom, viewW, viewH, pan)) return;
-        }
-
-        // Canvas2D Fallback - Envelope drawing for smoothness
+        // Canvas2D "Continuous Envelope" Approach - Fixes jagged edges
         ctx.save();
         ctx.globalAlpha = object.opacity !== undefined ? object.opacity : 1.0;
         ctx.fillStyle = object.color;
-        ctx.strokeStyle = object.color;
-
+        
         const pts = object.points;
         const len = pts.length;
-        if (len < 1) { ctx.restore(); return; }
-
         const nibAngle = object.nibAngle || Math.PI / 4;
-        const minRatio = object.minWidthRatio || 0.2;
         const baseWidth = object.width || 5;
+        const minRatio = object.minWidthRatio || 0.2;
 
-        // Single points (dots)
-        if (len === 1) {
-            const w = baseWidth * (pts[0].pressure || 0.5) * 2;
-            const nx = -Math.sin(nibAngle) * (w / 2);
-            const ny = Math.cos(nibAngle) * (w / 2);
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x - nx, pts[0].y - ny);
-            ctx.lineTo(pts[0].x + nx, pts[0].y + ny);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.restore();
-            return;
-        }
-
-        // Build the envelope points
         const leftPoints = [];
         const rightPoints = [];
 
-        // Calculation of width should ideally be smoothed across segments
-        const look = 3;
-
+        // 1. Calculate Envelope Points
         for (let i = 0; i < len; i++) {
             const p = pts[i];
-
-            // Smoothed direction at this point
-            let dx = 0, dy = 0;
-            const s = Math.max(0, i - look), e = Math.min(len - 1, i + look);
-            for (let j = s; j < e; j++) {
-                dx += (pts[j + 1].x - pts[j].x);
-                dy += (pts[j + 1].y - pts[j].y);
-            }
-            if (dx === 0 && dy === 0) {
-                if (i < len - 1) { dx = pts[i + 1].x - p.x; dy = pts[i + 1].y - p.y; }
-                else if (i > 0) { dx = p.x - pts[i - 1].x; dy = p.y - pts[i - 1].y; }
-            }
-
-            const angle = Math.atan2(dy, dx);
-            const diff = Math.abs(Math.sin(angle - nibAngle));
-            const w = baseWidth * (minRatio + (1 - minRatio) * diff) * (p.pressure || 0.5) * 2;
-
-            const nx = -Math.sin(nibAngle) * (w / 2);
-            const ny = Math.cos(nibAngle) * (w / 2);
-
-            leftPoints.push({ x: p.x - nx, y: p.y - ny });
-            rightPoints.push({ x: p.x + nx, y: p.y + ny });
+            const prev = pts[Math.max(0, i - 1)];
+            const next = pts[Math.min(len - 1, i + 1)];
+            
+            // Movement angle (average of segment before and after)
+            const moveAngle = Math.atan2(next.y - prev.y, next.x - prev.x);
+            const diff = Math.abs(Math.sin(moveAngle - nibAngle));
+            const currentBaseWidth = baseWidth * (minRatio + (1 - minRatio) * diff);
+            const w = currentBaseWidth * (p.pressure || 0.5) * 1.5; // Slightly scaled for natural feel
+            
+            // Nib vector at fixed angle
+            const dx = (w / 2) * Math.cos(nibAngle);
+            const dy = (w / 2) * Math.sin(nibAngle);
+            
+            leftPoints.push({ x: p.x - dx, y: p.y - dy });
+            rightPoints.push({ x: p.x + dx, y: p.y + dy });
         }
 
-        // Draw the envelope as a single path
+        // 2. Draw all segments in a single path with consistent winding to avoid gaps and seams
         ctx.beginPath();
-        ctx.moveTo(leftPoints[0].x, leftPoints[0].y);
-        for (let i = 1; i < len; i++) {
-            ctx.lineTo(leftPoints[i].x, leftPoints[i].y);
+        for (let i = 0; i < len - 1; i++) {
+            const li = leftPoints[i];
+            const ri = rightPoints[i];
+            const li1 = leftPoints[i + 1];
+            const ri1 = rightPoints[i + 1];
+
+            // Determine winding direction to ensure all quads have the same sign (CW or CCW)
+            // This prevents "winding cancellation" (white gaps) when quads overlap at sharp turns.
+            const cp = (ri.x - li.x) * (li1.y - li.y) - (ri.y - li.y) * (li1.x - li.x);
+
+            if (cp > 0) {
+                ctx.moveTo(li.x, li.y);
+                ctx.lineTo(ri.x, ri.y);
+                ctx.lineTo(ri1.x, ri1.y);
+                ctx.lineTo(li1.x, li1.y);
+            } else {
+                ctx.moveTo(li.x, li.y);
+                ctx.lineTo(li1.x, li1.y);
+                ctx.lineTo(ri1.x, ri1.y);
+                ctx.lineTo(ri.x, ri.y);
+            }
+            ctx.closePath();
         }
-        // Caps/Connectors
-        for (let i = len - 1; i >= 0; i--) {
-            ctx.lineTo(rightPoints[i].x, rightPoints[i].y);
-        }
-        ctx.closePath();
         ctx.fill();
-
-        // Anti-aliasing / gap sealer
-        if (object.opacity > 0.9) {
-            ctx.lineWidth = 0.5;
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-        }
-
         ctx.restore();
     }
+
+    /**
+     * Draws the nib "stamp" at a specific point.
+     * Uses a rotated rectangle to emulate a flat calligraphy nib.
+     */
+    drawNib(ctx, x, y, width, angle) {
+        const hh = 0.5; // Thickness of the nib itself (keep small for sharpness)
+        
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        // Using fillRect for high performance stamp
+        ctx.fillRect(-width / 2, -hh, width, hh * 2);
+        ctx.restore();
+    }
+
+
 
     drawPreview(ctx, object) {
         this.draw(ctx, object);

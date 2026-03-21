@@ -214,6 +214,53 @@ class PropertiesSidebar {
             });
         }
 
+        // Nib Angle Slider Sync
+        const nibAngleSliders = document.querySelectorAll('.nib-angle-slider');
+        const nibAngleInput = document.getElementById('nibAngleInput');
+        nibAngleSliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                this.app.state.nibAngle = (val * Math.PI) / 180;
+                if (nibAngleInput) nibAngleInput.value = val;
+                // Sync all nib angle sliders
+                nibAngleSliders.forEach(s => { if (s !== e.target) s.value = val; });
+
+                // Update Selection
+                if (this.app.state.currentTool === 'select' && this.app.tools.select.selectedObjects.length > 0) {
+                    const selectTool = this.app.tools.select;
+                    const obj = this.app.state.objects[selectTool.selectedObjects[0]];
+                    if (obj && obj.type === 'fountain-pen') {
+                        selectTool.updateSelectedObjectsStyle(this.app.state, { nibAngle: this.app.state.nibAngle });
+                        if (this.app.redrawOffscreen) this.app.redrawOffscreen();
+                        this.app.render();
+                    }
+                }
+            });
+        });
+
+        // Nib Angle Numerical Input Sync
+        if (nibAngleInput) {
+            nibAngleInput.addEventListener('input', (e) => {
+                let val = parseInt(e.target.value);
+                if (isNaN(val)) return;
+                if (val < 0) val = 0;
+                if (val > 360) val = 360;
+                this.app.state.nibAngle = (val * Math.PI) / 180;
+                nibAngleSliders.forEach(s => { s.value = val; });
+
+                // Update Selection
+                if (this.app.state.currentTool === 'select' && this.app.tools.select.selectedObjects.length > 0) {
+                    const selectTool = this.app.tools.select;
+                    const obj = this.app.state.objects[selectTool.selectedObjects[0]];
+                    if (obj && obj.type === 'fountain-pen') {
+                        selectTool.updateSelectedObjectsStyle(this.app.state, { nibAngle: this.app.state.nibAngle });
+                        if (this.app.redrawOffscreen) this.app.redrawOffscreen();
+                        this.app.render();
+                    }
+                }
+            });
+        }
+
         // Pressure Sensitivity Button
         document.getElementById('pressureBtn').addEventListener('click', (e) => {
             const btn = e.currentTarget;
@@ -366,7 +413,7 @@ class PropertiesSidebar {
         const btnQuickColorAdd = document.getElementById('btnQuickColorAdd');
         if (btnQuickColorAdd) {
             btnQuickColorAdd.addEventListener('click', () => {
-                if (this.quickColors.length < 5) {
+                if (this.quickColors.length < 8) {
                     this.showColorPalettePopup(this.quickColors.length, btnQuickColorAdd);
                 }
             });
@@ -770,7 +817,7 @@ class PropertiesSidebar {
             table: { tableRows: 3, tableCols: 3, strokeWidth: 1, strokeColor: '#000000', opacity: 1.0 },
             text: { strokeWidth: 3, strokeColor: '#000000', opacity: 1.0 },
             charcoal: { strokeWidth: 8, strokeColor: '#262626', opacity: 0.9 },
-            'fountain-pen': { strokeWidth: 5, strokeColor: '#000000', opacity: 1.0 },
+            'fountain-pen': { strokeWidth: 5, strokeColor: '#000000', opacity: 1.0, pressureEnabled: true },
             'vector-pen': { strokeWidth: 3, strokeColor: '#000000', opacity: 1.0 }
         };
 
@@ -795,7 +842,7 @@ class PropertiesSidebar {
 
         // Reset Properties Sidebar Colors for highlighter if needed
         if (tool === 'highlighter') {
-            this.quickColors = ['#E4FF30', '#FF5FCF', '#B6FFA1'];
+            this.quickColors = ['#e3ff00', '#83f18d', '#67dfff', '#ff659f', '#fd934c', '#ff1837', '#5151ff'];
         } else {
             this.quickColors = ['#000000', '#ff5c5c', '#5c9bfe'];
         }
@@ -1115,6 +1162,7 @@ class PropertiesSidebar {
                     if (obj.lineStyle) this.app.state.lineStyle = obj.lineStyle;
                     if (obj.color) this.app.state.strokeColor = obj.color;
                     if (obj.cap) this.app.state.highlighterCap = obj.cap;
+                    if (obj.nibAngle !== undefined) this.app.state.nibAngle = obj.nibAngle;
                     if (obj.startStyle) this.app.state.arrowStartStyle = obj.startStyle;
                     if (obj.endStyle) this.app.state.arrowEndStyle = obj.endStyle;
                     if (obj.pathType) this.app.state.arrowPathType = obj.pathType;
@@ -1183,6 +1231,12 @@ class PropertiesSidebar {
         decSliders.forEach(s => { s.value = decVal; if (window.updateRangeProgress) window.updateRangeProgress(s); });
         if (decInput) decInput.value = decVal;
 
+        const nibAngleSliders = document.querySelectorAll('.nib-angle-slider');
+        const nibAngleInput = document.getElementById('nibAngleInput');
+        const nibAngleDeg = Math.round((this.app.state.nibAngle || 0) * 180 / Math.PI);
+        nibAngleSliders.forEach(s => { s.value = nibAngleDeg; if (window.updateRangeProgress) window.updateRangeProgress(s); });
+        if (nibAngleInput) nibAngleInput.value = nibAngleDeg;
+
         // Sync Active Buttons
         document.querySelectorAll('.tool-btn[data-linestyle]').forEach(b => b.classList.toggle('active', b.dataset.linestyle === this.app.state.lineStyle));
         document.querySelectorAll('.tool-btn[data-highlighter-cap]').forEach(b => b.classList.toggle('active', b.dataset.highlighterCap === this.app.state.highlighterCap));
@@ -1230,14 +1284,23 @@ class PropertiesSidebar {
 
         // Pressure Logic
         const pressureBtn = document.getElementById('pressureBtn');
-        if (tool === 'pen') {
+        if (tool === 'pen' || tool === 'fountain-pen') {
             pressureBtn.style.display = 'flex';
-            pressureBtn.classList.toggle('active', this.app.state.pressureEnabled);
+            pressureBtn.classList.toggle('active', !!this.app.state.pressureEnabled);
         } else if (['rectangle', 'rect', 'ellipse', 'triangle', 'trapezoid', 'star', 'diamond', 'parallelogram', 'oval', 'heart', 'cloud', 'line'].includes(tool)) {
             pressureBtn.style.display = 'flex';
             pressureBtn.classList.remove('active');
+        } else if (tool === 'select' && hasSelection) {
+            // Show for selection if it's a pressure-supported tool
+            const selectTool = this.app.tools.select;
+            const obj = this.app.state.objects[selectTool.selectedObjects[0]];
+            if (obj && (obj.type === 'pen' || obj.type === 'fountain-pen')) {
+                pressureBtn.style.display = 'flex';
+                pressureBtn.classList.toggle('active', !!this.app.state.pressureEnabled);
+            } else {
+                pressureBtn.style.display = 'none';
+            }
         } else {
-            // Only show for select if an object is selected (and if it's a pen/shape, but for simplicity we follow hasSelection)
             pressureBtn.style.display = 'none';
         }
 
@@ -1327,6 +1390,16 @@ class PropertiesSidebar {
             if (decSlider) {
                 const decItem = decSlider.closest('.brush-setting-item');
                 if (decItem) decItem.style.display = isFreehand ? 'block' : 'none';
+            }
+
+            const nibAngleItem = document.getElementById('brushSettingAngle');
+            if (nibAngleItem) {
+                let showAngle = (tool === 'fountain-pen');
+                if (tool === 'select' && hasSelection) {
+                    const obj = this.app.state.objects[this.app.tools.select.selectedObjects[0]];
+                    if (obj && obj.type === 'fountain-pen') showAngle = true;
+                }
+                nibAngleItem.style.display = showAngle ? 'block' : 'none';
             }
 
             // Handle Mobile Color Grid inside Brush Settings
@@ -1525,11 +1598,11 @@ class PropertiesSidebar {
         const tool = this.app.state.currentTool;
         let storageKey = `betik_quick_colors_${tool}`;
         let defaults = ['#000000', '#ff5c5c', '#5c9bfe'];
-        
+
         if (tool === 'highlighter') {
-            defaults = ['#E4FF30', '#FF5FCF', '#B6FFA1'];
+            defaults = ['#e3ff00', '#83f18d', '#67dfff', '#ff659f', '#fd934c', '#ff1837', '#5151ff'];
         }
-        
+
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             this.quickColors = JSON.parse(saved);
@@ -1587,7 +1660,7 @@ class PropertiesSidebar {
         // Show/Hide Add button based on limit
         const btnAdd = document.getElementById('btnQuickColorAdd');
         if (btnAdd) {
-            btnAdd.style.display = this.quickColors.length < 5 ? 'flex' : 'none';
+            btnAdd.style.display = this.quickColors.length < 8 ? 'flex' : 'none';
         }
     }
 
@@ -1735,7 +1808,7 @@ class PropertiesSidebar {
             this.quickColors[index] = newColor;
             this.saveQuickColors();
             this.renderQuickColors();
-        } else if (index === this.quickColors.length && this.quickColors.length < 5) {
+        } else if (index === this.quickColors.length && this.quickColors.length < 8) {
             // Addition mode
             this.quickColors.push(newColor);
             this.saveQuickColors();
@@ -1757,12 +1830,12 @@ class PropertiesSidebar {
         const tool = this.app.state.currentTool;
         let storageKey = 'betik_quick_strokes';
         let defaults = [3, 5, 7];
-        
+
         if (tool === 'table') {
             storageKey = 'betik_quick_strokes_table';
             defaults = [1, 3, 5];
         }
-        
+
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             this.quickStrokeWidths = JSON.parse(saved);
@@ -1803,7 +1876,7 @@ class PropertiesSidebar {
                 <div style="
                     width: ${dotSize}px; 
                     height: ${dotSize}px; 
-                    background: ${index === this.activeStrokeIndex ? '#2196f3' : '#666'}; 
+                    background: ${index === this.activeStrokeIndex ? '#2196f3' : 'currentColor'}; 
                     border-radius: 50%;
                 "></div>
             `;

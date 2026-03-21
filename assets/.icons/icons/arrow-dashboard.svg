@@ -1,12 +1,7 @@
-<svg width="7" height="13" viewBox="0 0 7 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="arrow-dashboard" clip-path="url(#clip0_2314_687)">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="arrow-dashboard">
 <g id="g511">
-<path id="path509" d="M0.5 0.5L6.5 6.5L0.5 12.5" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path509" d="M6 3L18 12.5L6 22" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 </g>
-<defs>
-<clipPath id="clip0_2314_687">
-<rect width="6.99998" height="13" fill="white"/>
-</clipPath>
-</defs>
 </svg>

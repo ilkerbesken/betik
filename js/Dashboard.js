@@ -37,17 +37,18 @@ class Dashboard {
         this.customCovers = [];
 
         this.defaultCovers = [
-            { id: 'c1', bg: '#ff5c5c', texture: 'dots' },
+            { id: 'c1', bg: '#ff5c5c', texture: 'linear' },
             { id: 'c2', bg: '#ffb85c', texture: 'linear' },
             { id: 'c3', bg: '#ffd900', texture: 'linear' },
             { id: 'c4', bg: '#fab005', texture: 'linear' },
             { id: 'c5', bg: '#5cbd62', texture: 'linear' },
-            { id: 'c6', bg: '#5c9bfe', texture: 'dots' },
-            { id: 'c7', bg: '#b45cff', texture: 'dots' },
+            { id: 'c6', bg: '#5c9bfe', texture: 'linear' },
+            { id: 'c7', bg: '#b45cff', texture: 'linear' },
             { id: 'c8', bg: '#313131ff', texture: 'linear' }
         ];
         this.customCovers = []; // Will load in initAsync
 
+        this.initialized = false;
         this.initAsync();
         this.setupAutosaveFlush();
     }
@@ -88,6 +89,7 @@ class Dashboard {
 
             this.setupAutoSync();
         }
+        this.initialized = true;
     }
 
     // Sync wrappers for legacy components
@@ -235,7 +237,7 @@ class Dashboard {
                 btnModalOpenTom.onclick = () => {
                     toggleImportModal(false);
                     if (this.app.tikFileManager) {
-                        this.app.tikFileManager.openTomFile();
+                        this.app.tikFileManager.openTikFile();
                     } else {
                         this.tomInput.click();
                     }
@@ -779,7 +781,9 @@ class Dashboard {
         if (filtered.length === 0 && this.currentView === 'trash') {
             this.boardGrid.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">🗑️</div>
+                    <div class="empty-state-icon">
+                    <app-icon name="trash-01" style="width: 36px; height: 36px; opacity: 0.7;"></app-icon>
+                    </div>
                     <h3>Çöp kutusu boş</h3>
                 </div>
             `;
@@ -801,7 +805,9 @@ class Dashboard {
         if (filtered.length === 0 && this.currentView !== 'trash') {
             this.boardGrid.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">📁</div>
+                    <div class="empty-state-icon">
+                    <app-icon name="file-04" style="width: 36px; height: 36px; opacity: 0.7;"></app-icon>
+                    </div>
                     <h3>Henüz not yok</h3>
                     <p>Yeni bir not oluşturmak için + butonuna tıklayın</p>
                     <button class="btn btn-primary" id="btnCreateFirstNote">
@@ -853,7 +859,7 @@ class Dashboard {
                     <div class="board-title" contenteditable="true" spellcheck="false">${board.name}</div>
                     <div class="board-meta">
                         <span>${new Date(board.lastModified).toLocaleDateString()}</span>
-                        ${board.isTomFile ? '<span class="tag-tom">.tik</span>' : ''}
+                        ${board.isTikFile ? '<span class="tag-tik">.tik</span>' : ''}
                     </div>
                 </div>
             `;
@@ -996,6 +1002,7 @@ class Dashboard {
         const btnClose = document.getElementById('btnCloseStorageSettingsModal');
         const btnCancel = document.getElementById('btnCancelStorageSettings');
         const btnPick = document.getElementById('btnChangeStorageLocation');
+        const btnScan = document.getElementById('btnScanStorageFolder');
         const btnReset = document.getElementById('btnResetStorageLocation');
         const statusText = document.getElementById('currentStorageLocation');
 
@@ -1056,8 +1063,12 @@ class Dashboard {
                 }
             }
 
-            // 3. Sıfırla Butonu
+            // 3. Sıfırla ve Tara Butonları
+            const isNative = mode === 'native' && hasDir;
             btnReset.style.display = (mode === 'native' || hasStored) ? 'flex' : 'none';
+            if (btnScan) {
+                btnScan.style.display = isNative ? 'flex' : 'none';
+            }
 
             // ─── Mobil bölümünü göster/gizle ─────────────────────
             const mobileSection = document.getElementById('mobile-storage-section');
@@ -1093,9 +1104,29 @@ class Dashboard {
             const success = await window.fileSystemManager.pickStorageFolder();
             if (success) {
                 updateStatusUI();
-                this.initAsync();
+                await this.initAsync();
             }
         };
+
+        if (btnScan) {
+            btnScan.onclick = async () => {
+                btnScan.disabled = true;
+                const originalHTML = btnScan.innerHTML;
+                btnScan.innerHTML = 'Taranıyor...';
+
+                const result = await window.fileSystemManager.importFromNative();
+
+                btnScan.disabled = false;
+                btnScan.innerHTML = originalHTML;
+
+                if (result.success) {
+                    Utils.showToast(`${result.boards} not ve ${result.folders} klasör içe aktarıldı.`, 'success');
+                    await this.initAsync(); // UI'ı yenile
+                } else {
+                    Utils.showToast('İçe aktarma hatası: ' + result.error, 'error');
+                }
+            };
+        }
 
         btnReset.onclick = async () => {
             const confirmed = await Utils.showConfirm({
@@ -1434,7 +1465,8 @@ class Dashboard {
             folderId: this.currentView.startsWith('f_') ? this.currentView : null,
             coverBg: '#fa5252',
             coverTexture: 'dots',
-            isPDF: true
+            isPDF: true,
+            alwaysSaveAsPDF: true
         };
 
         try {
@@ -1506,12 +1538,14 @@ class Dashboard {
         if (this.app.pdfManager) this.app.pdfManager.clearPDF();
 
         // Check if there is an associated PDF in IndexedDB
+        let pdfLoaded = false;
         try {
             const pdfBlob = await Utils.db.get(id);
             if (pdfBlob && this.app.pdfManager) {
                 console.log('[Dashboard] PDF found in DB, loading...');
                 const pdfUrl = URL.createObjectURL(pdfBlob);
                 await this.app.pdfManager.loadPDF(pdfUrl);
+                pdfLoaded = true;
             }
         } catch (error) {
             console.error('Error loading PDF from DB:', error);
@@ -1519,12 +1553,35 @@ class Dashboard {
 
         const savedData = await this.loadDataAsync(`wb_content_${id}`, null);
         if (savedData) {
+            // Extraction of embedded PDF data if it wasn't in IndexedDB already
+            if (!pdfLoaded && savedData.pdfBase64 && this.app.pdfManager && this.app.tikFileManager) {
+                try {
+                    console.log('[Dashboard] Found embedded PDF in .tik file, extracting and saving to DB...');
+                    const pdfBlob = await this.app.tikFileManager._base64ToBlob(savedData.pdfBase64, 'application/pdf');
+                    await Utils.db.save(id, pdfBlob);
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    await this.app.pdfManager.loadPDF(pdfUrl);
+                    console.log('[Dashboard] Embedded PDF successfully loaded.');
+                    pdfLoaded = true;
+
+                    // Update board meta to show PDF icon in future
+                    const board = this.boards.find(b => b.id === id);
+                    if (board && !board.isPDF) {
+                        board.isPDF = true;
+                        board.isTikFile = true;
+                        await this.saveDataAsync('wb_boards', this.boards);
+                    }
+                } catch (err) {
+                    console.warn('[Dashboard] Error extracting embedded PDF:', err);
+                }
+            }
+
             let pages = savedData.pages;
             const objects = savedData.objects;
 
-            const tomFM = this.app.tikFileManager;
-            const deserializeObj = tomFM
-                ? (obj) => tomFM._deserializeObject(obj)
+            const tikFM = this.app.tikFileManager;
+            const deserializeObj = tikFM
+                ? (obj) => tikFM._deserializeObject(obj)
                 : (obj) => Promise.resolve(obj);
 
             if (pages) {
@@ -1634,13 +1691,13 @@ class Dashboard {
             }
 
             // Serializer: TikFileManager varsa kullan, yoksa basit deep clone
-            const tomFM = this.app.tikFileManager;
+            const tikFM = this.app.tikFileManager;
             const serializeObj = (obj) => {
                 if (!obj) return null;
 
                 let o;
-                if (tomFM) {
-                    o = tomFM._serializeObject(obj);
+                if (tikFM) {
+                    o = tikFM._serializeObject(obj);
                 } else {
                     o = Object.assign({}, obj);
 
@@ -1685,14 +1742,48 @@ class Dashboard {
                 return optimizedPage;
             }) : null;
 
+            // Check if this is a PDF board and we should embed it
+            let pdfBase64 = null;
+            if (this.app.pdfManager && this.app.pdfManager.isLoaded) {
+                try {
+                    const pdfBlob = await Utils.db.get(boardId);
+                    if (pdfBlob instanceof Blob) {
+                        pdfBase64 = await this.app.tikFileManager._blobToBase64(pdfBlob);
+                    }
+                } catch (e) {
+                    console.warn('[Dashboard] Could not fetch PDF blob for embedding:', e);
+                }
+            }
+
             const content = {
                 version: "2.1",
                 pages: optimizedPages,
-                objects: optimizedPages ? null : (this.app.state.objects || []).map(obj => serializeObj(obj))
+                objects: optimizedPages ? null : (this.app.state.objects || []).map(obj => serializeObj(obj)),
+                pdfBase64: pdfBase64
             };
+
+            const rawSize = JSON.stringify(content).length;
+            console.log(`[Dashboard] Board ${boardId} content prepared for save. Size: ${(rawSize / 1024).toFixed(1)} KB`);
 
             await this.saveDataAsync(`wb_content_${boardId}`, content);
             console.log(`[Autosave] Board ${boardId} saved ${force ? '(FORCED)' : '(DEBOUNCED)'}`);
+
+            // NEW: Always Save as PDF logic for native mode
+            const board = this.boards.find(b => b.id === boardId);
+            // PERFORMANCE: Only generate heavy PDF on force save (e.g. Ctrl+S or closing the board)
+            if (force && board && board.alwaysSaveAsPDF && window.fileSystemManager.dirHandle) {
+                // We do PDF saving asynchronously to not block the main save success feedback
+                setTimeout(async () => {
+                    try {
+                        const pdfBlob = await this.app.exportManager.generatePDFBlob();
+                        if (pdfBlob) {
+                            await window.fileSystemManager._savePDFToNative(boardId, pdfBlob);
+                        }
+                    } catch (err) {
+                        console.error('[Dashboard] Error during background PDF save:', err);
+                    }
+                }, 500);
+            }
         };
 
         if (force) {
@@ -1941,6 +2032,7 @@ class Dashboard {
 
             // Icon color picker
             const iconColorPicker = document.getElementById('uiIconColorPicker');
+            const btnApplyIconColor = document.getElementById('btnApplyIconColor');
             const btnResetIconColor = document.getElementById('btnResetIconColor');
 
             if (iconColorPicker) {
@@ -1949,8 +2041,10 @@ class Dashboard {
                     iconColorPicker.value = this.viewSettings.iconColor;
                     document.documentElement.style.setProperty('--app-icon-color', this.viewSettings.iconColor);
                 }
+            }
 
-                iconColorPicker.oninput = () => {
+            if (btnApplyIconColor && iconColorPicker) {
+                btnApplyIconColor.onclick = () => {
                     const color = iconColorPicker.value;
                     this.viewSettings.iconColor = color;
                     this.saveData('wb_view_settings', this.viewSettings);
@@ -2022,6 +2116,14 @@ class Dashboard {
         const fileInput = document.getElementById('customCoverImage');
 
         if (!modal || !grid || !addBtn || !colorInput) return;
+ 
+        // Setup texture selection listener
+        const textureRadios = modal.querySelectorAll('input[name="coverTexture"]');
+        textureRadios.forEach(radio => {
+            radio.onchange = () => {
+                this.renderCoverGrid(this.activeBoardForCover);
+            };
+        });
 
         if (closeBtn) closeBtn.onclick = () => modal.classList.remove('show');
         modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
@@ -2031,7 +2133,9 @@ class Dashboard {
                 const color = colorInput.value;
                 if (!color) return;
 
-                const newCover = { id: 'custom_' + Date.now(), bg: color, texture: 'linear' };
+                const selectedTexture = modal.querySelector('input[name="coverTexture"]:checked')?.value || 'linear';
+
+                const newCover = { id: 'custom_' + Date.now(), bg: color, texture: selectedTexture };
                 this.customCovers = Array.isArray(this.customCovers) ? this.customCovers : [];
                 this.customCovers.unshift(newCover);
                 this.saveData('wb_custom_covers', this.customCovers);
@@ -2040,7 +2144,7 @@ class Dashboard {
                     const board = (this.boards || []).find(b => b.id === this.activeBoardForCover);
                     if (board) {
                         board.coverBg = color;
-                        board.coverTexture = 'linear';
+                        board.coverTexture = selectedTexture;
                         delete board.coverImage; // Remove image if color selected
                         await this.saveDataAsync('wb_boards', this.boards);
                         this.renderBoards();
@@ -2051,7 +2155,7 @@ class Dashboard {
                         const board = (this.boards || []).find(b => b.id === selId);
                         if (board) {
                             board.coverBg = color;
-                            board.coverTexture = 'linear';
+                            board.coverTexture = selectedTexture;
                             delete board.coverImage;
                         }
                     });
@@ -2151,6 +2255,18 @@ class Dashboard {
         const modal = document.getElementById('coverModal');
 
         if (modal) {
+            // Set initial texture from current board if not bulk
+            if (boardId) {
+                const board = (this.boards || []).find(b => b.id == boardId);
+                const tex = (board && board.coverTexture === 'dots') ? 'dots' : 'linear';
+                const radio = modal.querySelector(`input[name="coverTexture"][value="${tex}"]`);
+                if (radio) radio.checked = true;
+            } else {
+                // Default to linear for bulk
+                const radio = modal.querySelector(`input[name="coverTexture"][value="linear"]`);
+                if (radio) radio.checked = true;
+            }
+
             modal.classList.add('show');
             this.renderCoverGrid(boardId);
         } else {
@@ -2180,13 +2296,15 @@ class Dashboard {
             ...this.customCovers.map(c => ({ ...c, isDefault: false }))
         ];
 
+        const selectedTexture = document.querySelector('input[name="coverTexture"]:checked')?.value || 'linear';
+
         allCovers.forEach(cover => {
             const item = document.createElement('div');
             item.className = 'cover-item';
 
             const isImage = !!cover.image;
-            if (!isImage && cover.texture) {
-                item.classList.add(`cover-texture-${cover.texture}`);
+            if (!isImage) {
+                item.classList.add(`cover-texture-${selectedTexture}`);
             }
 
             if (isImage) {
@@ -2202,7 +2320,9 @@ class Dashboard {
                 if (isImage) {
                     if (board.coverImage === cover.image) item.classList.add('active');
                 } else {
-                    if (board.coverBg === cover.bg && !board.coverImage) item.classList.add('active');
+                    if (board.coverBg === cover.bg && !board.coverImage && board.coverTexture === selectedTexture) {
+                        item.classList.add('active');
+                    }
                 }
             }
 
@@ -2225,7 +2345,7 @@ class Dashboard {
                         target.coverTexture = 'none';
                     } else {
                         target.coverBg = cover.bg;
-                        target.coverTexture = cover.texture || 'linear';
+                        target.coverTexture = selectedTexture;
                         target.coverImage = null;
                     }
                     console.log('Board after cover applied:', target);
@@ -2492,7 +2612,7 @@ class Dashboard {
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
                 </button>
-                <button class="template-tom-btn" data-template-id="${template.id}" title=".tik olarak kaydet">
+                <button class="template-tik-btn" data-template-id="${template.id}" title=".tik olarak kaydet">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                     </svg>
@@ -2513,7 +2633,7 @@ class Dashboard {
 
             // Apply template on click
             card.onclick = (e) => {
-                if (e.target.closest('.template-favorite-btn') || e.target.closest('.template-delete-btn') || e.target.closest('.template-tom-btn')) return;
+                if (e.target.closest('.template-favorite-btn') || e.target.closest('.template-delete-btn') || e.target.closest('.template-tik-btn')) return;
                 this.applyTemplateAndCreateBoard(template.id);
             };
 
@@ -2526,12 +2646,12 @@ class Dashboard {
             };
 
             // .tik olarak kaydet
-            const tomBtn = card.querySelector('.template-tom-btn');
-            if (tomBtn) {
-                tomBtn.onclick = (e) => {
+            const tikBtn = card.querySelector('.template-tik-btn');
+            if (tikBtn) {
+                tikBtn.onclick = (e) => {
                     e.stopPropagation();
                     if (this.app.tikFileManager) {
-                        this.app.tikFileManager.saveTemplateAsTom(template);
+                        this.app.tikFileManager.saveTemplateAsTik(template);
                     }
                 };
             }
@@ -2718,7 +2838,9 @@ class Dashboard {
             <p style="margin-bottom: 16px; color: #666;">Notları taşımak istediğiniz klasörü seçin</p>
             <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
                 <div class="folder-picker-item" data-id="" style="padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 18px;">📁</span>
+                    <span style="font-size: 18px;">
+                    <app-icon name="folder"></app-icon>
+                    </span>
                     <span>Kök Dizin</span>
                 </div>
         `;
@@ -2729,7 +2851,7 @@ class Dashboard {
                 const paddingLeft = 16 + (level * 24);
                 html += `
                     <div class="folder-picker-item" data-id="${f.id}" style="padding: 12px 16px; padding-left: ${paddingLeft}px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 18px; ${level > 0 ? 'opacity: 0.7;' : ''}">${level > 0 ? '↳ 📁' : '📁'}</span>
+                        <span style="font-size: 18px; ${level > 0 ? 'opacity: 0.7;' : ''}">${level > 0 ? '↳ ' : ''}<app-icon name="folder"></app-icon></span>
                         <div style="display: flex; flex-direction: column; overflow: hidden;">
                             <span style="font-weight: ${level === 0 ? '600' : '500'}; font-size: ${14 - (level * 0.5)}px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.name}</span>
                         </div>

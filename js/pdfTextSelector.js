@@ -127,18 +127,17 @@ class PDFTextSelector {
             pageY = this.app.pageManager.getPageY(pageIndex);
         }
 
-        // Cleanup existing if present
-        const existingLayer = this.textLayers.get(pageIndex);
-        if (existingLayer) {
-            // EĞER bu katman OCR ile oluşturulmuşsa ve yeni bir native render isteniyorsa,
-            // OCR katmanını korumak için native render'ı iptal et. (Taramalı PDF'ler için kritik)
-            if (existingLayer.dataset.isOcr === 'true') {
-                console.log(`Skipping native text layer for page ${pageIndex} as OCR layer exists.`);
-                return;
+        // --- OCR RESTORATION CHECK ---
+        // Sayfa için önceden yapılmış OCR verisi var mı bak?
+        if (this.app.pageManager && this.app.pageManager.pages[pageIndex]) {
+            const pageData = this.app.pageManager.pages[pageIndex];
+            if (pageData.ocrData) {
+                console.log(`[PDFTextSelector] Restoring OCR layer for Page ${pdfPage.pageNumber}`);
+                this.addOcrLayer(pageIndex, pageData.ocrData.lines, pageData.ocrData.scale);
+                return; // OCR katmanı varken native katmana gerek yok
             }
-            existingLayer.remove();
-            this.textLayers.delete(pageIndex);
         }
+        // --- END OCR RESTORATION ---
 
         // Create Layer Div
         const layerDiv = document.createElement('div');
@@ -204,7 +203,8 @@ class PDFTextSelector {
         }
 
         const layerDiv = document.createElement('div');
-        layerDiv.className = 'pdf-text-layer active'; // OCR katmanı eklenince genelde aktiftir
+        layerDiv.className = 'pdf-text-layer';
+        if (this.isActive) layerDiv.classList.add('active'); // Respect current active state
         layerDiv.dataset.isOcr = 'true';
         layerDiv.style.width = `${pageWidth}px`;
         layerDiv.style.height = `${pageHeight}px`;
@@ -227,7 +227,7 @@ class PDFTextSelector {
             if (!text || (text.length <= 1 && noiseSymbols.includes(text))) continue;
 
             const { x0, y0, x1, y1 } = line.bbox;
-            
+
             // Koordinatlar (Tesseract px -> PDF logical px)
             const lX = x0 * scale;
             const lY = y0 * scale;
@@ -237,8 +237,8 @@ class PDFTextSelector {
 
             // Span oluştur
             const span = document.createElement('span');
-            span.textContent = text; 
-            
+            span.textContent = text;
+
             span.style.left = `${lX}px`;
             span.style.top = `${lY}px`;
             span.style.height = `${lH}px`;
@@ -255,7 +255,7 @@ class PDFTextSelector {
             measureCtx.font = `${fontSize}px sans-serif`;
             const metrics = measureCtx.measureText(text);
             const measuredWidth = metrics.width;
-            
+
             if (measuredWidth > 0 && lW > 0) {
                 const scaleX = lW / measuredWidth;
                 span.style.transform = `scaleX(${scaleX})`;
@@ -352,7 +352,7 @@ class PDFTextSelector {
         const convertedRects = [];
         for (let i = 0; i < rects.length; i++) {
             const boundingRect = rects[i];
-            
+
             if (!boundingRect || boundingRect.width === 0 || boundingRect.height === 0) {
                 continue;
             }
@@ -412,7 +412,7 @@ class PDFTextSelector {
             for (let i = 1; i < pageRects.length; i++) {
                 const rect = pageRects[i];
                 const prevRect = currentLine[currentLine.length - 1];
-                
+
                 if (Math.abs(rect.y - prevRect.y) <= lineThreshold) {
                     // Same line
                     currentLine.push(rect);
@@ -437,7 +437,7 @@ class PDFTextSelector {
                 for (let i = 1; i < line.length; i++) {
                     const rect = line[i];
                     const rightmost = mergedX + mergedWidth;
-                    
+
                     if (rect.x <= rightmost + 2) {
                         // Overlapping or adjacent - merge
                         const newRight = Math.max(rightmost, rect.x + rect.width);
@@ -476,7 +476,7 @@ class PDFTextSelector {
         this.app.saveHistory();
 
         for (const highlight of mergedHighlights) {
-            const highlightColor = this.app.state.pdfHighlightColor || '#ffff00';
+            const highlightColor = this.app.state.pdfHighlightColor || '#e3ff00';
             const highlightObj = {
                 type: 'rectangle',
                 x: highlight.x,

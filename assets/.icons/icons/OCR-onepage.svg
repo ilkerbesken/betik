@@ -1,17 +1,19 @@
-<svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="OCR-onepage" clip-path="url(#clip0_2315_17)">
 <g id="g1161">
-<path id="path1159" d="M11.1666 4.60168V9.34453M4.79517 6.99097V4.60168H17.538V6.99097" stroke="black" stroke-width="2.66667" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="path1364" d="M21.8333 21.7721V14.6608M21.804 21.7721H14.6927M0.5 21.7721V14.6608M0.529297 21.7721H7.64062M21.8333 0.5V7.61133M21.804 0.5H14.6927M0.5 0.5V7.61133M0.529297 0.5H7.64062" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="path2750" d="M7.1814 19.3562H15.1518" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="path2750-7" d="M9.1814 16.7471H13.1518" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="path2787" d="M9.1814 14.1381H13.1518" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="path2789" d="M1.1814 11.5291H21.1518" stroke="black" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="Group 4">
+<path id="path1159" d="M12.5 6.66357V10.8998M6.82544 8.79765V6.66357H18.1745V8.79765" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path1364" d="M22 22V15.6483M21.9739 22H15.6404M3 22V15.6483M3.02609 22H9.35962M22 3V9.35175M21.9739 3H15.6404M3 3V9.35175M3.02609 3H9.35962" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path2750" d="M8.95068 19.8423H16.0493" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path2750-7" d="M10.7319 17.5117H14.2681" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path2787" d="M10.7319 15.1814H14.2681" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="path2789" d="M3.60693 12.8511H21.3931" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 </g>
 </g>
 <defs>
 <clipPath id="clip0_2315_17">
-<rect width="22.3333" height="22.2721" fill="white"/>
+<rect width="24" height="24" fill="white"/>
 </clipPath>
 </defs>
 </svg>

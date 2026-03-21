@@ -1,12 +1,14 @@
-<svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="ellipse" clip-path="url(#clip0_2315_7)">
-<g id="g1026">
-<path id="circle1022" d="M10.5 20.5C16.0228 20.5 20.5 16.0228 20.5 10.5C20.5 4.97715 16.0228 0.5 10.5 0.5C4.97715 0.5 0.5 4.97715 0.5 10.5C0.5 16.0228 4.97715 20.5 10.5 20.5Z" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="elipse">
+<g id="lasso" clip-path="url(#clip0_2319_839)">
+<g id="g856">
+<path id="path6036" d="M22 12.5C22 15.0196 20.9991 17.4359 19.2175 19.2175C17.4359 20.9991 15.0196 22 12.5 22C9.98044 22 7.56408 20.9991 5.78249 19.2175C4.00089 17.4359 3 15.0196 3 12.5C3 9.98044 4.00089 7.56408 5.78249 5.78249C7.56408 4.00089 9.98044 3 12.5 3C15.0196 3 17.4359 4.00089 19.2175 5.78249C20.9991 7.56408 22 9.98044 22 12.5Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 </g>
 </g>
 <defs>
-<clipPath id="clip0_2315_7">
-<rect width="21" height="21" fill="white"/>
+<clipPath id="clip0_2319_839">
+<rect width="24" height="24" fill="white"/>
 </clipPath>
 </defs>
 </svg>

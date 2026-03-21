@@ -42,7 +42,7 @@ class SelectTool {
 
             if (selectedObj) {
                 // Eğri kontrol noktası kontrolü (curved arrow için)
-                if (selectedObj.type === 'arrow' && selectedObj.pathType === 'curved' && selectedObj.curveControlPoint) {
+                if (selectedObj.type === 'arrow' && selectedObj.pathType === 'curved' && selectedObj.curveControlPoint && !selectedObj.locked) {
                     const dist = Math.sqrt(
                         Math.pow(clickPoint.x - selectedObj.curveControlPoint.x, 2) +
                         Math.pow(clickPoint.y - selectedObj.curveControlPoint.y, 2)
@@ -109,7 +109,7 @@ class SelectTool {
                 }
 
                 // TABLE DIVIDER CHECK
-                if (selectedObj.type === 'table') {
+                if (selectedObj.type === 'table' && !selectedObj.locked) {
                     const divider = this.isNearTableDivider(selectedObj, clickPoint);
                     if (divider) {
                         this.activeTableDivider = {
@@ -132,14 +132,16 @@ class SelectTool {
             }
         }
 
-        // Tıklanan nesneyi bul
+        // Tıklanan nesneyi bul (öncelikle kilitli olmayan nesnelere bak, sonra kilitli olanlara)
         let clickedIndex = -1;
+
+        // İlk geçiş: Kilitli olmayan nesneleri kontrol et (yukarıdan aşağıya)
         for (let i = state.objects.length - 1; i >= 0; i--) {
             const obj = state.objects[i];
             if (obj.locked) continue;
 
             let hit = this.isNearObject(obj, clickPoint);
-            
+
             // Sağ tık için daha esnek bir kontrol: Çizgi gibi ince nesnelerde bounding box'ı da kontrol et
             if (!hit && isRightClick) {
                 const bounds = this.getBoundingBox(obj, 10);
@@ -152,6 +154,29 @@ class SelectTool {
             if (hit) {
                 clickedIndex = i;
                 break;
+            }
+        }
+
+        // İkinci geçiş: Eğer kilitli olmayan nesne bulunamadıysa kilitli olanlara bak
+        if (clickedIndex === -1) {
+            for (let i = state.objects.length - 1; i >= 0; i--) {
+                const obj = state.objects[i];
+                if (!obj.locked) continue;
+
+                let hit = this.isNearObject(obj, clickPoint);
+
+                if (!hit && isRightClick) {
+                    const bounds = this.getBoundingBox(obj, 10);
+                    if (clickPoint.x >= bounds.minX && clickPoint.x <= bounds.maxX &&
+                        clickPoint.y >= bounds.minY && clickPoint.y <= bounds.maxY) {
+                        hit = true;
+                    }
+                }
+
+                if (hit) {
+                    clickedIndex = i;
+                    break;
+                }
             }
         }
 
@@ -1154,6 +1179,20 @@ class SelectTool {
         ];
     }
     getRawBounds(obj) {
+        if (obj.type === 'group') {
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+            obj.children.forEach(child => {
+                const childBounds = this.getRawBounds(child);
+                minX = Math.min(minX, childBounds.minX);
+                minY = Math.min(minY, childBounds.minY);
+                maxX = Math.max(maxX, childBounds.maxX);
+                maxY = Math.max(maxY, childBounds.maxY);
+            });
+            if (minX === Infinity) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+            return { minX, minY, maxX, maxY };
+        }
+
         if (obj.x !== undefined) {
             return {
                 minX: obj.x,
@@ -1179,11 +1218,19 @@ class SelectTool {
             let minX = Infinity, minY = Infinity;
             let maxX = -Infinity, maxY = -Infinity;
             obj.points.forEach(p => {
-                minX = Math.min(minX, p.x);
-                minY = Math.min(minY, p.y);
-                maxX = Math.max(maxX, p.x);
-                maxY = Math.max(maxY, p.y);
+                if (p.x !== undefined && p.y !== undefined) {
+                    minX = Math.min(minX, p.x);
+                    minY = Math.min(minY, p.y);
+                    maxX = Math.max(maxX, p.x);
+                    maxY = Math.max(maxY, p.y);
+                } else if (p.point) { // For vector-pen
+                    minX = Math.min(minX, p.point.x, p.handle1.x, p.handle2.x);
+                    minY = Math.min(minY, p.point.y, p.handle1.y, p.handle2.y);
+                    maxX = Math.max(maxX, p.point.x, p.handle1.x, p.handle2.x);
+                    maxY = Math.max(maxY, p.point.y, p.handle1.y, p.handle2.y);
+                }
             });
+            if (minX === Infinity) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
             return { minX, minY, maxX, maxY };
         }
         return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
@@ -1521,7 +1568,7 @@ class SelectTool {
         return null;
     }
 
-    paste(state, offsetX = 20, offsetY = 20) {
+    paste(state, targetPos = null, offsetX = 20, offsetY = 20) {
         if (!this.clipboard) return null;
 
         const pastedObjects = [];
@@ -1529,13 +1576,31 @@ class SelectTool {
         // Clipboard array mi tek obje mi kontrolü
         const items = Array.isArray(this.clipboard) ? this.clipboard : [this.clipboard];
 
+        let finalOffsetX = offsetX;
+        let finalOffsetY = offsetY;
+
+        if (targetPos) {
+            // Calculate bounding box of all items to be pasted
+            let minX = Infinity, minY = Infinity;
+            items.forEach(item => {
+                const b = this.getBoundingBox(item);
+                minX = Math.min(minX, b.minX);
+                minY = Math.min(minY, b.minY);
+            });
+            
+            if (minX !== Infinity) {
+                finalOffsetX = targetPos.x - minX;
+                finalOffsetY = targetPos.y - minY;
+            }
+        }
+
         items.forEach(item => {
             // Deep copy clipboard item
             const newObj = Utils.deepClone(item);
             newObj.id = Date.now() + Math.random().toString(36).substr(2, 9); // Ensure unique ID
 
             // Offset uygula
-            this.moveObject(newObj, offsetX, offsetY);
+            this.moveObject(newObj, finalOffsetX, finalOffsetY);
             pastedObjects.push(newObj);
         });
 
@@ -1565,8 +1630,18 @@ class SelectTool {
     duplicateSelected(state) {
         if (this.selectedObjects.length === 0) return null;
 
-        const copies = this.paste(state, 20, 20); // Reuse paste logic for offset and cloning
-        if (!copies || copies.length === 0) return null;
+        const copies = [];
+        this.selectedObjects.forEach(index => {
+            const obj = state.objects[index];
+            if (obj) {
+                const newObj = Utils.deepClone(obj);
+                newObj.id = Date.now() + Math.random().toString(36).substr(2, 9);
+                this.moveObject(newObj, 20, 20);
+                copies.push(newObj);
+            }
+        });
+
+        if (copies.length === 0) return null;
 
         // Separate tapes from other objects for layering
         const tapes = copies.filter(obj => obj.type === 'tape');
@@ -1735,17 +1810,17 @@ class SelectTool {
         return true;
     }
 
-    handleContextMenu(e, canvas, state) {
-        // Seçili nesne yoksa menüyü gösterme
-        if (this.selectedObjects.length === 0) return;
-
+    handleContextMenu(e, canvas, state, worldPos = null) {
         e.preventDefault();
+        
+        // Save world position for potential paste operation
+        this.lastContextWorldPos = worldPos;
 
         const menu = document.getElementById('contextMenu');
+        const hasSelection = state.currentTool === 'select' && this.selectedObjects.length > 0;
 
-        // Menüyü konumlandır
+        // Position the menu
         menu.style.left = e.clientX + 'px';
-
         if (e.clientY > window.innerHeight / 2) {
             menu.style.top = 'auto';
             menu.style.bottom = (window.innerHeight - e.clientY) + 'px';
@@ -1755,7 +1830,7 @@ class SelectTool {
         }
 
         // Prevent overflow on the right
-        const menuWidth = 150; // Estimated width or getComputedStyle? Can't get computed easily before display.
+        const menuWidth = 150;
         if (e.clientX + menuWidth > window.innerWidth) {
             menu.style.left = 'auto';
             menu.style.right = '10px';
@@ -1763,6 +1838,29 @@ class SelectTool {
             menu.style.right = 'auto';
             menu.style.left = e.clientX + 'px';
         }
+
+        if (!hasSelection) {
+            // Hide everything except Paste
+            const allItems = menu.querySelectorAll('.context-menu-item, .context-menu-separator');
+            allItems.forEach(item => {
+                if (item.dataset && item.dataset.action === 'paste') {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            menu.classList.add('show');
+            return true;
+        }
+
+        // Ensure basic items are visible if selection exists
+        const basicActions = ['cut', 'copy', 'paste', 'duplicate', 'delete'];
+        basicActions.forEach(action => {
+            const item = menu.querySelector(`[data-action="${action}"]`);
+            if (item) item.style.display = 'flex';
+        });
+
+        // Selected objects logic continues...
 
         // Check if any selected object is a tape or table
         let hasTape = false;
@@ -2736,6 +2834,8 @@ class SelectTool {
     }
 
     updateObjectStyle(obj, style) {
+        if (obj.locked) return;
+        
         if (obj.type === 'group') {
             obj.children.forEach(child => this.updateObjectStyle(child, style));
             return;

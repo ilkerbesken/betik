@@ -2,3 +2,12 @@ terminalde asagidaki kodu calistirmak yeterli;
 
 
 node convert.js
+
+ardindan ayni dizinde olusan Icons.js icerigini js klasörü icindeki icons.js icine ilgili kisma yapistir
+
+
+Figma  linki
+https://www.figma.com/design/4YwAgPab36Bms4Krw3zJ6A/%E2%9D%96-Untitled-UI-Icons-%E2%80%93-1-100--essential-Figma-icons--Community-?node-id=181-128951&p=f&t=YjnqutIu6qmuRhyl-0
+
+The ultimate Figma UI kit and design system
+www.untitledui.com

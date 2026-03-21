@@ -262,21 +262,25 @@ textarea,
 
 /* Toolbar */
 .toolbar {
-    background: white;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 0 12px;
+    background: transparent;
+    border-bottom: none;
+    padding: 12px 12px 0 12px;
     display: flex;
-    justify-content: center;
-    position: relative;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    justify-content: space-between;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    align-items: flex-start;
+    box-shadow: none;
     z-index: 5000;
     /* Higher than canvas and other layers */
-    min-height: 48px;
+    min-height: auto;
     gap: 12px;
     overflow: visible;
     /* Crucial for dropdowns to not be clipped */
     scrollbar-width: none;
+    pointer-events: none;
 }
 
 .toolbar::-webkit-scrollbar {
@@ -284,17 +288,31 @@ textarea,
 }
 
 .toolbar-left,
+.toolbar-center,
+.toolbar-right {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
+    padding: 4px;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+.toolbar-left,
 .toolbar-right {
     display: flex;
     align-items: center;
     gap: 4px;
-    flex: 1;
-    flex-basis: 0;
+    flex: 0 1 auto;
     min-width: max-content;
 }
 
 .toolbar-right {
     justify-content: flex-end;
+    align-items: center;
+    justify-content: center;
 }
 
 .toolbar-center {
@@ -302,7 +320,10 @@ textarea,
     align-items: center;
     flex: 0 0 auto;
     justify-content: center;
-    padding: 0 8px;
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
     /* Hide scrollbar */
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -334,7 +355,7 @@ textarea,
     display: flex;
     gap: 4px;
     padding: 0 8px;
-    border-right: 1px solid #e0e0e0;
+    border-right: none;
     flex-shrink: 0;
 }
 
@@ -451,7 +472,10 @@ input[type="range"]::-moz-range-progress {
 /* App Menu Dropdown */
 .app-menu-container {
     position: relative;
-    margin-left: 8px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .app-menu-dropdown {
@@ -503,6 +527,132 @@ input[type="range"]::-moz-range-progress {
     background: #f1f3f5;
     padding: 2px 6px;
     border-radius: 4px;
+}
+
+/* Toolbar Customize Dropdown */
+.toolbar-customize-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0px;
+    width: 180px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    padding: 6px;
+    z-index: 11000;
+    max-height: 420px;
+    overflow-y: auto;
+    animation: dropdownFade 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-customize-dropdown.show {
+    display: flex;
+}
+
+.customize-header {
+    font-size: 10px;
+    font-weight: 700;
+    color: #999;
+    padding: 8px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.customize-tool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.customize-tool-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: default;
+    transition: background 0.2s;
+}
+
+.customize-tool-item:hover {
+    background: #f8f9fa;
+}
+
+.customize-tool-item .tool-name {
+    flex: 1;
+    font-size: 12px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.customize-tool-item .tool-icon-wrapper {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.customize-tool-item app-icon {
+    width: 14px;
+    height: 14px;
+    color: #262626;
+}
+
+.tool-toggle {
+    position: relative;
+    width: 30px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.tool-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e2e8f0;
+    transition: .2s;
+    border-radius: 20px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tool-toggle input:checked+.toggle-slider {
+    background-color: #2196f3;
+}
+
+.tool-toggle input:checked+.toggle-slider:before {
+    transform: translateX(14px);
 }
 
 #btnAppMenu span {
@@ -994,10 +1144,10 @@ input[type="range"] {
 
 /* Status Bar */
 .status-bar {
-    background: white;
-    border-top: 1px solid #e0e0e0;
-    padding: 0 12px;
-    height: 30px;
+    background: transparent;
+    border-top: none;
+    padding: 0 12px 12px 12px;
+    height: auto;
     font-size: 10px;
     color: #666;
     position: fixed;
@@ -1006,25 +1156,51 @@ input[type="range"] {
     right: 0;
     z-index: 100;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: flex-end;
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.status-info,
+.status-center,
+.status-right {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
+    display: flex;
     align-items: center;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.status-center {
+    margin-left: auto;
+    margin-right: 20px;
+    gap: 4px;
+    padding: 0 8px;
+    height: 32px;
+}
+
+.status-right {
+    padding: 0 4px;
+    height: 32px;
 }
 
 .status-info {
-    display: flex;
-    align-items: center;
+    padding: 0 12px;
+    height: 32px;
     gap: 8px;
-    flex: 1;
+    flex: 0 1 auto;
 }
 
 .status-actions {
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-right: 12px;
+    margin-right: 4px;
     border-right: 1px solid #e0e0e0;
-    padding-right: 12px;
+    padding-right: 4px;
 }
 
 .status-actions .tool-btn {
@@ -1110,6 +1286,30 @@ input[type="range"] {
     margin: 2px 0;
 }
 
+.context-submenu {
+    position: absolute;
+    top: -4px;
+    left: 100%;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 3px 0;
+    min-width: 145px;
+    display: none;
+    z-index: 3001;
+}
+
+.context-menu-item:hover>.context-submenu,
+.context-menu-item.submenu-open>.context-submenu {
+    display: block;
+}
+
+/* Submenu items padding adjustment if needed */
+.context-submenu .context-menu-item {
+    font-size: 10px;
+}
+
 /* Floating Color Sidebar */
 .floating-sidebar {
     position: absolute;
@@ -1175,7 +1375,7 @@ input[type="range"] {
     display: flex;
     flex-direction: row;
     align-items: center;
-    border-right: 1px solid #e0e0e0;
+    border-right: none !important;
     border-bottom: none;
     padding: 0 8px;
     height: 32px;
@@ -1311,7 +1511,7 @@ input[type="range"] {
 }
 
 .tik-file-preview img {
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1319,7 +1519,7 @@ input[type="range"] {
     transform: scale(1.1) translateY(-5px);
 }
 
-.tag-tom {
+.tag-tik {
     background: #e7f5ff;
     color: #1971c2;
     font-size: 10px;
@@ -1331,7 +1531,8 @@ input[type="range"] {
     text-transform: uppercase;
 }
 
-.tree-note-item .note-icon, .nav-section .note-icon {
+.tree-note-item .note-icon,
+.nav-section .note-icon {
     flex-shrink: 0;
 }
 
@@ -2004,7 +2205,7 @@ input[type="range"] {
         }
 
         .toolbar-center .tool-group {
-            border-right: 1px solid #f1f5f9 !important;
+            border-right: none !important;
             padding: 0 6px !important;
             height: 32px !important;
             display: flex !important;
@@ -2323,10 +2524,8 @@ input[type="range"] {
     }
 
     /* Status Bar */
-
-    /* Status Bar */
     .status-bar {
-        padding: 0 8px;
+        padding: 0 8px 8px 8px;
     }
 
     /* Hide less important status info */
@@ -2493,7 +2692,7 @@ input[type="range"] {
     }
 
     .properties-sidebar .tool-group {
-        border-right: 1px solid #f1f5f9 !important;
+        border-right: none !important;
         height: 38px !important;
         padding: 0 8px !important;
         gap: 8px !important;
@@ -5923,6 +6122,7 @@ input[type="range"] {
     color: #3b82f6;
     text-decoration: underline;
 }
+
 /* Grab Image Tool Styles */
 .grab-image-menu {
     background: white;
@@ -5967,6 +6167,114 @@ input[type="range"] {
 }
 
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* --- Apply Dynamic Icon Color to Menus and UI Components --- */
+.menu-item,
+.menu-item .icon-small,
+.context-menu-item,
+.context-menu-item .menu-icon,
+.properties-sidebar .tool-btn,
+.properties-sidebar .property-trigger-btn,
+.properties-sidebar .label,
+.properties-sidebar .val-badge,
+.dashboard-sidebar .nav-item,
+.dashboard-sidebar .nav-item .nav-icon,
+.board-title,
+.btn-icon,
+.breadcrumb,
+.board-settings-btn,
+.grab-menu-item {
+    color: var(--app-icon-color);
+}
+
+.properties-sidebar .tool-btn app-icon,
+.properties-sidebar .property-trigger-btn app-icon,
+.menu-item app-icon,
+.context-menu-item app-icon,
+.dashboard-sidebar .nav-item app-icon,
+.btn-icon app-icon,
+.board-settings-btn app-icon,
+.grab-menu-item app-icon {
+    color: var(--app-icon-color);
+}
+
+/* Ensure active/hover states keep their overrides */
+.properties-sidebar .tool-btn.active,
+.properties-sidebar .property-trigger-btn.active,
+.dashboard-sidebar .nav-item.active {
+    color: var(--app-icon-active-color);
+}
+
+.properties-sidebar .tool-btn.active app-icon,
+.properties-sidebar .property-trigger-btn.active app-icon,
+.dashboard-sidebar .nav-item.active app-icon {
+    color: var(--app-icon-active-color);
+}
+
+.btn-icon.active,
+.btn-icon.active app-icon {
+    color: white;
+}
+
+/* --- Additional Popups & Buttons Override for Dynamic Color --- */
+.property-popup .tool-btn,
+.property-popup .property-trigger-btn,
+.property-popup .label,
+.property-popup .val-badge,
+.property-popup .pattern-item,
+.property-popup-responsive .tool-btn,
+.property-popup-responsive .label,
+.num-adj-btn,
+.num-input,
+.quick-stroke-btn,
+.tape-pattern-item,
+.mobile-popup-title {
+    color: var(--app-icon-color);
+}
+
+.property-popup .tool-btn app-icon,
+.property-popup .property-trigger-btn app-icon,
+.property-popup .pattern-item .icon-tiny,
+.tape-pattern-item .delete-btn,
+.num-adj-btn app-icon,
+.quick-stroke-btn app-icon {
+    color: var(--app-icon-color);
+}
+
+/* Elements with inline styles */
+#btnQuickColorAdd,
+#btnPopupMoreColors,
+#btnPopupEyedropper,
+.quick-color-btn.rainbow-btn {
+    color: var(--app-icon-color) !important;
+}
+
+#btnQuickColorAdd app-icon,
+#btnPopupMoreColors app-icon,
+#btnPopupEyedropper app-icon {
+    color: var(--app-icon-color) !important;
+}
+
+/* Preserve active states */
+.property-popup .tool-btn.active,
+.property-popup .property-trigger-btn.active,
+.property-popup-responsive .tool-btn.active,
+.quick-stroke-btn.active {
+    color: var(--app-icon-active-color);
+}
+
+.property-popup .tool-btn.active app-icon,
+.property-popup .property-trigger-btn.active app-icon,
+.quick-stroke-btn.active app-icon {
+    color: var(--app-icon-active-color);
 }

@@ -1,7 +1,12 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="opacity">
+<g id="opacity" clip-path="url(#clip0_2315_47)">
 <g id="g968">
-<path id="circle962" d="M3.56627 9.29992V15.7044M9.58737 3.65102V21.2888M6.57682 5.27512V19.7742M12.5979 3.05293V21.7778M22 12.5C22 17.7467 17.7467 22 12.5 22C7.25329 22 3 17.7467 3 12.5C3 7.25329 7.25329 3 12.5 3C17.7467 3 22 7.25329 22 12.5Z" stroke="black" stroke-width="2.18182" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="circle962" d="M3.56627 9.29992V15.7044M9.58737 3.65102V21.2888M6.57682 5.27512V19.7742M12.5979 3.05293V21.7778M22 12.5C22 17.7467 17.7467 22 12.5 22C7.25329 22 3 17.7467 3 12.5C3 7.25329 7.25329 3 12.5 3C17.7467 3 22 7.25329 22 12.5Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
 </g>
+<defs>
+<clipPath id="clip0_2315_47">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
 </svg>

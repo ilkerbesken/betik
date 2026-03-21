@@ -1,5 +1,0 @@
-highlighterin kodlari pentool.js icinde sanirim. bundan dolayi da renk secimi diger pen toollarini da etkiliyor. ayri bir js dosyasinda olmasi daha iyi olurdu sanirim.
-
-vurgulayicinin propertiesSidebarindaki varsayilan renk vurgulayici her ilk acilisinda #E4FF30 rengi secili olarak baslasin. baska pen toollara gecip baska rennk secince bundan etkilenmesin.
-
-diger pen toollar (Pentool, vectorpen tool, fountainpen tool ve charcoal tool) hep uygulama ilk acildiginda siyah renk varsayilan olarak baslasin. o toolda en son hangi renk secildiyse onunla devam edilsin. pen toollarin renkleri birbirini tetiklemesin.

@@ -412,37 +412,80 @@ fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
                 this._gpuCanvas.width = w; this._gpuCanvas.height = h;
                 this._context.configure({ device: this._device, format: this._format, alphaMode: 'premultiplied' });
             }
-            // Use same vertex structure as stroke but reuse pressure for half-width
+
             const pts = obj.points;
+            if (pts.length < 2) return false;
+
             const baseW = obj.width || 5;
-            const vData = new Float32Array(pts.length * 2 * 4);
-            for (let i = 0; i < pts.length; i++) {
-                const p = pts[i];
-                const halfW = (baseW / 2) * (p.pressure || 0.5) * 2;
-                const idx = i * 8;
-                vData[idx] = p.x; vData[idx+1] = p.y; vData[idx+2] = -1; vData[idx+3] = halfW;
-                vData[idx+4] = p.x; vData[idx+5] = p.y; vData[idx+6] = 1; vData[idx+7] = halfW;
+            const nibAngle = obj.nibAngle || Math.PI / 4;
+            const minRatio = obj.minWidthRatio || 0.2;
+
+            // 1. Subdivide and calculate angle-based width for each point
+            const densePts = [];
+            for (let i = 0; i < pts.length - 1; i++) {
+                const p1 = pts[i], p2 = pts[i + 1];
+                const d = Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+                const steps = Math.max(1, Math.ceil(d / 1.0)); // 1px steps for GPU is plenty
+                
+                const moveAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                const diff = Math.abs(Math.sin(moveAngle - nibAngle));
+                const widthAtAngle = minRatio + (1 - minRatio) * diff;
+
+                for (let j = 0; j < (i === pts.length - 2 ? steps + 1 : steps); j++) {
+                    const t = j / steps;
+                    densePts.push({
+                        x: p1.x + (p2.x - p1.x) * t,
+                        y: p1.y + (p2.y - p1.y) * t,
+                        w: widthAtAngle * ((p1.pressure || 0.5) + ((p2.pressure || 0.5) - (p1.pressure || 0.5)) * t)
+                    });
+                }
             }
+
+            if (densePts.length < 2) return false;
+
+            const vData = new Float32Array(densePts.length * 2 * 4);
+            for (let i = 0; i < densePts.length; i++) {
+                const dp = densePts[i];
+                const halfW = (baseW / 2) * dp.w * 2;
+                const idx = i * 8;
+                // Side -1
+                vData[idx] = dp.x; vData[idx + 1] = dp.y; vData[idx + 2] = -1; vData[idx + 3] = halfW;
+                // Side 1
+                vData[idx + 4] = dp.x; vData[idx + 5] = dp.y; vData[idx + 6] = 1; vData[idx + 7] = halfW;
+            }
+
             const vBuf = this._uploadBuffer(vData);
             const ortho = this._buildWorldToClip(w, h, zoom, pan);
             const rgba = this._hexToRgb(obj.color);
-            const uBuf = this._createUniformBuffer(ortho, rgba, obj.opacity || 1.0, [obj.nibAngle || 0.785, obj.minWidthRatio || 0.2]);
-            const bg = this._device.createBindGroup({ layout: this._fountainPenPipeline.layout, entries: [{ binding: 0, resource: { buffer: uBuf } }] });
+            const uBuf = this._createUniformBuffer(ortho, rgba, obj.opacity || 1.0, [nibAngle, minRatio]);
+            
+            const bg = this._device.createBindGroup({ 
+                layout: this._fountainPenPipeline.layout, 
+                entries: [{ binding: 0, resource: { buffer: uBuf } }] 
+            });
+            
             const encoder = this._device.createCommandEncoder();
             const pass = encoder.beginRenderPass({
-                colorAttachments: [{ view: this._context.getCurrentTexture().createView(), loadOp: 'clear', clearValue: { r: 0, g: 0, b: 0, a: 0 }, storeOp: 'store' }]
+                colorAttachments: [{ 
+                    view: this._context.getCurrentTexture().createView(), 
+                    loadOp: 'clear', 
+                    clearValue: { r: 0, g: 0, b: 0, a: 0 }, 
+                    storeOp: 'store' 
+                }]
             });
             pass.setPipeline(this._fountainPenPipeline.pipeline);
             pass.setBindGroup(0, bg);
             pass.setVertexBuffer(0, vBuf);
-            pass.draw(vData.length / 4);
+            pass.draw(densePts.length * 2);
             pass.end();
             this._device.queue.submit([encoder.finish()]);
+            
             targetCtx.drawImage(this._gpuCanvas, 0, 0, w, h);
             vBuf.destroy(); uBuf.destroy();
             return true;
         } catch (e) { console.error('[WebGPU] drawFountainPen error:', e); return false; }
     }
+
 
     drawCharcoal(targetCtx, obj, zoom, viewWidth, viewHeight, pan) {
         if (!this._ready || !this._supported) return false;

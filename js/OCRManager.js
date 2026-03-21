@@ -194,6 +194,14 @@ class OCRManager {
                 const pageIndex = this.app.pageManager.currentPageIndex;
                 this.app.pdfManager.textSelector.addOcrLayer(pageIndex, data.lines, data.invScale);
                 
+                // OCR verisini sayfa nesnesine kaydet (Kalıcılık için)
+                if (this.app.pageManager.pages[pageIndex]) {
+                    this.app.pageManager.pages[pageIndex].ocrData = {
+                        lines: data.lines,
+                        scale: data.invScale
+                    };
+                }
+
                 this._updateProgress(100, 'Tamamlandı!');
                 this._showResult(data.lines.length);
 
@@ -246,6 +254,15 @@ class OCRManager {
                 
                 if (this.app.pdfManager.textSelector) {
                     this.app.pdfManager.textSelector.addOcrLayer(i - 1, data.lines, data.invScale);
+                    
+                    // OCR verisini sayfa nesnesine kaydet
+                    if (this.app.pageManager.pages[i - 1]) {
+                        this.app.pageManager.pages[i - 1].ocrData = {
+                            lines: data.lines,
+                            scale: data.invScale
+                        };
+                    }
+                    
                     totalLines += data.lines.length;
                 }
             }

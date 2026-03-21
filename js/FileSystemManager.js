@@ -352,19 +352,27 @@ class FileSystemManager {
         }
 
         // İçeriği hazırla — TikFileManager gibi gzip ile sıkıştır
+        await this._ensurePako();
+
         const content = JSON.stringify({
             version: value.version || '2.1',
-            format: 'tom',
+            format: 'tik',
             savedAt: new Date().toISOString(),
             pages: value.pages || null,
-            objects: value.objects || null
+            objects: value.objects || null,
+            pdfBase64: value.pdfBase64 || null
         });
 
         let binaryData;
         if (typeof pako !== 'undefined') {
-            binaryData = pako.gzip(content);
+            const compressed = pako.gzip(content);
+            const header = new TextEncoder().encode('BETIK!');
+            binaryData = new Uint8Array(header.length + compressed.length);
+            binaryData.set(header);
+            binaryData.set(compressed, header.length);
+            console.log(`[FileSystemManager] ${fileName} sıkıştırılarak kaydedildi. (${content.length} -> ${binaryData.length} byte)`);
         } else {
-            // pako yoksa düz JSON yaz
+            console.warn('[FileSystemManager] pako yüklenemedi, dosya RAW JSON olarak kaydediliyor.');
             binaryData = new TextEncoder().encode(content);
         }
 
@@ -372,8 +380,96 @@ class FileSystemManager {
         const writable = await fileHandle.createWritable();
         await writable.write(binaryData);
         await writable.close();
+    }
 
-        console.log(`[FileSystemManager] ${pathSegments.join('/')} kaydedildi.`);
+    /**
+     * Board içeriğini .tik formatında (gzip) yerel klasörden oku.
+     */
+    async _loadBoardFromNative(boardId) {
+        if (!this.dirHandle) return null;
+
+        const pathSegments = this._getBoardFilePath(boardId);
+        const folders = pathSegments.slice(0, -1);
+        const fileName = pathSegments[pathSegments.length - 1];
+
+        try {
+            await this._ensurePako();
+            let targetDir = this.dirHandle;
+            for (const folderName of folders) {
+                targetDir = await targetDir.getDirectoryHandle(folderName, { create: false });
+            }
+
+            const fileHandle = await targetDir.getFileHandle(fileName, { create: false });
+            const file = await fileHandle.getFile();
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8 = new Uint8Array(arrayBuffer);
+
+            // TikFileManager'daki aynı inflate mantığı
+            let jsonStr;
+            const isBetik = uint8[0] === 66 && uint8[1] === 69 && uint8[2] === 84 && uint8[3] === 73 && uint8[4] === 75 && uint8[5] === 33;
+            // "BETIK!" imzasını kontrol et
+            if (isBetik) {
+                const dataOnly = uint8.slice(6);
+                jsonStr = pako.inflate(dataOnly, { to: 'string' });
+            } else if (uint8[0] === 0x1f && uint8[1] === 0x8b) {
+                // Standart Gzip
+                jsonStr = pako.inflate(uint8, { to: 'string' });
+            } else {
+                // Düz JSON (eskiden sıkıştırılmadan kaydedilmiş olabilir)
+                jsonStr = new TextDecoder().decode(uint8);
+            }
+
+            return JSON.parse(jsonStr);
+        } catch (e) {
+            console.error(`[FileSystemManager] ${fileName} okuma hatası:`, e);
+            return null;
+        }
+    }
+
+    async _loadMetaFromNative(key) {
+        if (!this.dirHandle) return null;
+        try {
+            const metaDir = await this.dirHandle.getDirectoryHandle('_meta', { create: false });
+            const safeKey = key.replace(/[^a-zA-Z0-9_\-]/g, '_');
+            const fileHandle = await metaDir.getFileHandle(`${safeKey}.json`, { create: false });
+            const file = await fileHandle.getFile();
+            return JSON.parse(await file.text());
+        } catch (e) { return null; }
+    }
+
+    async _ensurePako() {
+        if (typeof pako !== 'undefined') return;
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js';
+            script.onload = () => { console.log('[FileSystemManager] pako yüklendi.'); resolve(); };
+            script.onerror = () => reject(new Error('pako yüklenemedi'));
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * Board içeriğini PDF olarak yerel klasöre kaydet.
+     */
+    async _savePDFToNative(boardId, pdfBlob) {
+        if (!this.dirHandle || !(pdfBlob instanceof Blob)) return;
+
+        const pathSegments = this._getBoardFilePath(boardId);
+        // .tik uzantısını .pdf yap
+        const fileName = pathSegments[pathSegments.length - 1].replace(/\.tik$/i, '') + '.pdf';
+        const folders = pathSegments.slice(0, -1);
+
+        let targetDir = this.dirHandle;
+        for (const folderName of folders) {
+            targetDir = await targetDir.getDirectoryHandle(folderName, { create: true });
+        }
+
+        const fileHandle = await targetDir.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(pdfBlob);
+        await writable.close();
+
+        console.log(`[FileSystemManager] PDF ${fileName} kaydedildi.`);
     }
 
     /**
@@ -397,6 +493,30 @@ class FileSystemManager {
                 }
             } catch (e) {}
             return item.value;
+        }
+
+        // ── Native Mod Fallback: IndexedDB'de yoksa yerel klasörden oku ──
+        if (this.mode === 'native' && this.dirHandle) {
+            try {
+                if (key.startsWith('wb_content_')) {
+                    const boardId = key.replace('wb_content_', '');
+                    const val = await this._loadBoardFromNative(boardId);
+                    if (val) {
+                        // Bir kez okuduktan sonra hızlı erişim için IndexedDB'ye de yaz
+                        await this.db.data.put({ key, value: val });
+                        return val;
+                    }
+                } else if (key.startsWith('wb_') || key.startsWith('betik_')) {
+                    const val = await this._loadMetaFromNative(key);
+                    if (val) {
+                         // IndexedDB'ye yazma, meta veriler her zaman wb_boards/wb_folders ile yönetilmeli
+                         // Ama item listesi gibi şeyler için gerekebilir
+                         return val;
+                    }
+                }
+            } catch (e) {
+                console.warn('[FileSystemManager] Yerel okuma hatası:', key, e.message);
+            }
         }
 
         // Fallback: localStorage
@@ -495,6 +615,127 @@ class FileSystemManager {
                 // Dizin var olmayabilir, sessizce geç
             }
         }
+    }
+
+    /**
+     * Yerel klasörü tara ve mevcut notları IndexedDB'ye al.
+     */
+    async importFromNative() {
+        if (!this.dirHandle) return { success: false, error: 'Klasör seçilmemiş.' };
+
+        console.log('[FileSystemManager] Yerel klasör taranıyor...');
+        let importedCount = 0;
+        let folderCount = 0;
+
+        try {
+            // 1. Önce meta veriyi yüklemeyi dene (Eğer varsa)
+            try {
+                const metaDir = await this.dirHandle.getDirectoryHandle('_meta', { create: false });
+                
+                const boardsHandle = await metaDir.getFileHandle('wb_boards.json', { create: false }).catch(() => null);
+                if (boardsHandle) {
+                   const file = await boardsHandle.getFile();
+                   const boards = JSON.parse(await file.text());
+                   // Mevcut boards ile birleştir (ID çakışmasını önle)
+                   const currentBoards = await this.getItem('wb_boards', []);
+                   const mergedBoards = [...currentBoards];
+                   for (const b of boards) {
+                       if (!mergedBoards.find(eb => eb.id === b.id)) {
+                           mergedBoards.push(b);
+                           importedCount++;
+                       }
+                   }
+                   await this.saveItem('wb_boards', mergedBoards, true);
+                }
+
+                const foldersHandle = await metaDir.getFileHandle('wb_folders.json', { create: false }).catch(() => null);
+                if (foldersHandle) {
+                    const file = await foldersHandle.getFile();
+                    const folders = JSON.parse(await file.text());
+                    const currentFolders = await this.getItem('wb_folders', []);
+                    const mergedFolders = [...currentFolders];
+                    for (const f of folders) {
+                        if (!mergedFolders.find(ef => ef.id === f.id)) {
+                            mergedFolders.push(f);
+                            folderCount++;
+                        }
+                    }
+                    await this.saveItem('wb_folders', mergedFolders, true);
+                }
+            } catch (e) {
+                console.log('[FileSystemManager] _meta dizini bulunamadı, tam tarama yapılacak.');
+            }
+
+            // 2. Eğer hiç board gelmediyse veya ek zorlama istenirse dosyaları fiziksel olarak tara
+            // (Bu kısım biraz yavaştır ama meta dosyası yoksa kurtarıcıdır)
+            const discovered = await this._scanDirectoryRecursive(this.dirHandle);
+            const currentBoards = await this.getItem('wb_boards', []);
+            const currentFolders = await this.getItem('wb_folders', []);
+            let physicalImports = 0;
+
+            for (const fileItem of discovered) {
+                // Eğer bu dosya (yoluna göre) meta içinde yoksa ekle
+                const pathStr = fileItem.path.join('/');
+                const exists = currentBoards.some(b => {
+                    const bPath = this._getBoardFilePathFromBoard(b).join('/');
+                    return bPath === pathStr;
+                });
+
+                if (!exists) {
+                    // Yeni bir board metadata nesnesi oluştur
+                    const newBoard = {
+                        id: 'b_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                        name: fileItem.name.replace('.tik', ''),
+                        lastModified: fileItem.lastModified || Date.now(),
+                        favorite: false,
+                        deleted: false,
+                        folderId: null, // Klasör hiyerarşisi fiziksel taranınca ID eşleşmesi zorlaşabilir
+                        coverBg: '#4a90e2',
+                        coverTexture: 'linear'
+                    };
+
+                    // Eğer klasör içindeyse klasörü de oluştur/bul
+                    if (fileItem.path.length > 1) {
+                         // TODO: Klasör ağacını canlandıracak bir mantık eklenebilir
+                    }
+
+                    currentBoards.push(newBoard);
+                    physicalImports++;
+                }
+            }
+
+            if (physicalImports > 0) {
+                await this.saveItem('wb_boards', currentBoards, true);
+            }
+
+            return { 
+                success: true, 
+                boards: importedCount + physicalImports,
+                folders: folderCount 
+            };
+        } catch (e) {
+            console.error('[FileSystemManager] Import hatası:', e);
+            return { success: false, error: e.message };
+        }
+    }
+
+    async _scanDirectoryRecursive(dirHandle, currentPath = []) {
+        const results = [];
+        for await (const entry of dirHandle.values()) {
+            if (entry.kind === 'directory') {
+                if (entry.name === '_meta' || entry.name.startsWith('.')) continue; // ignore
+                const subResults = await this._scanDirectoryRecursive(entry, [...currentPath, entry.name]);
+                results.push(...subResults);
+            } else if (entry.name.endsWith('.tik')) {
+                const file = await entry.getFile();
+                results.push({
+                    name: entry.name,
+                    path: [...currentPath, entry.name],
+                    lastModified: file.lastModified
+                });
+            }
+        }
+        return results;
     }
 
     /**

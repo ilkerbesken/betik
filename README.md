@@ -51,10 +51,11 @@ Proje, sürdürülebilirlik ve performans için modüler bir mimari üzerine kur
   - [PDF.js](https://mozilla.github.io/pdf.js/) - PDF işleme ve render.
   - [Pako](https://github.com/nodeca/pako) - Gzip sıkıştırma (.tik formatı için).
   - [jsPDF](https://github.com/parallax/jsPDF) - PDF export.
-  - [Lucide Icons](https://lucide.dev/) - Modern ikon seti.
+  - [The ultimate Figma UI kit and design system](www.untitledui.com) - Modern ikon seti.
 - **Platform:** PWA (Progressive Web App) desteği ile masaüstü uygulaması gibi kurulum ve çevrimdışı kullanım.
 
 ---
+
 
 ## 🚀 Başlarken
 
@@ -74,11 +75,11 @@ Betik, herhangi bir derleme (build) adımı gerektirmez. Vanilla JS yapısı say
 
 ## 🔮 Roadmap
 
-- [ ] **WebGL Rendering:** Binlerce nesnenin bulunduğu devasa tuvaller için GPU hızlandırma.
+- [x] **WebGL Rendering:** Binlerce nesnenin bulunduğu devasa tuvaller için GPU hızlandırma.
 - [ ] **AI Assist:** El yazısını metne (OCR) ve eskizleri mükemmel şekillere çevirme.
 - [ ] **Canlı İşbirliği:** WebRTC üzerinden çok oyunculu (multiplayer) düzenleme.
-- [ ] **Gelişmiş Fırçalar:** Sulu boya, karakalem ve fırça doku motoru.
-
+- [ ] **Gelişmiş Fırçalar:** Sulu boya ve fırça doku motoru.
+- [ ] **Align araclari:** secili ögeleri hizalayabilecek araclar.
 ---
 
 ## 📄 Lisans

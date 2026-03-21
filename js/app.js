@@ -44,6 +44,7 @@ class BetikApp {
             eraserMode: 'object', // 'object', 'partial'
             stabilization: 0.7, // 0.0 to 1.0 (corresponds to 0-100% slider)
             decimation: 0, // Default 0
+            nibAngle: Math.PI / 4, // Default 45 degrees
             fillEnabled: false, // Live fill toggle
             objects: [],
             tableRows: 3,
@@ -104,6 +105,7 @@ class BetikApp {
         this.cloudStorageManager = new CloudStorageManager(this);
         this.timerTool = new TimerTool(this);
         this.templateManager = new TemplateManager(this);
+        this.alignmentTool = new AlignmentTool(this);
         // OCRManager: Lazy-initialized on first use to avoid loading Tesseract eagerly
         this.ocrManager = null;
 
@@ -216,6 +218,7 @@ class BetikApp {
         this.setupAppMenu();
         this.setupCanvasModal();
         this.setupImageUpload();
+        this.setupToolbarCustomization();
 
         // Initialize UI for default tool
         this.propertiesSidebar.updateUIForTool(this.state.currentTool);
@@ -248,35 +251,39 @@ class BetikApp {
     }
 
     _setupLaunchQueue() {
-        if (!('launchQueue' in window)) return;
-        try {
-            launchQueue.setConsumer(async (launchParams) => {
-                if (!launchParams.files || launchParams.files.length === 0) return;
-
-                // Dashboard hazır olana kadar bekle (Race condition engellemek için)
-                let attempts = 0;
-                while (!window.dashboard && attempts < 100) {
-                    await new Promise(r => setTimeout(r, 50));
-                    attempts++;
-                }
-
-                if (!window.dashboard) {
-                    console.error('[LaunchQueue] Dashboard zamanında yüklenemedi.');
-                    return;
-                }
-
-                const fileHandle = launchParams.files[0];
-                try {
-                    const file = await fileHandle.getFile();
-                    if ((file.name.toLowerCase().endsWith('.tik') || file.name.toLowerCase().endsWith('.tik')) && this.tikFileManager) {
-                        await this.tikFileManager._loadFromFile(file);
+        console.log('[LaunchQueue] Observer mode starting...');
+        const checkEarlyHandles = async () => {
+            if (window.earlyTikHandles && window.earlyTikHandles.length > 0) {
+                // Peek at the first item
+                const item = window.earlyTikHandles[0];
+                let file = null;
+                if (item instanceof File) {
+                    file = window.earlyTikHandles.shift();
+                } else {
+                    try {
+                        file = await item.getFile();
+                        window.earlyTikHandles.shift(); // Success
+                        console.log('[LaunchQueue] Observer caught file:', file.name);
+                    } catch (e) {
+                        // Not ready yet, will be retried next interval
+                        return;
                     }
-                } catch (e) {
-                    console.error('[LaunchQueue] .tik dosyası açılamadı:', e);
                 }
-            });
-        } catch (e) {
-            console.debug('[LaunchQueue] API desteklenmiyor veya kurulumda hata oluştu:', e);
+                if (file) this._processLaunchedFile(file);
+            }
+        };
+        setInterval(checkEarlyHandles, 1000);
+    }
+
+    async _processLaunchedFile(file) {
+        let attempts = 0;
+        while ((!window.dashboard || !window.dashboard.initialized) && attempts < 100) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+        if (window.dashboard && this.tikFileManager) {
+            if (this.showToast) this.showToast('📁 Dosya açılıyor: ' + file.name, 'info');
+            await this.tikFileManager._loadFromFile(file);
         }
     }
 
@@ -360,13 +367,6 @@ class BetikApp {
         // Always update tool state (even if tool is same, we need to update button state)
         this.state.currentTool = tool;
 
-        // Handle Mobile UX Toggle for 480px (User wants to toggle settings bar by clicking the active icon)
-        if (tool === prevTool && window.innerWidth <= 480) {
-            if (this.propertiesSidebar) {
-                this.propertiesSidebar.toggle();
-            }
-        }
-
         const shapeTypes = ['rectangle', 'rect', 'ellipse', 'triangle', 'trapezoid', 'star', 'diamond', 'parallelogram', 'oval', 'heart', 'cloud'];
         const isShape = shapeTypes.includes(tool);
 
@@ -395,11 +395,11 @@ class BetikApp {
                 this.state.opacity = 0.5;
                 this.state.strokeWidth = 14;
                 this.state.highlighterCap = 'butt';
-                
-                // User requested color: #E4FF30
-                // If it's the first time, currentColor would be #E4FF30.
+
+                // User requested color: #e3ff00
+                // If it's the first time, currentColor would be #e3ff00.
                 if (this.propertiesSidebar) {
-                    this.propertiesSidebar.quickColors = ['#E4FF30', '#FF5FCF', '#B6FFA1'];
+                    this.propertiesSidebar.quickColors = ['#e3ff00', '#83f18d', '#67dfff', '#ff659f', '#fd934c', '#ff1837', '#5151ff'];
                     this.propertiesSidebar.renderQuickColors();
                 }
             } else if (tool === 'pen') {
@@ -821,12 +821,16 @@ class BetikApp {
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
         document.addEventListener('keyup', (e) => this.handleKeyUp(e));
 
-        // Context menu (sağ tık) engelleme ve yönetme
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            if (this.state.currentTool === 'select') {
-                this.tools.select.handleContextMenu(e, this.canvas, this.state);
-            }
+            const worldPosGlobal = this.zoomManager.getPointerWorldPos(e);
+            const pageIndex = this.pageManager.getPageIndexAt(worldPosGlobal.y);
+            const pageY = this.pageManager.getPageY(pageIndex);
+            const worldPos = {
+                x: worldPosGlobal.x,
+                y: worldPosGlobal.y - pageY
+            };
+            this.tools.select.handleContextMenu(e, this.canvas, this.state, worldPos);
         });
 
         // Context menu dışına tıklama
@@ -927,9 +931,10 @@ class BetikApp {
                 const currentShape = this.state.currentShapeType || 'rectangle';
                 const shapes = ['rectangle', 'rect', 'ellipse', 'triangle', 'trapezoid', 'star', 'diamond', 'parallelogram', 'oval', 'heart', 'cloud'];
                 if (shapes.includes(this.state.currentTool)) {
-                    this.propertiesSidebar.toggle();
+                    if (this.propertiesSidebar) this.propertiesSidebar.toggle();
                 } else {
                     this.setTool(currentShape);
+                    if (this.propertiesSidebar) this.propertiesSidebar.show();
                 }
             };
         }
@@ -939,6 +944,14 @@ class BetikApp {
                 const tool = btn.dataset.tool;
                 const toolsWithoutSidebar = ['hand', 'verticalSpace'];
 
+                if (this.state.currentTool === tool && !toolsWithoutSidebar.includes(tool)) {
+                    // Toolbar düğmesine ikinci kez tıklanınca sidebar'ı kapat/aç (toggle)
+                    if (this.propertiesSidebar) {
+                        this.propertiesSidebar.toggle();
+                    }
+                    return;
+                }
+
                 // If select tool is explicitly clicked while PDF text selection is active, deactivate it
                 if (tool === 'select' && this.state.pdfTextSelectionActive) {
                     this.deactivatePdfTextSelection();
@@ -947,6 +960,8 @@ class BetikApp {
                 this.setTool(tool);
                 if (toolsWithoutSidebar.includes(tool)) {
                     this.propertiesSidebar.hide();
+                } else if (this.propertiesSidebar) {
+                    this.propertiesSidebar.show();
                 }
             };
         });
@@ -988,6 +1003,11 @@ class BetikApp {
                 // Update active state
                 document.querySelectorAll('#pdfHighlightColors .quick-color-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+
+                // Otomatik olarak seçili metni vurgula
+                if (this.pdfManager && this.pdfManager.textSelector && this.state.pdfTextSelectionActive) {
+                    this.pdfManager.textSelector.highlightSelectedText();
+                }
             });
         });
 
@@ -1030,6 +1050,34 @@ class BetikApp {
         });
         safeBind('undoBtn', () => this.undo());
         safeBind('redoBtn', () => this.redo());
+
+        safeBind('btnToggleStatusInfo', () => {
+            const content = document.getElementById('statusInfoContent');
+            const icon = document.getElementById('statusInfoDirectionIcon');
+            if (content && icon) {
+                if (content.style.display === 'none') {
+                    content.style.display = 'flex';
+                    icon.setAttribute('name', 'chevron-left');
+                } else {
+                    content.style.display = 'none';
+                    icon.setAttribute('name', 'chevron-right');
+                }
+            }
+        });
+
+        safeBind('btnToggleLeftToolbar', () => {
+            const extra = document.getElementById('leftToolbarExtra');
+            const icon = document.getElementById('leftToolbarToggleIcon');
+            if (extra) {
+                if (extra.style.display === 'none') {
+                    extra.style.display = 'flex';
+                    if (icon) icon.setAttribute('name', 'chevron-left');
+                } else {
+                    extra.style.display = 'none';
+                    if (icon) icon.setAttribute('name', 'chevron-right');
+                }
+            }
+        });
     }
 
     setupAppMenu() {
@@ -1055,12 +1103,12 @@ class BetikApp {
             });
 
             // .tik Aç / Kaydet
-            document.getElementById('menuOpenTom')?.addEventListener('click', () => {
-                this.tikFileManager.openTomFile();
+            document.getElementById('menuOpenTik')?.addEventListener('click', () => {
+                this.tikFileManager.openTikFile();
                 dropdown.classList.remove('show');
             });
-            document.getElementById('menuSaveTom')?.addEventListener('click', () => {
-                this.tikFileManager.saveAsTom();
+            document.getElementById('menuSaveTik')?.addEventListener('click', () => {
+                this.tikFileManager.saveAsTik();
                 dropdown.classList.remove('show');
             });
 
@@ -1075,6 +1123,10 @@ class BetikApp {
             });
             document.getElementById('btnExportPDF')?.addEventListener('click', () => {
                 this.exportManager.exportToPDF();
+                dropdown.classList.remove('show');
+            });
+            document.getElementById('btnExportPDFIncremental')?.addEventListener('click', () => {
+                this.exportManager.exportToPDFIncremental();
                 dropdown.classList.remove('show');
             });
 
@@ -1174,8 +1226,15 @@ class BetikApp {
         const menuItems = document.querySelectorAll('.context-menu-item');
 
         menuItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
                 const action = item.dataset.action;
+                if (action === 'align') {
+                    // Submenü kliklendiğinde kapanmasın, hover ile açılıyor zaten 
+                    // ama mobil için toggle yapılabilir.
+                    item.classList.toggle('submenu-open');
+                    e.stopPropagation();
+                    return;
+                }
                 const selectTool = this.tools.select;
 
                 // History kaydet (değişiklik yapan işlemler için)
@@ -1266,6 +1325,39 @@ class BetikApp {
                 }
 
                 switch (action) {
+                    case 'align-left':
+                    case 'align-center':
+                    case 'align-right':
+                    case 'align-top':
+                    case 'align-middle':
+                    case 'align-bottom':
+                        const alignType = action.replace('align-', '');
+                        const selectedObjs = selectTool.selectedObjects.map(idx => this.state.objects[idx]);
+
+                        let canvasBounds = null;
+                        if (selectedObjs.length === 1) {
+                            const pWidth = this.pageManager.getPageWidth();
+                            const pHeight = this.pageManager.getPageHeight();
+                            canvasBounds = {
+                                minX: 0,
+                                minY: 0,
+                                maxX: pWidth,
+                                maxY: pHeight,
+                                width: pWidth,
+                                height: pHeight,
+                                centerX: pWidth / 2,
+                                centerY: pHeight / 2
+                            };
+                        }
+
+                        this.alignmentTool.align(selectedObjs, alignType, canvasBounds);
+                        break;
+                    case 'distribute-h':
+                        this.alignmentTool.distribute(selectTool.selectedObjects.map(idx => this.state.objects[idx]), 'horizontal');
+                        break;
+                    case 'distribute-v':
+                        this.alignmentTool.distribute(selectTool.selectedObjects.map(idx => this.state.objects[idx]), 'vertical');
+                        break;
                     case 'lock':
                         selectTool.lockSelected(this.state);
                         break;
@@ -1280,7 +1372,7 @@ class BetikApp {
                         break;
                     case 'paste':
                         // ...
-                        result = selectTool.paste(this.state);
+                        result = selectTool.paste(this.state, selectTool.lastContextWorldPos);
                         if (result) {
                             if (Array.isArray(result)) {
                                 const tapes = result.filter(obj => obj.type === 'tape');
@@ -1837,6 +1929,29 @@ class BetikApp {
             return;
         }
 
+        // Ctrl+A - Hepsini Seç
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+            // Dashboard görünürse dashboard'un kendi kısayolu (tüm boardları seçme) çalışsın
+            const dashboardVisible = window.dashboard && window.dashboard.container && window.dashboard.container.style.display !== 'none';
+            if (dashboardVisible) return;
+
+            e.preventDefault();
+            this.setTool('select');
+            const selectTool = this.tools.select;
+            // Sadece kilitli olmayan nesneleri seç
+            selectTool.selectedObjects = [];
+            for (let i = 0; i < this.state.objects.length; i++) {
+                if (!this.state.objects[i].locked) {
+                    selectTool.selectedObjects.push(i);
+                }
+            }
+            this.needsRender = true;
+            if (this.propertiesSidebar) {
+                this.propertiesSidebar.updateUIForTool('select');
+            }
+            return;
+        }
+
         // Ctrl+S - Kaydet
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
@@ -2276,6 +2391,145 @@ class BetikApp {
                 tool.draw(ctx, obj);
             }
         }
+    }
+
+    setupToolbarCustomization() {
+        const btnCustomize = document.getElementById('btnCustomizeToolbar');
+        const dropdown = document.getElementById('toolbarCustomizeDropdown');
+        const listContainer = document.getElementById('customizeToolList');
+
+        if (!btnCustomize || !dropdown || !listContainer) return;
+
+        // Define customizable tools
+        this.toolConfigs = [
+            { id: 'select', name: 'Seç', icon: 'cursor-01', selector: '.tool-btn[data-tool="select"]' },
+            { id: 'hand', name: 'El', icon: 'hand', selector: '.tool-btn[data-tool="hand"]' },
+            { id: 'text-select', name: 'Metin Seçimi', icon: 'text-input', selector: '#btnTextSelect' },
+            { id: 'pen', name: 'Kalem', icon: 'pencil-01', selector: '.tool-btn[data-tool="pen"]' },
+            { id: 'charcoal', name: 'Karakalem', icon: 'pencil-02', selector: '.tool-btn[data-tool="charcoal"]' },
+            { id: 'fountain-pen', name: 'Dolma Kalem', icon: 'pen-tool-02', selector: '.tool-btn[data-tool="fountain-pen"]' },
+            { id: 'vector-pen', name: 'Vektör Kalemi', icon: 'bezier-curve-01', selector: '.tool-btn[data-tool="vector-pen"]' },
+            { id: 'highlighter', name: 'Vurgulayıcı', icon: 'highlighter-01', selector: '.tool-btn[data-tool="highlighter"]' },
+            { id: 'eraser', name: 'Silgi', icon: 'eraser', selector: '.tool-btn[data-tool="eraser"]' },
+            { id: 'text', name: 'Metin', icon: 'type-square', selector: '.tool-btn[data-tool="text"]' },
+            { id: 'shapes', name: 'Şekiller', icon: 'pentagon', selector: '#shapePickerBtn' },
+            { id: 'arrow', name: 'Ok', icon: 'arrow-narrow-down-left', selector: '.tool-btn[data-tool="arrow"]' },
+            { id: 'sticker', name: 'Stickerlar', icon: 'sticker-circle', selector: '.tool-btn[data-tool="sticker"]' },
+            { id: 'tape', name: 'Bant', icon: 'tape', selector: '.tool-btn[data-tool="tape"]' },
+            { id: 'table', name: 'Tablo', icon: 'layout-grid-02', selector: '.tool-btn[data-tool="table"]' }
+        ];
+
+        // Load visible tools from localStorage
+        let visibleTools = JSON.parse(localStorage.getItem('betik_visible_tools'));
+        if (!visibleTools) {
+            // Default all visible
+            visibleTools = this.toolConfigs.map(t => t.id);
+        }
+
+        // Initialize state
+        this.state.visibleTools = visibleTools;
+
+        // Toggle dropdown
+        btnCustomize.onclick = (e) => {
+            e.stopPropagation();
+            const isShowing = dropdown.classList.contains('show');
+            
+            // Close other dropdowns
+            document.querySelectorAll('.app-menu-dropdown, .tab-dropdown').forEach(d => d.classList.remove('show'));
+            
+            dropdown.classList.toggle('show');
+            if (!isShowing) {
+                this.renderCustomizeToolList();
+            }
+        };
+
+        // Close dropdown on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.toolbar-customize-dropdown') && e.target !== btnCustomize) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Apply initial visibility
+        this.applyToolbarVisibility();
+    }
+
+    renderCustomizeToolList() {
+        const listContainer = document.getElementById('customizeToolList');
+        if (!listContainer) return;
+
+        listContainer.innerHTML = '';
+
+        this.toolConfigs.forEach(tool => {
+            const isVisible = this.state.visibleTools.includes(tool.id);
+            
+            const item = document.createElement('div');
+            item.className = 'customize-tool-item';
+            
+            item.innerHTML = `
+                <div class="tool-icon-wrapper">
+                    <app-icon name="${tool.icon}"></app-icon>
+                </div>
+                <div class="tool-name">${tool.name}</div>
+                <label class="tool-toggle">
+                    <input type="checkbox" ${isVisible ? 'checked' : ''} data-tool-id="${tool.id}">
+                    <span class="toggle-slider"></span>
+                </label>
+            `;
+
+            const checkbox = item.querySelector('input');
+            checkbox.onchange = () => {
+                this.toggleToolVisibility(tool.id, checkbox.checked);
+            };
+
+            listContainer.appendChild(item);
+        });
+    }
+
+    toggleToolVisibility(toolId, isVisible) {
+        if (isVisible) {
+            if (!this.state.visibleTools.includes(toolId)) {
+                this.state.visibleTools.push(toolId);
+            }
+        } else {
+            this.state.visibleTools = this.state.visibleTools.filter(id => id !== toolId);
+        }
+
+        localStorage.setItem('betik_visible_tools', JSON.stringify(this.state.visibleTools));
+        this.applyToolbarVisibility();
+    }
+
+    applyToolbarVisibility() {
+        if (!this.toolConfigs) return;
+
+        this.toolConfigs.forEach(tool => {
+            const el = document.querySelector(tool.selector);
+            if (el) {
+                const isVisible = this.state.visibleTools.includes(tool.id);
+                el.style.display = isVisible ? 'flex' : 'none';
+            }
+        });
+
+        // Update group visibility
+        document.querySelectorAll('.toolbar-center .tool-group').forEach(group => {
+            const visibleButtons = Array.from(group.querySelectorAll('.tool-btn, #btnTextSelect')).filter(btn => {
+                if (btn.id === 'btnCustomizeToolbar') return false;
+                return btn.style.display !== 'none';
+            });
+
+            if (visibleButtons.length === 0 && !group.querySelector('#btnCustomizeToolbar')) {
+                group.style.display = 'none';
+            } else {
+                group.style.display = 'flex';
+            }
+        });
+        
+        // Ensure only the LAST VISIBLE group has no border-right
+        const allGroups = Array.from(document.querySelectorAll('.toolbar-center .tool-group')).filter(g => g.style.display !== 'none');
+        allGroups.forEach((g) => {
+            g.style.borderRight = 'none';
+            g.style.marginRight = '0';
+        });
     }
 
     updateStatus() {

@@ -92,17 +92,18 @@ class ExportManager {
     /**
      * Export All Pages to PDF
      */
-    async exportToPDF() {
+    /**
+     * Generate PDF as a Blob
+     */
+    async generatePDFBlob() {
         if (!window.jspdf) {
             console.error("jsPDF library not loaded");
-            Utils.showToast("PDF dışa aktarma kütüphanesi yüklenemedi.", "error");
-            return;
+            return null;
         }
 
         const { jsPDF } = window.jspdf;
         const totalPages = this.app.pageManager.pages.length;
 
-        // Initial doc (A4 default, but we will change page size per page)
         const doc = new jsPDF({
             orientation: 'p',
             unit: 'px',
@@ -110,19 +111,8 @@ class ExportManager {
             hotfixes: ['px_scaling']
         });
 
-        // Remove the default first page effectively by adding a new one and deleting first? 
-        // Or just use the first page and resize it.
-
         for (let i = 0; i < totalPages; i++) {
             if (i > 0) doc.addPage();
-
-            // Switch current page logic temporarily to draw context? 
-            // Better to just draw using data.
-
-            const pageWidth = this.app.pageManager.getPageWidth(); // This takes current page index, need to be careful
-            // We should get width/height specific to page i
-            // But PageManager.getPageWidth uses currentPageIndex. 
-            // Let's set index temporarily ?? Or access raw data.
 
             const page = this.app.pageManager.pages[i];
             let w = 794;
@@ -132,39 +122,88 @@ class ExportManager {
                 w = page.pdfDimensions.width;
                 h = page.pdfDimensions.height;
             } else if (this.app.canvasSettings) {
-                // Fallback to settings if standard page
-                w = this.app.pageManager.getPageWidth(); // Only mostly correct if all pages same size
+                w = this.app.pageManager.getPageWidth();
                 h = this.app.pageManager.getPageHeight();
             }
 
-            // Set PDF page size
             doc.setPage(i + 1);
             doc.internal.pageSize.width = w;
             doc.internal.pageSize.height = h;
 
-            // Render Page to Canvas
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            // High res for clear PDF text/lines
-            const scale = 2;
+            const scale = 2; // Better resolution
             canvas.width = w * scale;
             canvas.height = h * scale;
             ctx.scale(scale, scale);
 
-            // Fill white background to prevent black in JPEG
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, w, h);
 
-            // Draw content to this temp canvas
             await this.drawPageToContext(ctx, i);
 
-            // Add to PDF
-            const imgData = canvas.toDataURL('image/jpeg', 0.85); // JPEG is faster and smaller for full page
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
             doc.addImage(imgData, 'JPEG', 0, 0, w, h);
         }
 
-        doc.save('betik_export.pdf');
+        return doc.output('blob');
+    }
+
+    /**
+     * Export All Pages to PDF
+     */
+    async exportToPDF() {
+        const blob = await this.generatePDFBlob();
+        if (blob) {
+            const link = document.createElement('a');
+            link.download = `betik_export_${Date.now()}.pdf`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+    }
+
+    /**
+     * Export to PDF using incremental save (pdf-lib)
+     * This preserves the original PDF quality and text.
+     */
+    async exportToPDFIncremental() {
+        const dashboard = window.dashboard;
+        if (!dashboard) return;
+
+        const boardId = dashboard.currentBoardId;
+        if (!boardId) return;
+
+        Utils.showToast('PDF hazırlanıyor (Hızlı mod)...', 'info');
+
+        try {
+            // 1. Get original PDF blob from IndexedDB if it exists
+            const originalPdfBlob = await Utils.db.get(boardId);
+            
+            // 2. Initialize Incremental Saver
+            const saver = new PDFIncrementalSave(this.app);
+            
+            // 3. Generate incremental bytes
+            const pdfBytes = await saver.export(originalPdfBlob);
+            
+            // 4. Download
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            const board = dashboard.boards.find(b => b.id === boardId);
+            const name = board ? board.name : 'betik_export';
+            
+            link.download = `${name}_annotated.pdf`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            
+            Utils.showToast('✅ PDF başarıyla indirildi!', 'success');
+        } catch (error) {
+            console.error('Incremental PDF export failed:', error);
+            Utils.showToast('PDF dışa aktarma hatası: ' + error.message, 'error');
+            
+            // Fallback to standard export if incremental fails
+            console.log('Falling back to standard PDF export...');
+            this.exportToPDF();
+        }
     }
 
     /**

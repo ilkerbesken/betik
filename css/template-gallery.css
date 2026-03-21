@@ -22,6 +22,7 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
+    z-index: 0;
 }
 
 .template-modal-content {
@@ -36,6 +37,111 @@
     display: flex;
     flex-direction: column;
     animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-template-modal-content {
+    position: relative;
+    z-index: 1;
+    width: min(480px, 92vw);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.save-template-modal-content .template-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.save-template-modal-content .template-modal-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.save-template-form {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.save-template-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.save-template-form .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+.save-template-form .form-group input,
+.save-template-form .form-group select,
+.save-template-form .form-group textarea {
+    padding: 9px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.save-template-form .form-group input:focus,
+.save-template-form .form-group select:focus,
+.save-template-form .form-group textarea:focus {
+    border-color: #1971c2;
+    box-shadow: 0 0 0 3px rgba(25, 113, 194, 0.1);
+}
+
+.save-template-form .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.save-template-form .btn-cancel {
+    padding: 9px 18px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.save-template-form .btn-cancel:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+.save-template-form .btn-save {
+    padding: 9px 18px;
+    border: none;
+    background: #1971c2;
+    color: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-template-form .btn-save:hover {
+    background: #1562a8;
 }
 
 @keyframes modalSlideIn {
@@ -350,7 +456,7 @@
 }
 
 /* .tik Download Button */
-.template-tom-btn {
+.template-tik-btn {
     position: absolute;
     top: 40px;
     left: 6px;
@@ -371,24 +477,24 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.template-card:hover .template-tom-btn {
+.template-card:hover .template-tik-btn {
     opacity: 1;
 }
 
-.template-tom-btn:hover {
+.template-tik-btn:hover {
     background: #1971c2;
     color: white;
     transform: scale(1.1);
 }
 
-.template-tom-btn svg {
+.template-tik-btn svg {
     width: 14px;
     height: 14px;
 }
 
 /* Mobile: show tom btn always visible */
 @media (max-width: 768px) {
-    .template-tom-btn {
+    .template-tik-btn {
         opacity: 1 !important;
         width: 24px;
         height: 24px;

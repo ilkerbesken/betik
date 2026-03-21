@@ -52,7 +52,7 @@ class TikFileManager {
     // Kaydetme
     // ─────────────────────────────────────────────
 
-    async saveAsTom() {
+    async saveAsTik() {
         await this._waitForPako();
 
         const dashboard = window.dashboard;
@@ -91,7 +91,7 @@ class TikFileManager {
 
         const content = {
             version: '2.1',
-            format: 'tom',
+            format: 'tik',
             savedAt: new Date().toISOString(),
             appVersion: 'Betik',
             pages: pages,
@@ -147,7 +147,7 @@ class TikFileManager {
      * Bir template'i .tik dosyası olarak dışa aktar
      * @param {Object} template - TemplateManager'dan gelen template nesnesi
      */
-    async saveTemplateAsTom(template) {
+    async saveTemplateAsTik(template) {
         await this._waitForPako();
 
         if (!template || !template.objects) {
@@ -160,7 +160,7 @@ class TikFileManager {
 
         const content = {
             version: '2.1',
-            format: 'tom',
+            format: 'tik',
             savedAt: new Date().toISOString(),
             appVersion: 'Betik',
             templateId: template.id,
@@ -217,7 +217,7 @@ class TikFileManager {
     // Açma
     // ─────────────────────────────────────────────
 
-    async openTomFile() {
+    async openTikFile() {
         await this._waitForPako();
 
         if (window.showOpenFilePicker) {
@@ -236,7 +236,7 @@ class TikFileManager {
         }
 
         // Fallback: hidden input
-        const input = document.getElementById('tomInput');
+        const input = document.getElementById('tikInput');
         if (input) {
             input.onchange = async (e) => {
                 const file = e.target.files[0];
@@ -306,71 +306,90 @@ class TikFileManager {
                 }];
             }
 
-            const dashboard = window.dashboard;
-            if (!dashboard) return;
+            const dashboard = this.app.dashboard || window.dashboard;
+            if (!dashboard) {
+                console.error('[TikFileManager] Dashboard not found!');
+                return;
+            }
 
+            console.log('[TikFileManager] Loading file:', file.name);
+            this._showToast(`📂 "${file.name}" okunuyor...`);
+            
             const boardName = file.name.replace(/\.(tik|tom)$/i, '') || 'İçe Aktarılan Not';
-            const hasPDF = !!content.pdfBase64;
-            const board = {
-                id: 'tom_' + Date.now(),
-                name: boardName,
-                createdAt: Date.now(),
-                lastModified: Date.now(),
-                coverBg: hasPDF ? '#fa5252' : '#1971c2',
-                coverTexture: 'dots',
-                folderId: (dashboard.currentView && dashboard.currentView.startsWith('f_')) ? dashboard.currentView : null,
-                deleted: false,
-                isTomFile: true,
-                isPDF: hasPDF
-            };
+            
+            // Check if board already exists in current session to avoid duplicates during rapid opens
+            let existingBoard = dashboard.boards.find(b => b.name === boardName && b.isTikFile && (Date.now() - b.createdAt < 5000));
+            
+            let board;
+            if (existingBoard) {
+                board = existingBoard;
+            } else {
+                const hasPDF = !!content.pdfBase64;
+                board = {
+                    id: 'tik_' + Date.now(),
+                    name: boardName,
+                    createdAt: Date.now(),
+                    lastModified: Date.now(),
+                    coverBg: hasPDF ? '#fa5252' : '#1971c2',
+                    coverTexture: 'dots',
+                    folderId: (dashboard.currentView && dashboard.currentView.startsWith('f_')) ? dashboard.currentView : null,
+                    deleted: false,
+                    isTikFile: true,
+                    isPDF: hasPDF
+                };
 
-            dashboard.boards.push(board);
-            await dashboard.saveDataAsync('wb_boards', dashboard.boards);
+                dashboard.boards.push(board);
+                await dashboard.saveDataAsync('wb_boards', dashboard.boards);
 
-            // PDF base64 verisi varsa IndexedDB'ye kaydet
-            if (hasPDF) {
-                try {
-                    const pdfBlob = await this._base64ToBlob(content.pdfBase64, 'application/pdf');
-                    await Utils.db.save(board.id, pdfBlob);
-                    console.log('[TikFileManager] PDF verisi geri yüklendi.');
-                } catch (e) {
-                    console.warn('[TikFileManager] PDF verisi geri yüklenemedi:', e);
+                // PDF base64 verisi varsa IndexedDB'ye kaydet
+                if (hasPDF) {
+                    try {
+                         const pdfBlob = await this._base64ToBlob(content.pdfBase64, 'application/pdf');
+                         await Utils.db.save(board.id, pdfBlob);
+                         console.log('[TikFileManager] PDF verisi geri yüklendi.');
+                    } catch (e) {
+                         console.warn('[TikFileManager] PDF verisi geri yüklenemedi:', e);
+                    }
+                }
+
+                const contentToSave = {
+                    version: content.version || '2.1',
+                    pages: pages,
+                    objects: pages ? null : []
+                };
+
+                await dashboard.saveDataAsync(`wb_content_${board.id}`, contentToSave);
+                
+                // Sync metadata'yı güncelle (Drive PUSH'u tetiklemek için)
+                if (window.fileSystemManager) {
+                    await window.fileSystemManager.updateSyncMetadata(board.id);
                 }
             }
 
-            const contentToSave = {
-                version: content.version || '2.1',
-                pages: pages,
-                objects: pages ? null : []
-            };
-
-            await dashboard.saveDataAsync(`wb_content_${board.id}`, contentToSave);
-            
-            // Sync metadata'yı güncelle (Drive PUSH'u tetiklemek için)
-            if (window.fileSystemManager) {
-                await window.fileSystemManager.updateSyncMetadata(board.id);
-            }
-
-            // Dashboard → App geçişi
-            dashboard.container.style.display = 'none';
-            dashboard.appContainer.style.display = 'flex';
-            window.dispatchEvent(new Event('resize'));
-
-            dashboard.currentBoardId = board.id;
-            await dashboard.loadBoardContent(board.id);
-
-            if (this.app.tabManager) {
-                this.app.tabManager.openBoard(board.id, board.name);
-            }
-
-            if (this.app.zoomManager) {
-                setTimeout(() => this.app.zoomManager.fitToWidth(10), 200);
-            }
-
+            // Dashboard → App geçişi and Tab Management is handled by dashboard.loadBoard
+            console.log('[TikFileManager] Transitioning to board:', board.id);
             this._showToast(`📂 "${board.name}" açıldı`);
+            
+            // Give a tiny bit of time for storage to settle and UI to be ready
+            setTimeout(async () => {
+                try {
+                    await dashboard.loadBoard(board.id);
+                    console.log('[TikFileManager] loadBoard completed for:', board.id);
+                } catch (loadErr) {
+                    console.error('[TikFileManager] loadBoard failed:', loadErr);
+                    // Fallback manual transition if loadBoard fails
+                    dashboard.container.style.display = 'none';
+                    dashboard.appContainer.style.display = 'flex';
+                    window.dispatchEvent(new Event('resize'));
+                    if (this.app.tabManager) {
+                        await this.app.tabManager.openBoard(board.id, board.name);
+                    }
+                }
+            }, 100);
 
         } catch (err) {
-            Utils.showToast('Dosya açılamadı. Geçerli bir .tik dosyası seçin.', 'error');
+            console.error('[TikFileManager] Error in _loadFromFile:', err);
+            Utils.showToast('Dosya açılamadı: ' + err.message, 'error');
         }
     }
 
