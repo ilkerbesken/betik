@@ -320,13 +320,63 @@ textarea,
     align-items: center;
     flex: 0 0 auto;
     justify-content: center;
-    position: absolute;
+    position: fixed;
     top: 12px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) rotate(0deg);
+    z-index: 5500;
     /* Hide scrollbar */
     -ms-overflow-style: none;
     scrollbar-width: none;
+    /* Smooth orientation transition */
+    transition:
+        top 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        left 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        transform 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        border-radius 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Vertical state: sol-orta, dikey toolbar */
+.toolbar-center.vertical {
+    position: fixed;
+    top: 50%;
+    left: 28px;
+    /* toolbar height (40px) yarisi + ~8px bosluk */
+    transform: translate(-50%, -50%) rotate(90deg);
+    z-index: 5500;
+    /* Sidebar'in ve diğer öğelerin altında/üstünde kontrolü */
+}
+
+/* Counter-rotate tools icons so they stay upright in vertical mode */
+.toolbar-center.vertical .tool-btn app-icon,
+.toolbar-center.vertical .tool-btn svg,
+.toolbar-center.vertical #shapePickerBtn app-icon,
+.toolbar-center.vertical #btnTextSelect app-icon {
+    transform: rotate(-90deg);
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.toolbar-center.vertical .toolbar-orient-btn .toolbar-orient-icon {
+    transform: rotate(-90deg);
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.toolbar-orient-btn .toolbar-orient-icon {
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+    color: var(--app-icon-color);
+}
+
+/* Orient button subtle active style */
+.toolbar-orient-btn {
+    opacity: 0.55;
+}
+
+.toolbar-orient-btn:hover {
+    opacity: 1;
+}
+
+.toolbar-center.vertical .toolbar-orient-btn {
+    opacity: 0.75;
 }
 
 .page-navigation-group-top {
@@ -531,9 +581,11 @@ input[type="range"]::-moz-range-progress {
 
 /* Toolbar Customize Dropdown */
 .toolbar-customize-dropdown {
-    position: absolute;
-    top: calc(100% + 5px);
-    right: 0px;
+    position: fixed;
+    top: 60px;
+    /* Yatay modda varsayılan */
+    left: 50%;
+    transform: translateX(-50%);
     width: 180px;
     background: white;
     border: 1px solid #e2e8f0;
@@ -550,6 +602,14 @@ input[type="range"]::-moz-range-progress {
 
 .toolbar-customize-dropdown.show {
     display: flex;
+}
+
+/* Vertical Toolbar Customize Dropdown Adjustment */
+.toolbar-is-vertical .toolbar-customize-dropdown {
+    top: 50%;
+    left: 52px;
+    /* Sidebar'ın hemen sağında, daha yakın */
+    transform: translateY(-50%);
 }
 
 .customize-header {
@@ -1355,6 +1415,12 @@ input[type="range"] {
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
+    /* Smooth orientation transition */
+    transition:
+        top 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        left 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+
     /* Light Animation */
     animation: propertiesBarEntry 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -1369,6 +1435,78 @@ input[type="range"] {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+@keyframes propertiesBarEntrySide {
+    from {
+        opacity: 0;
+        transform: translateX(-12px) translateY(-50%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(-50%);
+    }
+}
+
+/* Vertical Toolbar Modu için Sidebar Konumlandırması */
+.toolbar-is-vertical .properties-sidebar {
+    top: 50%;
+    left: 52px;
+    /* Toolbar'a (28px + yarım-genişlik) daha yakın */
+    transform: translateY(-50%);
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    max-height: 85vh;
+    padding: 12px 4px;
+    z-index: 5600;
+    /* Sidebar toolbar üstünde görünmeli */
+    animation: propertiesBarEntrySide 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.toolbar-is-vertical .properties-sidebar .tool-group {
+    flex-direction: column;
+    height: auto;
+    padding: 8px 4px;
+    gap: 12px;
+}
+
+.toolbar-is-vertical .properties-sidebar #quickColorsList,
+.toolbar-is-vertical .properties-sidebar #quickStrokeWidthsList,
+.toolbar-is-vertical .properties-sidebar #pdfHighlightColors,
+.toolbar-is-vertical .properties-sidebar #stickerSidebarList,
+.toolbar-is-vertical .properties-sidebar .mode-options,
+.toolbar-is-vertical .properties-sidebar .pattern-options,
+.toolbar-is-vertical .properties-sidebar .property-input-group,
+.toolbar-is-vertical .properties-sidebar #tapeSettings>div {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    height: auto !important;
+}
+
+.toolbar-is-vertical .properties-sidebar .sticker-sidebar-list {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    max-height: 200px;
+    padding: 10px 0;
+}
+
+.toolbar-is-vertical .properties-sidebar .label {
+    margin-right: 0;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.toolbar-is-vertical .properties-sidebar .reset-group {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    /* Yatayda bordür dikeyde üste */
+    border-left: none;
+    margin-top: 8px;
+    padding-top: 10px;
+    width: 100%;
 }
 
 .properties-sidebar .tool-group {
@@ -4748,7 +4886,7 @@ input[type="range"] {
 .property-popup::before {
     content: "";
     position: absolute;
-    top: -6px;
+    top: var(--arrow-top, -6px);
     left: var(--arrow-left, 20px);
     width: 12px;
     height: 12px;
@@ -4757,6 +4895,12 @@ input[type="range"] {
     border-top: 1px solid #e0e0e0;
     border-left: 1px solid #e0e0e0;
     z-index: -1;
+}
+
+/* Adjustments for vertical oriented toolbar popups */
+.toolbar-is-vertical .property-popup::before {
+    border-top: none;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 /* Specific adjustment for popups if needed */

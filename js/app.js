@@ -219,6 +219,7 @@ class BetikApp {
         this.setupCanvasModal();
         this.setupImageUpload();
         this.setupToolbarCustomization();
+        this.setupToolbarOrient();
 
         // Initialize UI for default tool
         this.propertiesSidebar.updateUIForTool(this.state.currentTool);
@@ -2529,6 +2530,26 @@ class BetikApp {
         allGroups.forEach((g) => {
             g.style.borderRight = 'none';
             g.style.marginRight = '0';
+        });
+    }
+
+    setupToolbarOrient() {
+        const btn = document.getElementById('btnToolbarOrient');
+        const toolbarCenter = document.querySelector('.toolbar-center');
+        if (!btn || !toolbarCenter) return;
+
+        // Restore state from localStorage
+        const isVertical = localStorage.getItem('betik_toolbar_orient') === 'vertical';
+        if (isVertical) {
+            toolbarCenter.classList.add('vertical');
+            document.body.classList.add('toolbar-is-vertical');
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const nowVertical = toolbarCenter.classList.toggle('vertical');
+            document.body.classList.toggle('toolbar-is-vertical', nowVertical);
+            localStorage.setItem('betik_toolbar_orient', nowVertical ? 'vertical' : 'horizontal');
         });
     }
 

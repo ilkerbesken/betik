@@ -328,6 +328,13 @@
 
             <div class="toolbar-center">
                 <div class="tool-group">
+                    <button class="tool-btn toolbar-orient-btn" id="btnToolbarOrient" title="Toolbar Yönünü Değiştir">
+                        <app-icon name="compass-03" alt="toolbar"></app-icon>
+                    </button>
+
+                    <button class=" tool-btn" id="btnCustomizeToolbar" title="Araçları Özelleştir">
+                        <span style="font-size: 18px; font-weight: 500; color: #666;">+</span>
+                    </button>
                     <button class="tool-btn" data-tool="select" title="Seç (V)">
                         <app-icon name="cursor-01" alt="select"></app-icon>
                     </button>
@@ -380,17 +387,6 @@
                         <app-icon name="layout-grid-02" alt="table"></app-icon>
                     </button>
 
-                    <button class=" tool-btn" id="btnCustomizeToolbar" title="Araçları Özelleştir">
-                        <span style="font-size: 18px; font-weight: 500; color: #666;">+</span>
-                    </button>
-                </div>
-
-                <!-- Toolbar Customize Dropdown -->
-                <div id="toolbarCustomizeDropdown" class="toolbar-customize-dropdown">
-                    <div class="customize-header">Araçları Düzenle</div>
-                    <div id="customizeToolList" class="customize-tool-list">
-                        <!-- Items rendered dynamically -->
-                    </div>
                 </div>
 
             </div>
@@ -402,6 +398,14 @@
                         <app-icon name="chevron-down" alt="more"></app-icon>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Toolbar Customize Dropdown (Moved outside for better positioning) -->
+        <div id="toolbarCustomizeDropdown" class="toolbar-customize-dropdown">
+            <div class="customize-header">Araçları Düzenle</div>
+            <div id="customizeToolList" class="customize-tool-list">
+                <!-- Items rendered dycompass-03namically -->
             </div>
         </div>
 
@@ -1362,7 +1366,8 @@
             </header>
 
             <div class="texture-selection" style="margin-bottom: 20px;">
-                <label style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 8px; display: block;">Desen Seçin</label>
+                <label style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 8px; display: block;">Desen
+                    Seçin</label>
                 <div class="segmented-control">
                     <label class="segment">
                         <input type="radio" name="coverTexture" value="linear" checked>

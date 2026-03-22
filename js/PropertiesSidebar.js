@@ -1050,34 +1050,55 @@ class PropertiesSidebar {
         if (isMobile) return; // Let CSS handle mobile layout
 
         const rect = trigger.getBoundingClientRect();
-
-        // If the trigger is hidden (e.g. display: none), getBoundingClientRect returns all 0s.
-        // In that case, we don't want to show the popup at (0,0) or try to position it.
         if (rect.width === 0 && rect.height === 0) return;
 
+        const isVertical = document.body.classList.contains('toolbar-is-vertical');
+
         popup.style.position = 'fixed';
-        popup.style.top = (rect.bottom + 8) + 'px';
+        popup.style.zIndex = '5501'; // Higher than sidebar
 
-        // Wait a tiny bit for the layout to compute the final width of the newly shown popup
-        // or just use offsetWidth if it's already display: block/grid/etc. 
-        let left = rect.left;
-        const popupWidth = popup.offsetWidth || 200;
+        if (isVertical) {
+            // Position to the right of the trigger
+            let top = rect.top;
+            const popupHeight = popup.offsetHeight || 300;
+            
+            // Center vertically relative to trigger
+            top = rect.top + (rect.height / 2) - (popupHeight / 2);
 
-        // If the popup would overflow the right edge of the screen
-        if (left + popupWidth > window.innerWidth) {
-            left = window.innerWidth - popupWidth - 10;
+            // Ensure it doesn't overflow top/bottom
+            if (top < 10) top = 10;
+            if (top + popupHeight > window.innerHeight) {
+                top = window.innerHeight - popupHeight - 10;
+            }
+
+            popup.style.top = top + 'px';
+            popup.style.left = (rect.right + 12) + 'px';
+            popup.style.transform = 'none';
+
+            // Arrow position (pointing left)
+            const arrowTop = rect.top - top + (rect.height / 2) - 6;
+            popup.style.setProperty('--arrow-top', `${arrowTop}px`);
+            popup.style.setProperty('--arrow-left', '-6px');
+        } else {
+            // Standard top-center behavior (popup below trigger)
+            popup.style.top = (rect.bottom + 8) + 'px';
+
+            let left = rect.left;
+            const popupWidth = popup.offsetWidth || 200;
+
+            if (left + popupWidth > window.innerWidth) {
+                left = window.innerWidth - popupWidth - 10;
+            }
+            if (left < 10) left = 10;
+
+            popup.style.left = left + 'px';
+            popup.style.transform = 'none';
+
+            // Update arrow position (pointing up)
+            const arrowOffset = rect.left - left + (rect.width / 2) - 6;
+            popup.style.setProperty('--arrow-left', `${arrowOffset}px`);
+            popup.style.setProperty('--arrow-top', '-6px');
         }
-
-        // Ensure it doesn't overflow the left edge
-        if (left < 10) left = 10;
-
-        popup.style.left = left + 'px';
-        popup.style.transform = 'none';
-        popup.style.zIndex = '1001'; // Ensure it is above everything
-
-        // Update arrow position (pseudo-element)
-        const arrowOffset = rect.left - left + (rect.width / 2) - 6;
-        popup.style.setProperty('--arrow-left', `${arrowOffset}px`);
     }
 
     toggleBrushSettingsPopup(anchor) {
