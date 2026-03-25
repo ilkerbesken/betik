@@ -27,6 +27,8 @@ class PropertiesSidebar {
         this.setupOverlay();
     }
 
+
+
     setupOverlay() {
         const overlay = document.getElementById('bottomSheetOverlay');
         if (overlay) {
@@ -1478,6 +1480,7 @@ class PropertiesSidebar {
         // Toggle Eraser Settings visibility
         if (tool === 'eraser') {
             document.getElementById('eraserSettings').style.display = 'flex';
+            this.setupVerticalSliderTooltips();
         } else {
             document.getElementById('eraserSettings').style.display = 'none';
         }
@@ -1897,7 +1900,7 @@ class PropertiesSidebar {
                 <div style="
                     width: ${dotSize}px; 
                     height: ${dotSize}px; 
-                    background: ${index === this.activeStrokeIndex ? '#2196f3' : 'currentColor'}; 
+                    background: ${index === this.activeStrokeIndex ? 'var(--app-icon-active-color)' : 'currentColor'}; 
                     border-radius: 50%;
                 "></div>
             `;
@@ -1906,8 +1909,8 @@ class PropertiesSidebar {
                 width: 28px;
                 height: 28px;
                 border-radius: 6px;
-                border: 1px solid ${index === this.activeStrokeIndex ? '#2196f3' : '#e9ecef'};
-                background: ${index === this.activeStrokeIndex ? '#e3f2fd' : 'white'};
+                border: 1px solid ${index === this.activeStrokeIndex ? 'var(--app-icon-active-color)' : '#e9ecef'};
+                background: ${index === this.activeStrokeIndex ? 'var(--app-icon-active-bg)' : 'white'};
                 cursor: pointer;
                 display: flex;
                 align-items: center;

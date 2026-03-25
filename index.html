@@ -36,7 +36,7 @@
         }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=0.8.2">
+    <link rel="stylesheet" href="style.css?v=0.8.4">
     <link rel="stylesheet" href="css/template-gallery.css?v=0.8.1">
 
     <!-- PDF.js for PDF annotation support -->
@@ -332,9 +332,6 @@
                         <app-icon name="compass-03" alt="toolbar"></app-icon>
                     </button>
 
-                    <button class=" tool-btn" id="btnCustomizeToolbar" title="Araçları Özelleştir">
-                        <span style="font-size: 18px; font-weight: 500; color: #666;">+</span>
-                    </button>
                     <button class="tool-btn" data-tool="select" title="Seç (V)">
                         <app-icon name="cursor-01" alt="select"></app-icon>
                     </button>
@@ -385,6 +382,10 @@
 
                     <button class="tool-btn" data-tool="table" title="Tablo Ekle">
                         <app-icon name="layout-grid-02" alt="table"></app-icon>
+                    </button>
+
+                    <button class=" tool-btn" id="btnCustomizeToolbar" title="Araçları Özelleştir">
+                        <span style="font-size: 18px; font-weight: 500; color: #666;">+</span>
                     </button>
 
                 </div>
@@ -624,21 +625,20 @@
                 <button class="tool-btn active" data-eraser-mode="object" title="Nesne Silgisi">
 
                     <app-icon name="eraser-object" alt="eraser-object"></app-icon>
-
                 </button>
+
                 <button class="tool-btn" data-eraser-mode="partial" title="Kısmi Silgi (Piksel)">
 
                     <app-icon name="eraser-partial" alt="eraser-partial"></app-icon>
 
                 </button>
 
-
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <span class="label">Boyut</span>
-                    <input type="range" id="eraserSizeSlider" class="stroke-width-slider" min="2" max="100" value="20"
-                        step="2" title="Silgi Boyutu" style="width: 70px;">
-                    <span id="eraserSizeVal" class="val-badge">20px</span>
+                <label class="label">Boyut</label>
+                <div class="vertical-slider-container">
+                    <input type="range" id="eraserSizeSlider" class="stroke-width-slider vertical-slider" min="2"
+                        max="100" value="20" step="2" title="Silgi Boyutu">
                 </div>
+                <span id="eraserSizeVal" class="val-badge-box">20px</span>
             </div>
 
 
@@ -646,6 +646,7 @@
                 <!-- Start Style Wrap -->
                 <div style="position: relative;">
                     <button id="btnArrowStartTrigger" class="property-trigger-btn" title="Başlangıç Ucu">
+
                         <app-icon name="arrow-trigger-start" alt="arrow-trigger-start"></app-icon>
 
                     </button>
@@ -653,6 +654,7 @@
                 <!-- End Style Wrap -->
                 <div style="position: relative;">
                     <button id="btnArrowEndTrigger" class="property-trigger-btn" title="Bitiş Ucu">
+
                         <app-icon name="arrow-trigger-end" alt="arrow-trigger-end"></app-icon>
 
                     </button>
@@ -664,22 +666,27 @@
             <div class="tool-group" id="arrowPathSettings" style="display: none;">
                 <label class="label">Şekil</label>
                 <button class="tool-btn" data-arrow-path="curved" title="Eğri">
+
                     <app-icon name="arrow-curved" alt="arrow-curved"></app-icon>
 
                 </button>
+
                 <button class="tool-btn" data-arrow-path="elbow" title="Dirsek">
+
                     <app-icon name="arrow-elbow" alt="arrow-elbow"></app-icon>
 
                 </button>
             </div>
 
             <div class="tool-group" id="stickerSettings">
-                <label class="label" style="margin: 0;">Stickerlar</label>
+                <!-- <label class="label" style="margin: 0;">Stickerlar</label> -->
                 <div id="stickerSidebarList" class="sticker-sidebar-list">
                     <!-- Stickers will be added here -->
                 </div>
                 <button id="btnStickerMore" class="tool-btn" title="Yönet" style="margin-left: auto; flex-shrink: 0;">
+
                     <app-icon name="settings-03" alt="settings" style="width: 16px; height: 16px;"></app-icon>
+
                 </button>
             </div>
 
@@ -688,13 +695,21 @@
                 <!-- Mod Grubu -->
                 <div class="mode-options" style="display: flex; gap: 4px;">
                     <button class="tool-btn active" data-tape-mode="line" title="Düz Bant Çizgisi">
+
                         <app-icon name="tape-line" alt="line"></app-icon>
+
                     </button>
+
                     <button class="tool-btn" data-tape-mode="freehand" title="Serbest Bant">
+
                         <app-icon name="tape-freehand" alt="freehand"></app-icon>
+
                     </button>
+
                     <button class="tool-btn" data-tape-mode="rectangle" title="Dikdörtgen Bant">
+
                         <app-icon name="tape-rectangle" alt="rectangle"></app-icon>
+
                     </button>
                 </div>
 
@@ -1102,7 +1117,7 @@
         <div class="status-bar">
             <div class="status-info">
                 <button class="tool-btn" id="btnToggleStatusInfo" title="Aç/Kapat" style="margin-right: 2px;">
-                    <app-icon name="chevron-right" id="statusInfoDirectionIcon" alt="expand"></app-icon>
+                    <app-icon name="info-circle" id="statusInfoDirectionIcon" alt="expand"></app-icon>
                 </button>
                 <div id="statusInfoContent"
                     style="display: none; align-items: center; gap: 8px; flex-wrap: nowrap; overflow: hidden;">
@@ -1206,11 +1221,11 @@
 
                 <span class="label">Kalınlık</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
-                    <input type="number" class="slider-input" id="strokeWidthInput" min="1" max="80" value="4">
+                    <input type="number" class="slider-input" id="strokeWidthInput" min="1" max="20" value="4">
                     <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">px</span>
                 </div>
             </div>
-            <input type="range" class="stroke-width-slider" id="strokeWidthSlider" min="1" max="80" value="4">
+            <input type="range" class="stroke-width-slider" id="strokeWidthSlider" min="1" max="20" value="4">
         </div>
         <div class="brush-setting-item">
             <div class="brush-setting-header">
@@ -1250,7 +1265,7 @@
         </div>
         <div class="brush-setting-item" id="brushSettingAngle">
             <div class="brush-setting-header">
-                <app-icon name="corner-up-right" alt="angle"></app-icon>
+                <app-icon name="angle" alt="angle"></app-icon>
 
                 <span class="label">Uç Açısı</span>
                 <div style="margin-left: auto; display: flex; align-items: center; gap: 2px;">
@@ -1713,7 +1728,7 @@
     <script src="./js/ImageTool.js?v=0.8.0"></script>
     <script src="./js/SelectTool.js?v=0.8.0"></script>
     <script src="./js/ColorPalette.js?v=0.8.0"></script>
-    <script src="./js/PropertiesSidebar.js?v=0.8.0"></script>
+    <script src="./js/PropertiesSidebar.js?v=0.8.2"></script>
     <script src="./js/HistoryManager.js?v=0.8.0"></script>
     <script src="./js/StickerTool.js?v=0.8.0"></script>
     <script src="./js/TapeTool.js?v=0.8.0"></script>

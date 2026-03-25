@@ -11,6 +11,8 @@ class PageManager {
         this.toggleViewBtn = document.getElementById('btnTogglePageView');
         this.prevPageBtn = document.getElementById('btnPrevPage');
         this.nextPageBtn = document.getElementById('btnNextPage');
+        this.overlay = document.getElementById('bottomSheetOverlay');
+
 
         this.viewMode = 'list'; // 'list' or 'grid'
         this.pageGap = 100; // Sayfalar arası boşluk
@@ -118,7 +120,16 @@ class PageManager {
             this.nextPageBtn.addEventListener('click', () => this.goToNextPage());
         }
 
+        if (this.overlay) {
+            this.overlay.addEventListener('click', () => {
+                if (this.sidebar && !this.sidebar.classList.contains('collapsed')) {
+                    this.toggleSidebar();
+                }
+            });
+        }
+
         this.renderPageList();
+
     }
 
     toggleViewMode() {
@@ -140,14 +151,25 @@ class PageManager {
 
     toggleSidebar() {
         if (this.sidebar) {
+            const isCollapsed = this.sidebar.classList.contains('collapsed');
             this.sidebar.classList.toggle('collapsed');
 
+            // Toggle overlay
+            if (this.overlay) {
+                if (isCollapsed) {
+                    this.overlay.classList.add('show');
+                } else {
+                    this.overlay.classList.remove('show');
+                }
+            }
+
             // Re-render thumbnails if expanded
-            if (!this.sidebar.classList.contains('collapsed')) {
+            if (isCollapsed) {
                 this.updateCurrentPageThumbnail();
             }
         }
     }
+
 
     addNewPage() {
         // Mevcut sayfayı kaydet

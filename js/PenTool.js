@@ -150,9 +150,13 @@ class PenTool {
         this.isDrawing = false;
         clearTimeout(this.straightenTimer);
 
+        const zoom = ctx.getTransform().a || 1.0;
+        const precision = 0.4 / zoom;
+
         if (!this.currentPath.isStraightened) {
             let pts = [...this.streamlinePoints];
 
+            // Catch-up: close the gap between streamline lag and actual pointer position
             if (this.lastPoint && pts.length > 0) {
                 const endPos = this.lastPoint;
                 pts.push({
@@ -162,7 +166,39 @@ class PenTool {
                 });
             }
 
-            if (pts.length > 3) pts = Utils.chaikin(pts, 1);
+            // SANITIZE: remove sharp-angle artifacts and micro-jitter at head & tail
+            const sanitize = (arr, thresh) => {
+                if (arr.length < 4) return arr;
+                let result = [...arr];
+                // Clean head
+                while (result.length > 3) {
+                    const p1 = result[0], p2 = result[1], p3 = result[2];
+                    const v1 = { x: p2.x - p1.x, y: p2.y - p1.y };
+                    const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+                    const d1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+                    const d2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+                    const dot = (v1.x * v2.x + v1.y * v2.y) / ((d1 * d2) || 1);
+                    if (dot < -0.7 || Utils.distance(p1, p2) < thresh) result.shift();
+                    else break;
+                }
+                // Clean tail
+                while (result.length > 3) {
+                    const len = result.length;
+                    const p3 = result[len - 1], p2 = result[len - 2], p1 = result[len - 3];
+                    const v1 = { x: p2.x - p1.x, y: p2.y - p1.y };
+                    const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+                    const d1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+                    const d2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+                    const dot = (v1.x * v2.x + v1.y * v2.y) / ((d1 * d2) || 1);
+                    if (dot < -0.7 || Utils.distance(p2, p3) < thresh) result.pop();
+                    else break;
+                }
+                return result;
+            };
+
+            pts = sanitize(pts, precision);
+            // Full-quality 3-iteration Chaikin smoothing on pointer-up
+            if (pts.length > 3) pts = Utils.chaikin(pts, 3);
             this.currentPath.points = Utils.smoothPressure(pts);
         }
 
@@ -194,10 +230,10 @@ class PenTool {
         ) {
             const tx = ctx.getTransform();
             const zoom = tx.a || 1;
-            const pan  = { x: tx.e || 0, y: tx.f || 0 };
-            const canvas  = ctx.canvas;
-            const viewW   = canvas.clientWidth  || canvas.width;
-            const viewH   = canvas.clientHeight || canvas.height;
+            const pan = { x: tx.e || 0, y: tx.f || 0 };
+            const canvas = ctx.canvas;
+            const viewW = canvas.clientWidth || canvas.width;
+            const viewH = canvas.clientHeight || canvas.height;
             if (gpu.drawStroke(ctx, object, zoom, viewW, viewH, pan)) return;
         }
         ctx.save();

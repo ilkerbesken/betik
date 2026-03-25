@@ -6,7 +6,10 @@
 
 :root {
     --app-icon-color: #262626;
-    --app-icon-active-color: #2196f3;
+    --app-icon-active-color: var(--app-icon-color);
+    /* Derived colors for hover and active backgrounds */
+    --app-icon-active-bg: color-mix(in srgb, var(--app-icon-color), transparent 88%);
+    --app-icon-hover-bg: color-mix(in srgb, var(--app-icon-color), transparent 94%);
 }
 
 app-icon {
@@ -152,8 +155,8 @@ textarea,
 }
 
 .tab-dropdown-item.active {
-    background: rgba(74, 144, 226, 0.2);
-    color: #4a90e2;
+    background: var(--app-icon-active-bg);
+    color: var(--app-icon-active-color);
     font-weight: 600;
 }
 
@@ -222,7 +225,7 @@ textarea,
 .tab-rename-input {
     flex: 1;
     background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #3498db;
+    border: 1px solid var(--app-icon-active-color);
     border-radius: 4px;
     padding: 2px 6px;
     font-size: 12px;
@@ -233,7 +236,7 @@ textarea,
 }
 
 .add-tab-btn {
-    background: #3498db;
+    background: var(--app-icon-active-color);
     color: white;
     border: none;
     border-radius: 6px;
@@ -251,7 +254,7 @@ textarea,
 }
 
 .add-tab-btn:hover {
-    background: #2980b9;
+    background: var(--app-icon-active-color);
     transform: scale(1.05);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
@@ -366,17 +369,27 @@ textarea,
     color: var(--app-icon-color);
 }
 
-/* Orient button subtle active style */
+/* Orient button — background matches icon color, icon is always white */
 .toolbar-orient-btn {
-    opacity: 0.55;
+    background: var(--app-icon-color) !important;
+    border-radius: 4px;
+    opacity: 0.72;
+}
+
+.toolbar-orient-btn app-icon {
+    color: #ffffff !important;
 }
 
 .toolbar-orient-btn:hover {
     opacity: 1;
 }
 
+.toolbar-orient-btn:hover app-icon {
+    color: #ffffff !important;
+}
+
 .toolbar-center.vertical .toolbar-orient-btn {
-    opacity: 0.75;
+    opacity: 0.85;
 }
 
 .page-navigation-group-top {
@@ -389,8 +402,8 @@ textarea,
     /* Position styling moved to flex layout */
     font-weight: 900;
     font-size: 15px;
-    color: #1971c2;
-    background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
+    color: var(--app-icon-hover-bg);
+    background: linear-gradient(135deg, var(--app-icon-active-bg) 0%, #d0ebff 100%);
     padding: 3px 8px;
     border-radius: 8px;
     border: 1px solid #a5d8ff;
@@ -434,17 +447,18 @@ textarea,
 }
 
 .tool-btn:hover {
-    background: #f5f5f5;
-    border-color: #d0d0d0;
+    background: var(--app-icon-hover-bg);
+    border-color: color-mix(in srgb, var(--app-icon-color), transparent 80%);
 }
 
 .tool-btn:hover app-icon {
-    color: #404040;
+    color: var(--app-icon-color);
+    opacity: 1;
 }
 
 .tool-btn.active {
-    background: #e3f2fd;
-    border-color: #2196f3;
+    background: var(--app-icon-active-bg);
+    border-color: var(--app-icon-active-color);
 }
 
 .tool-btn.active app-icon {
@@ -474,48 +488,53 @@ input[type="range"] {
     vertical-align: middle;
 }
 
-/* Track styles */
+/* Track styles - Horizontal (default) */
 input[type="range"]::-webkit-slider-runnable-track {
-    background: linear-gradient(to right, #2196f3 0%, #2196f3 var(--value, 0%), #e0e0e0 var(--value, 0%), #e0e0e0 100%);
-    height: 6px;
-    border-radius: 10px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #efefef;
+    background-image: radial-gradient(circle, #b0b0b0 1.5px, transparent 2px);
+    background-size: 18% 100%;
+    background-position: center;
+    background-repeat: repeat-x;
 }
 
 input[type="range"]::-moz-range-track {
-    background: linear-gradient(to right, #2196f3 0%, #2196f3 var(--value, 0%), #e0e0e0 var(--value, 0%), #e0e0e0 100%);
-    height: 6px;
-    border-radius: 10px;
+    height: 24px;
+    border-radius: 12px;
+    background-color: #efefef;
+    background-image: radial-gradient(circle, #b0b0b0 1.5px, transparent 2px);
+    background-size: 18% 100%;
+    background-position: center;
+    background-repeat: repeat-x;
 }
 
-/* Thumb (top) styles */
+/* Thumb styles - Horizontal */
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    height: 16px;
-    width: 16px;
+    width: 14px;
+    height: 18px;
     background: #ffffff;
-    /* Beyaz top */
-    border: 2px solid #bbb;
-    /* Gri çerçeve */
-    border-radius: 50%;
-    margin-top: -5px;
-    /* Çubukla ortalamak için */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 7px;
+    margin-top: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+    border: none;
 }
 
 input[type="range"]::-moz-range-thumb {
-    height: 16px;
-    width: 16px;
+    width: 14px;
+    height: 18px;
     background: #ffffff;
-    border: 2px solid #bbb;
-    border-radius: 50%;
+    border-radius: 7px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+    border: none;
 }
 
-/* Firefox Mavi Kısım */
+/* Hide progress */
 input[type="range"]::-moz-range-progress {
-    background: #2196f3;
-    height: 6px;
-    border-radius: 10px 0 0 10px;
+    height: 0;
+    background: transparent;
 }
 
 /* Limit overflow to prevent blue shadow from bleeding out of the input */
@@ -708,7 +727,7 @@ input[type="range"]::-moz-range-progress {
 }
 
 .tool-toggle input:checked+.toggle-slider {
-    background-color: #2196f3;
+    background-color: var(--app-icon-active-color);
 }
 
 .tool-toggle input:checked+.toggle-slider:before {
@@ -835,10 +854,10 @@ input[type="range"] {
 }
 
 .import-option-btn:hover {
-    border-color: #1971c2;
-    background: #f1f8ff;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-hover-bg);
     transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(25, 113, 194, 0.1);
+    box-shadow: 0 4px 12px var(--app-icon-active-bg);
 }
 
 .import-option-btn .option-icon-wrapper {
@@ -854,7 +873,7 @@ input[type="range"] {
 }
 
 .import-option-btn:hover .option-icon-wrapper {
-    background: #e7f5ff;
+    background: var(--app-icon-active-bg);
 }
 
 .import-option-btn .option-icon-wrapper img {
@@ -874,7 +893,7 @@ input[type="range"] {
 }
 
 .import-option-btn:hover .option-title {
-    color: #1971c2;
+    color: var(--app-icon-active-color);
 }
 
 .settings-modal {
@@ -957,7 +976,7 @@ input[type="range"] {
 
 .segment input:checked+span {
     background: white;
-    color: #1971c2;
+    color: var(--app-icon-active-bg);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     font-weight: 600;
 }
@@ -978,7 +997,7 @@ input[type="range"] {
 }
 
 .color-option-rect.active {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px #1971c2;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--app-icon-active-color);
 }
 
 .color-option-rect.custom-add {
@@ -1012,9 +1031,9 @@ input[type="range"] {
 }
 
 .pattern-item.active {
-    background: #e7f5ff;
-    border-color: #339af0;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    border-color: var(--app-icon-active-color);
+    color: var(--app-icon-active-color);
     font-weight: 600;
 }
 
@@ -1025,8 +1044,8 @@ input[type="range"] {
 }
 
 .val-badge {
-    background: #e7f5ff;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    color: var(--app-icon-active-color);
     padding: 2px 8px;
     border-radius: 10px;
     font-size: 11px;
@@ -1034,12 +1053,12 @@ input[type="range"] {
 }
 
 .setting-item select:hover {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
 }
 
 .setting-item select:focus {
     outline: none;
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
 }
 
 .radio-group-inline {
@@ -1077,11 +1096,11 @@ input[type="range"] {
 
 .color-option-small:hover {
     transform: scale(1.1);
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
 }
 
 .color-option-small.active {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
 }
 
@@ -1112,7 +1131,7 @@ input[type="range"] {
 }
 
 .pattern-btn:hover {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
     background: #f5f5f5;
 }
 
@@ -1121,8 +1140,8 @@ input[type="range"] {
 }
 
 .pattern-btn.active {
-    border-color: #2196f3;
-    background: #e3f2fd;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-active-bg);
 }
 
 .pattern-btn.active app-icon:not(.color-sync) {
@@ -1145,7 +1164,7 @@ input[type="range"] {
 }
 
 .btn-primary {
-    background: #2196f3;
+    background: var(--app-icon-active-color);
     color: white;
 }
 
@@ -1392,10 +1411,10 @@ input[type="range"] {
 }
 
 .properties-sidebar {
-    top: 50px;
-    /* Slightly adjusted to clear toolbar shadow */
+    top: 52px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, 0) rotate(0deg);
+    transform-origin: center center;
     width: max-content;
     max-width: 90vw;
     height: auto;
@@ -1419,95 +1438,85 @@ input[type="range"] {
     transition:
         top 0.45s cubic-bezier(0.65, 0, 0.35, 1),
         left 0.45s cubic-bezier(0.65, 0, 0.35, 1),
-        transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+        transform 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+        opacity 0.25s ease-out;
 
-    /* Light Animation */
+    /* Light Animation: only for initial entry */
     animation: propertiesBarEntry 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* When leftToolbarExtra is open or center toolbar overlaps with left side, move them down to avoid overlapping */
+body.left-extra-open:not(.toolbar-is-vertical) .toolbar-center,
+body.toolbar-collision:not(.toolbar-is-vertical) .toolbar-center {
+    top: 52px;
+}
+
+body.left-extra-open:not(.toolbar-is-vertical) .properties-sidebar,
+body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
+    top: 105px;
 }
 
 @keyframes propertiesBarEntry {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(-12px);
+        scale: 0.98;
     }
 
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        scale: 1;
     }
 }
 
-@keyframes propertiesBarEntrySide {
-    from {
-        opacity: 0;
-        transform: translateX(-12px) translateY(-50%);
-    }
 
-    to {
-        opacity: 1;
-        transform: translateX(0) translateY(-50%);
-    }
-}
 
 /* Vertical Toolbar Modu için Sidebar Konumlandırması */
 .toolbar-is-vertical .properties-sidebar {
     top: 50%;
-    left: 52px;
-    /* Toolbar'a (28px + yarım-genişlik) daha yakın */
-    transform: translateY(-50%);
-    flex-direction: column;
-    width: auto;
+    left: 84px;
+    transform: translate(-50%, -50%) rotate(90deg);
+    flex-direction: row;
+    width: max-content;
     height: auto;
-    max-height: 85vh;
-    padding: 12px 4px;
+    max-width: 85vh;
+    /* Padding'i temel sınıftan (4px 10px) almasını sağlıyoruz, böylece kalınlık 40px kalıyor */
     z-index: 5600;
-    /* Sidebar toolbar üstünde görünmeli */
-    animation: propertiesBarEntrySide 0.45s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/* 
+   Önemli: Grubu tamamen döndürmek yerine sadece içindeki elemanları döndürüyoruz.
+   Böylece ana çubuğun "90deg"lik rotasyonu sayesinde yan yana olan elemanlar 
+   doğal bir şekilde üst üste dizilmiş oluyor (çünkü satır artık sütuna dönüştü).
+*/
 .toolbar-is-vertical .properties-sidebar .tool-group {
-    flex-direction: column;
-    height: auto;
-    padding: 8px 4px;
-    gap: 12px;
+    transform: none;
+    /* Grubu döndürme */
 }
 
-.toolbar-is-vertical .properties-sidebar #quickColorsList,
-.toolbar-is-vertical .properties-sidebar #quickStrokeWidthsList,
-.toolbar-is-vertical .properties-sidebar #pdfHighlightColors,
-.toolbar-is-vertical .properties-sidebar #stickerSidebarList,
-.toolbar-is-vertical .properties-sidebar .mode-options,
-.toolbar-is-vertical .properties-sidebar .pattern-options,
-.toolbar-is-vertical .properties-sidebar .property-input-group,
-.toolbar-is-vertical .properties-sidebar #tapeSettings>div {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 8px !important;
-    height: auto !important;
+/* İçerikleri (ikonlar, yazılar, inputlar) dik tutmak için -90 derece rotasyon */
+.toolbar-is-vertical .properties-sidebar .tool-btn,
+.toolbar-is-vertical .properties-sidebar .property-trigger-btn,
+.toolbar-is-vertical .properties-sidebar .label,
+.toolbar-is-vertical .properties-sidebar .val-badge,
+.toolbar-is-vertical .properties-sidebar input,
+.toolbar-is-vertical .properties-sidebar select,
+.toolbar-is-vertical .properties-sidebar .num-adj-btn,
+.toolbar-is-vertical .properties-sidebar .quick-color-btn,
+.toolbar-is-vertical .properties-sidebar .pattern-btn {
+    transform: rotate(-90deg);
+    transform-origin: center center;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-.toolbar-is-vertical .properties-sidebar .sticker-sidebar-list {
-    flex-direction: column !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    max-height: 200px;
-    padding: 10px 0;
+/* Slider gibi özel öğeler için ayarlamalar */
+.toolbar-is-vertical .properties-sidebar .stroke-width-slider,
+.toolbar-is-vertical .properties-sidebar .eraser-size-slider,
+.toolbar-is-vertical .properties-sidebar .opacity-slider {
+    /* Kaydırıcıları döndürünce tıklama alanları karışabilir, boyutu küçültüyoruz */
+    width: 60px !important;
 }
 
-.toolbar-is-vertical .properties-sidebar .label {
-    margin-right: 0;
-    margin-bottom: 4px;
-    text-align: center;
-}
 
-.toolbar-is-vertical .properties-sidebar .reset-group {
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    /* Yatayda bordür dikeyde üste */
-    border-left: none;
-    margin-top: 8px;
-    padding-top: 10px;
-    width: 100%;
-}
 
 .properties-sidebar .tool-group {
     display: flex;
@@ -1518,6 +1527,7 @@ input[type="range"] {
     padding: 0 8px;
     height: 32px;
     gap: 6px;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 .properties-sidebar .tool-group:last-child {
@@ -1585,7 +1595,7 @@ input[type="range"] {
 }
 
 .slider-val-top {
-    color: #2196f3;
+    color: var(--app-icon-active-color);
     /* Highlight current value */
 }
 
@@ -1658,14 +1668,14 @@ input[type="range"] {
 }
 
 .tag-tik {
-    background: #e7f5ff;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    color: var(--app-icon-active-color);
     font-size: 10px;
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
     margin-left: 6px;
-    border: 1px solid #d0e7ff;
+    border: 1px solid color-mix(in srgb, var(--app-icon-color), transparent 85%);
     text-transform: uppercase;
 }
 
@@ -1772,7 +1782,7 @@ input[type="range"] {
 .picker-add-btn {
     width: 100%;
     padding: 8px;
-    background: #2196f3;
+    background: var(--app-icon-active-color);
     color: white;
     border: none;
     border-radius: 6px;
@@ -1819,7 +1829,7 @@ input[type="range"] {
 .quick-color-btn.active-popup,
 .quick-stroke-btn.active-popup,
 .property-trigger-btn.active-popup {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px #2196f3 !important;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--app-icon-active-color) !important;
 }
 
 .color-palette-popup {
@@ -1862,7 +1872,7 @@ input[type="range"] {
 
 .picker-add-btn {
     width: 100%;
-    background: #1971c2;
+    background: var(--app-icon-active-color);
     color: white;
     border: none;
     border-radius: 6px;
@@ -1879,7 +1889,7 @@ input[type="range"] {
 }
 
 .picker-hex-input:focus {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
 }
 
 .picker-add-btn:hover {
@@ -1918,8 +1928,8 @@ input[type="range"] {
 
 .color-btn.active {
     transform: scale(1.1);
-    border-color: #2196f3;
-    box-shadow: 0 0 0 1px white, 0 0 0 3px #2196f3;
+    border-color: var(--app-icon-active-color);
+    box-shadow: 0 0 0 1px white, 0 0 0 3px var(--app-icon-active-color);
 }
 
 .rainbow-btn {
@@ -1953,9 +1963,9 @@ input[type="range"] {
 }
 
 .add-color-btn:hover {
-    border-color: #2196f3;
-    color: #2196f3;
-    background: #e3f2fd;
+    border-color: var(--app-icon-active-color);
+    color: var(--app-icon-active-color);
+    background: var(--app-icon-active-bg);
 }
 
 .add-color-btn svg {
@@ -1982,21 +1992,18 @@ input[type="range"] {
 
 /* Property Popup Styles */
 .property-popup {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 8px;
-    background: #ffffff;
+    position: fixed !important; /* Fixed position to break out of any sidebar stacking context */
+    z-index: 99999 !important; /* Maximum possible value */
+    background: #ffffff !important;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-radius: 6px;
-    padding: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 12px;
     display: none;
     flex-direction: column;
-    z-index: 1000;
     width: max-content;
-    max-width: 90vw;
+    max-width: 95vw;
+    pointer-events: auto !important; /* Ensure it's interactive */
 }
 
 .property-popup.show {
@@ -2052,10 +2059,10 @@ input[type="range"] {
 .slider-val-left,
 .slider-val-top {
     font-size: 10px;
-    color: #2196f3;
+    color: var(--app-icon-active-color);
     font-weight: 600;
-    background: #f0f7ff;
-    border: 1px solid #d0e7ff;
+    background: var(--app-icon-hover-bg);
+    border: 1px solid color-mix(in srgb, var(--app-icon-color), transparent 85%);
     padding: 1px 6px;
     border-radius: 4px;
     min-width: 30px;
@@ -2177,9 +2184,9 @@ input[type="range"] {
 }
 
 .property-trigger-btn.active {
-    background: #e7f5ff;
-    border-color: #339af0;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    border-color: var(--app-icon-active-color);
+    color: var(--app-icon-active-color);
 }
 
 .property-trigger-btn .icon {
@@ -2213,7 +2220,7 @@ input[type="range"] {
 
 .zoom-btn:hover {
     background: #f5f5f5;
-    color: #2196f3;
+    color: var(--app-icon-active-color);
 }
 
 .zoom-btn svg {
@@ -2286,14 +2293,52 @@ input[type="range"] {
         font-size: 16px;
     }
 
+    /* Hide toolbar orientation button on mobile/tablets (< 768px) */
+    #btnToolbarOrient {
+        display: none !important;
+    }
+
+    /* Reset icon rotation on mobile even if toolbar class is still 'vertical' */
+    .toolbar-center.vertical .tool-btn app-icon,
+    .toolbar-center.vertical .tool-btn svg,
+    .toolbar-center.vertical #shapePickerBtn app-icon,
+    .toolbar-center.vertical #btnTextSelect app-icon,
+    .toolbar-is-vertical .properties-sidebar .tool-btn,
+    .toolbar-is-vertical .properties-sidebar .property-trigger-btn,
+    .toolbar-is-vertical .properties-sidebar .label,
+    .toolbar-is-vertical .properties-sidebar .val-badge,
+    .toolbar-is-vertical .properties-sidebar input,
+    .toolbar-is-vertical .properties-sidebar select,
+    .toolbar-is-vertical .properties-sidebar .num-adj-btn,
+    .toolbar-is-vertical .properties-sidebar .quick-color-btn,
+    .toolbar-is-vertical .properties-sidebar .pattern-btn {
+        transform: rotate(0deg) !important;
+    }
 
     /* Toolbar */
     .toolbar {
         padding: 0 4px;
     }
 
+    .toolbar-center,
+    .properties-sidebar {
+        max-width: 95vw !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none !important; /* Firefox */
+        -ms-overflow-style: none !important; /* IE/Edge */
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .toolbar-center::-webkit-scrollbar,
+    .properties-sidebar::-webkit-scrollbar {
+        display: none !important;
+    }
+
     .toolbar-center {
-        justify-content: flex-start;
+        justify-content: flex-start !important; /* Needed for proper scrolling */
     }
 
     /* Tablet View (481px-768px): Floating UI Stacking at the Top */
@@ -2309,7 +2354,7 @@ input[type="range"] {
             max-width: 95vw !important;
             height: 48px !important;
             background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(15px) !important;
+            backdrop-filter: none !important; /* FIXED: Removed blur to prevent interference */
             border: 1px solid rgba(0, 0, 0, 0.08) !important;
             border-radius: 14px !important;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
@@ -2318,8 +2363,15 @@ input[type="range"] {
             display: flex !important;
             gap: 2px !important;
             align-items: center !important;
-            justify-content: center !important;
-            overflow: visible !important;
+            justify-content: flex-start !important; /* Changed from center to allow scrolling */
+            overflow-x: auto !important; /* Enable scrolling */
+            overflow-y: hidden !important;
+            flex-wrap: nowrap !important;
+            scrollbar-width: none !important;
+        }
+
+        .toolbar-center::-webkit-scrollbar {
+            display: none !important;
         }
 
         .properties-sidebar {
@@ -2332,22 +2384,33 @@ input[type="range"] {
             width: max-content !important;
             max-width: 95vw !important;
             height: 44px !important;
-            background: rgba(255, 255, 255, 0.96) !important;
-            backdrop-filter: blur(15px) !important;
-            border: 1px solid rgba(0, 0, 0, 0.08) !important;
+            background: #ffffff !important; /* SOLID white to prevent dimming from background */
+            backdrop-filter: none !important; /* Remove blur to prevent graying out */
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
             border-radius: 12px !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
-            z-index: 1300 !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+            z-index: 15000 !important; /* Above bottomSheetOverlay (10000) */
             padding: 0 10px !important;
             /* display is managed by JS */
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            flex-wrap: nowrap !important;
+            scrollbar-width: none !important;
+            justify-content: flex-start !important;
+            pointer-events: auto !important;
         }
 
-        .toolbar-center .tool-group {
+        .properties-sidebar::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        .toolbar-center .tool-group,
+        .properties-sidebar .tool-group {
             border-right: none !important;
             padding: 0 6px !important;
             height: 32px !important;
-            display: flex !important;
             align-items: center !important;
+            flex-shrink: 0 !important; /* Prevent groups from shrinking */
         }
 
         .toolbar-center .tool-group:last-child {
@@ -2384,9 +2447,9 @@ input[type="range"] {
     }
 
     .mobile-only.active {
-        background: #e3f2fd;
-        border-color: #2196f3;
-        color: #2196f3;
+        background: var(--app-icon-active-bg);
+        border-color: var(--app-icon-active-color);
+        color: var(--app-icon-active-color);
     }
 
     .mobile-only svg {
@@ -2440,8 +2503,8 @@ input[type="range"] {
     }
 
     .mobile-action-btn.active {
-        background: #1971c2;
-        border-color: #1971c2;
+        background: var(--app-icon-active-color);
+        border-color: var(--app-icon-active-color);
         color: white;
     }
 
@@ -2451,9 +2514,9 @@ input[type="range"] {
     }
 
     .mobile-action-btn.primary {
-        background: #1971c2;
+        background: var(--app-icon-active-color);
         color: white;
-        border-color: #1971c2;
+        border-color: var(--app-icon-active-color);
         font-size: 20px;
         font-weight: bold;
     }
@@ -2495,8 +2558,8 @@ input[type="range"] {
     }
 
     .tree-note-item.active {
-        background: #e7f5ff;
-        color: #1971c2;
+        background: var(--app-icon-active-bg);
+        color: var(--app-icon-active-color);
     }
 
     .tree-note-item .note-icon {
@@ -2512,7 +2575,7 @@ input[type="range"] {
         gap: 8px;
         padding: 10px 16px;
         font-size: 13px;
-        color: #1971c2;
+        color: var(--app-icon-active-color);
         cursor: pointer;
         font-weight: 600;
         margin: 2px 8px;
@@ -2764,69 +2827,88 @@ input[type="range"] {
         }
     }
 
-    /* Move center tools to bottom (above status bar) */
+    /* Move center tools to bottom (above status bar) - REMOVED: User wants it to stay at top and scroll */
     .toolbar-center {
-        position: fixed;
-        bottom: 30px;
-        /* Right above status bar */
-        left: 0;
-        right: 0;
-        width: 100vw;
-        height: 46px;
-        /* Slightly taller for mobile touch */
-        background: white;
-        border-top: 1px solid #e0e0e0;
-        justify-content: flex-start;
-        padding: 0 10px;
-        margin: 0;
-        z-index: 2500;
-        overflow-x: auto;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        position: fixed !important;
+        top: 52px !important;
+        /* Stay at top like tablet view */
+        bottom: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: max-content !important;
+        max-width: 95vw !important;
+        height: 44px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border-radius: 12px !important;
+        justify-content: flex-start !important;
+        padding: 0 10px !important;
+        margin: 0 !important;
+        z-index: 5500 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+        flex-wrap: nowrap !important;
     }
 
     .toolbar-center::-webkit-scrollbar {
-        display: none;
+        display: none !important;
     }
 
     /* Adjust tools inside for touch */
     .toolbar-center .tool-group {
-        padding: 0 4px;
-        gap: 2px;
+        padding: 0 4px !important;
+        gap: 2px !important;
+        flex-shrink: 0 !important;
     }
 
-    /* MOVE PROPERTIES SIDEBAR TO BOTTOM FOR MOBILE UX (480px) */
+    /* KEEP PROPERTIES SIDEBAR AT TOP FOR MOBILE AS WELL (MATCHING TOOLBAR) */
     .properties-sidebar {
-        top: auto !important;
-        bottom: 86px !important;
-        /* Slightly more space for better thumb reach */
+        top: 105px !important;
+        /* Positioned below toolbar-center */
+        bottom: auto !important;
         left: 50% !important;
-        transform: translateX(-50%) translateY(10px) !important;
-        width: 92vw !important;
-        max-width: 92vw !important;
-        height: 44px !important;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 14px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateX(-50%) !important;
+        width: max-content !important;
+        max-width: 95vw !important;
+        height: 40px !important;
+        background: #ffffff !important; /* SOLID white */
+        backdrop-filter: none !important; /* Remove blur */
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
         padding: 0 8px !important;
-        z-index: 2600 !important;
-        /* Higher than toolbar-center (2500) so it appears above */
-        justify-content: flex-start;
-        display: none;
+        z-index: 15000 !important; /* Above bottomSheetOverlay (10000) */
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none !important;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        opacity: 0;
+        pointer-events: auto !important;
     }
 
-    /* Active state for animation */
-    .properties-sidebar[style*="display: flex"] {
-        transform: translateX(-50%) translateY(0) !important;
-        opacity: 1;
+    /* When leftToolbarExtra is open on mobile, push both down further */
+    body.left-extra-open:not(.toolbar-is-vertical) .toolbar-center {
+        top: 52px !important;
+        /* Same as default tablet but consistent here */
+    }
+
+    body.left-extra-open:not(.toolbar-is-vertical) .properties-sidebar {
+        top: 105px !important;
+    }
+
+    .properties-sidebar::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .properties-sidebar .tool-group {
+        flex-shrink: 0 !important;
     }
 
     .properties-sidebar .tool-group {
@@ -2859,21 +2941,26 @@ input[type="range"] {
 
     /* STACK BOTTOM SHEETS ON TOP OF PROPERTIES SIDEBAR */
     .property-popup {
-        bottom: 138px !important;
-        /* 86px (bottom) + 44px (height) + 8px gap */
-        border-radius: 16px !important;
-        width: 92vw !important;
+        position: fixed !important;
+        bottom: 20px !important; /* Standard bottom sheet position */
         left: 50% !important;
-        right: auto !important;
-        transform: translateX(-50%) translateY(20px) !important;
-        max-height: 60vh !important;
-        overflow-y: auto !important;
-        padding: 20px !important;
-        z-index: 3500 !important;
+        transform: translateX(-50%) translateY(100%) !important; /* Start off-screen */
+        width: 95vw !important;
+        max-width: 500px !important;
+        max-height: 80vh !important;
+        border-radius: 24px 24px 0 0 !important; /* Rounded top corners for bottom sheet */
+        z-index: 99999 !important; /* Top of everything */
+        background: #ffffff !important;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3) !important;
+        display: none;
+        flex-direction: column;
+        padding: 24px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     .property-popup.mobile-visible {
-        transform: translateX(-50%) translateY(0) !important;
+        display: flex !important;
+        transform: translateX(-50%) translateY(0) !important; /* Slide in */
     }
 
     .property-popup::after {
@@ -3001,8 +3088,8 @@ input[type="range"] {
 
 
 .sticker-item:hover {
-    border-color: #2196f3;
-    background: #f5f9ff;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-hover-bg);
     transform: scale(1.05);
 }
 
@@ -3117,8 +3204,8 @@ input[type="range"] {
 }
 
 .sticker-sidebar-item:hover {
-    border-color: #2196f3;
-    background: #f5f9ff;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-hover-bg);
     transform: scale(1.1);
     box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
 }
@@ -3159,19 +3246,17 @@ input[type="range"] {
 .page-sidebar {
     position: fixed;
     left: 0;
-    top: 42px;
-    /* Toolbar height */
-    bottom: 30px;
-    /* Status bar height */
-    width: 200px;
-    background: white;
-    border-right: 1px solid #e0e0e0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
-    z-index: 110;
-    /* Higher than properties sidebar? Let's check. */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    z-index: 12000;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
 }
 
 .page-sidebar.collapsed {
@@ -3209,7 +3294,7 @@ input[type="range"] {
 
 .view-toggle-btn:hover {
     background: #f5f5f5;
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
 }
 
 .close-sidebar-btn {
@@ -3253,8 +3338,8 @@ input[type="range"] {
 }
 
 .page-item.active {
-    border-color: #2196f3;
-    background: #e7f5ff;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-active-bg);
 }
 
 .page-thumb {
@@ -3336,11 +3421,11 @@ input[type="range"] {
 
 .page-item.dragging {
     opacity: 0.5;
-    border: 2px dashed #2196f3;
+    border: 2px dashed var(--app-icon-active-color);
 }
 
 .page-item.drag-over {
-    border-top: 4px solid #2196f3;
+    border-top: 4px solid var(--app-icon-active-color);
 }
 
 /* Page List View Modes */
@@ -3383,7 +3468,7 @@ input[type="range"] {
 
 .page-name-input {
     width: 100%;
-    border: 1px solid #2196f3;
+    border: 1px solid var(--app-icon-active-color);
     border-radius: 4px;
     padding: 2px 4px;
     font-size: 11px;
@@ -3463,7 +3548,7 @@ input[type="range"] {
 .workspace-header .avatar {
     width: 32px;
     height: 32px;
-    background: #1971c2;
+    background: var(--app-icon-hover-bg);
     color: white;
     border-radius: 6px;
     display: flex;
@@ -3551,8 +3636,8 @@ input[type="range"] {
 }
 
 .folder-name[contenteditable="true"] {
-    background: rgba(25, 113, 194, 0.1);
-    box-shadow: 0 0 0 1px #1971c2;
+    background: var(--app-icon-active-bg);
+    box-shadow: 0 0 0 1px var(--app-icon-hover-bg);
 }
 
 .folder-menu-trigger {
@@ -3649,8 +3734,8 @@ input[type="range"] {
 }
 
 .nav-item.active {
-    background: #e7f5ff;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    color: var(--app-icon-hover-bg);
 }
 
 .nav-icon {
@@ -3732,7 +3817,7 @@ input[type="range"] {
 
 .btn-icon:hover {
     background: #f5f5f5;
-    border-color: #1971c2;
+    border-color: var(--app-icon-hover-bg);
 }
 
 .btn-icon:hover app-icon {
@@ -3740,8 +3825,8 @@ input[type="range"] {
 }
 
 .btn-icon.active {
-    background: #1971c2;
-    border-color: #1971c2;
+    background: var(--app-icon-hover-bg);
+    border-color: var(--app-icon-hover-bg);
     color: white;
 }
 
@@ -4042,8 +4127,8 @@ input[type="range"] {
 }
 
 .cover-item.active {
-    border-color: #339af0;
-    box-shadow: 0 0 0 2px #339af0, 0 8px 15px rgba(0, 0, 0, 0.15);
+    border-color: var(--app-icon-active-color);
+    box-shadow: 0 0 0 2px var(--app-icon-active-color), 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .cover-item .mini-spine {
@@ -4112,7 +4197,7 @@ input[type="range"] {
 }
 
 .folder-select:focus {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
     background-color: white;
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
 }
@@ -4234,8 +4319,8 @@ input[type="range"] {
 }
 
 .tree-note-item .note-name[contenteditable="true"] {
-    background: rgba(25, 113, 194, 0.1);
-    box-shadow: 0 0 0 1px #1971c2;
+    background: var(--app-icon-active-bg);
+    box-shadow: 0 0 0 1px var(--app-icon-hover-bg);
     text-overflow: clip !important;
 }
 
@@ -4327,7 +4412,7 @@ input[type="range"] {
 
 .size-btn.active {
     background: white;
-    color: #1971c2;
+    color: var(--app-icon-active-color);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
@@ -4354,8 +4439,8 @@ input[type="range"] {
 }
 
 .shape-option.active {
-    border-color: #339af0;
-    background: #e7f5ff;
+    border-color: var(--app-icon-active-color);
+    background: var(--app-icon-active-bg);
 }
 
 .shape-preview {
@@ -4425,12 +4510,12 @@ input[type="range"] {
 
 .num-adj-btn:hover {
     background: #f5f5f5;
-    border-color: #2196f3;
-    color: #2196f3;
+    border-color: var(--app-icon-active-color);
+    color: var(--app-icon-active-color);
 }
 
 .num-adj-btn:active {
-    background: #e3f2fd;
+    background: var(--app-icon-active-bg);
     transform: scale(0.95);
 }
 
@@ -4446,7 +4531,7 @@ input[type="range"] {
 }
 
 .clean-input:focus {
-    color: #2196f3;
+    color: var(--app-icon-active-color);
 }
 
 /* Remove spinner from number input */
@@ -4838,7 +4923,7 @@ input[type="range"] {
 }
 
 .board-card:hover .notebook-cover-dashed {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
     background: rgba(33, 150, 243, 0.04);
 }
 
@@ -4850,7 +4935,7 @@ input[type="range"] {
 }
 
 .board-card:hover .dashed-plus-icon {
-    color: #2196f3;
+    color: var(--app-icon-active-color);
 }
 
 /* Main Color Sidebar visibility: only for mobile/tablet */
@@ -4925,7 +5010,7 @@ input[type="range"] {
 }
 
 .slider-input:focus {
-    border-color: #2196f3;
+    border-color: var(--app-icon-active-color);
     background: white;
     box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
 }
@@ -4974,7 +5059,8 @@ input[type="range"] {
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
         border: none !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        z-index: 2500 !important;
+        z-index: 99999 !important; /* FIXED: High z-index to stay above overlay */
+        background: #ffffff !important; /* FIXED: Solid background */
 
         /* Animation states */
         transform: translateY(100%) !important;
@@ -5153,12 +5239,12 @@ input[type="range"] {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #1971c2;
+    accent-color: var(--app-icon-hover-bg);
     margin: 0;
 }
 
 .board-card.selected {
-    box-shadow: 0 0 0 2px #1971c2, 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 0 2px var(--app-icon-hover-bg), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .bulk-actions-toolbar {
@@ -5360,7 +5446,8 @@ input[type="range"] {
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
         border: none !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        z-index: 2500 !important;
+        z-index: 99999 !important; /* FIXED: High z-index to stay above overlay */
+        background: #ffffff !important; /* FIXED: Solid background */
 
         /* Animation states */
         transform: translateY(100%) !important;
@@ -5459,12 +5546,13 @@ input[type="range"] {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(2px);
-    z-index: 2400;
+    background: rgba(0, 0, 0, 0.4); /* Slightly darker for better contrast */
+    backdrop-filter: none !important; /* Remove blur to prevent interference with popup */
+    z-index: 90000; /* High, but MUST be below property-popup (99999) */
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: auto; /* Catch clicks to close popups */
 }
 
 #bottomSheetOverlay.show {
@@ -5638,7 +5726,7 @@ input[type="range"] {
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #1971c2;
+    border-top: 4px solid var(--app-icon-hover-bg);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -5668,8 +5756,8 @@ input[type="range"] {
 
 /* Active Nav Item */
 .nav-item.active {
-    background: linear-gradient(90deg, #e7f5ff 0%, #d0ebff 100%);
-    border-left: 3px solid #1971c2;
+    background: linear-gradient(90deg, var(--app-icon-active-bg) 0%, #d0ebff 100%);
+    border-left: 3px solid var(--app-icon-hover-bg);
     font-weight: 600;
 }
 
@@ -5719,8 +5807,8 @@ input[type="range"] {
 }
 
 .drop-target {
-    background: #e7f5ff !important;
-    border-left: 3px solid #1971c2 !important;
+    background: var(--app-icon-active-bg) !important;
+    border-left: 3px solid var(--app-icon-hover-bg) !important;
     transform: scale(1.05);
     transition: all 0.2s ease;
 }
@@ -5777,7 +5865,7 @@ input[type="range"] {
 }
 
 .btn-update {
-    background: #1971c2;
+    background: var(--app-icon-hover-bg);
     color: white;
     border: none;
     padding: 8px 16px;
@@ -6356,6 +6444,8 @@ input[type="range"] {
 .properties-sidebar .tool-btn.active,
 .properties-sidebar .property-trigger-btn.active,
 .dashboard-sidebar .nav-item.active {
+    background: var(--app-icon-active-bg);
+    border-color: var(--app-icon-active-color);
     color: var(--app-icon-active-color);
 }
 
@@ -6363,6 +6453,13 @@ input[type="range"] {
 .properties-sidebar .property-trigger-btn.active app-icon,
 .dashboard-sidebar .nav-item.active app-icon {
     color: var(--app-icon-active-color);
+}
+
+/* Hover effect for sidebar items */
+.properties-sidebar .tool-btn:hover,
+.properties-sidebar .property-trigger-btn:hover,
+.dashboard-sidebar .nav-item:hover {
+    background: var(--app-icon-hover-bg);
 }
 
 .btn-icon.active,
@@ -6421,4 +6518,151 @@ input[type="range"] {
 .property-popup .property-trigger-btn.active app-icon,
 .quick-stroke-btn.active app-icon {
     color: var(--app-icon-active-color);
+}
+
+/* =========================================
+   ERASER SETTINGS PANEL
+   ========================================= */
+
+/* Base (horizontal toolbar): silgi paneli yatay ve kompakt */
+#eraserSettings {
+    position: relative;
+    /* tooltip bu koordinatlara göre konumlanır */
+    flex-direction: row !important;
+    gap: 6px !important;
+    padding: 0 8px !important;
+    align-items: center !important;
+    width: auto !important;
+    height: 32px !important;
+    overflow: visible;
+}
+
+/* Label inside eraser panel –– matches .properties-sidebar .label style */
+#eraserSettings .label {
+    margin: 0 2px 0 0 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #666 !important;
+    text-align: left;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Vertical toolbar mode: panel boyutları diğer gruplarla tutarlı */
+.toolbar-is-vertical #eraserSettings {
+    position: relative;
+    flex-direction: row !important;
+    transform: none !important;
+    transform-origin: center center;
+    width: auto !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    /* increased horizontal padding for visual height */
+    gap: 12px !important;
+    /* general gap between items */
+    overflow: visible;
+}
+
+/* Add extra spacing before "Boyut" label to separate sections in vertical mode */
+.toolbar-is-vertical #eraserSettings .label:nth-of-type(2) {
+    margin-left: 8px !important;
+    /* visually Margin-Top because of rotation */
+}
+
+/* =========================================
+   VERTICAL SLIDER CONTAINER + SLIDER
+   ========================================= */
+
+/* Default: horizontal (compact) slider */
+.vertical-slider-container {
+    position: relative;
+    height: 24px;
+    width: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 12px;
+}
+
+/* Slider input (no rotation in horizontal toolbar mode) */
+.vertical-slider {
+    width: 110px !important;
+    height: 24px !important;
+    transform: rotate(0deg) !important;
+    transform-origin: center center;
+    margin: 0 !important;
+    flex-shrink: 0;
+}
+
+.vertical-slider::-webkit-slider-thumb {
+    width: 14px !important;
+    height: 18px !important;
+    margin-top: 3px !important;
+}
+
+.vertical-slider::-moz-range-thumb {
+    width: 14px !important;
+    height: 18px !important;
+}
+
+/* Vertical toolbar mode: switch back to vertical-looking slider */
+.toolbar-is-vertical .vertical-slider-container {
+    height: 140px;
+    width: 18px;
+    /* thinner slider track */
+}
+
+.toolbar-is-vertical .vertical-slider {
+    /* Don't counter-rotate here; the parent rotation already makes it vertical */
+    transform: rotate(0deg) !important;
+    transform-origin: center center;
+    width: 140px !important;
+    height: 18px !important;
+    /* controls thickness after parent rotation */
+}
+
+.toolbar-is-vertical .vertical-slider::-webkit-slider-thumb {
+    width: 14px !important;
+    height: 12px !important;
+    margin-top: 3px !important;
+
+}
+
+.toolbar-is-vertical .vertical-slider::-moz-range-thumb {
+    width: 14px !important;
+    height: 12px !important;
+}
+
+/* =========================================
+   TOOLTIP BADGE
+   ========================================= */
+
+/* =========================================
+   TOOL VALUE BADGE
+   ========================================= */
+
+.val-badge-box {
+    min-width: 32px;
+    height: 22px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #555;
+    user-select: none;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+/* Vertical toolbar modunda, sidebar döndüğü için span de dönecektir. 
+   Onu dik tutmak için -90deg rotasyon ekliyoruz. */
+.toolbar-is-vertical .val-badge-box {
+    transform: rotate(-90deg);
+    margin: 0 !important;
 }

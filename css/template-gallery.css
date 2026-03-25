@@ -100,8 +100,8 @@
 .save-template-form .form-group input:focus,
 .save-template-form .form-group select:focus,
 .save-template-form .form-group textarea:focus {
-    border-color: #1971c2;
-    box-shadow: 0 0 0 3px rgba(25, 113, 194, 0.1);
+    border-color: var(--app-icon-active-color);
+    box-shadow: 0 0 0 3px var(--app-icon-active-bg);
 }
 
 .save-template-form .form-actions {
@@ -131,7 +131,7 @@
 .save-template-form .btn-save {
     padding: 9px 18px;
     border: none;
-    background: #1971c2;
+    background: var(--app-icon-active-color);
     color: white;
     border-radius: 8px;
     font-size: 13px;
@@ -141,7 +141,7 @@
 }
 
 .save-template-form .btn-save:hover {
-    background: #1562a8;
+    background: var(--app-icon-active-color);
 }
 
 @keyframes modalSlideIn {
@@ -232,9 +232,9 @@
 }
 
 .template-tab.active {
-    background: #1971c2;
+    background: var(--app-icon-active-color);
     color: white;
-    border-color: #1971c2;
+    border-color: var(--app-icon-active-color);
 }
 
 /* Search Bar */
@@ -255,8 +255,8 @@
 }
 
 .template-search input:focus {
-    border-color: #1971c2;
-    box-shadow: 0 0 0 3px rgba(25, 113, 194, 0.1);
+    border-color: var(--app-icon-active-color);
+    box-shadow: 0 0 0 3px var(--app-icon-active-bg);
 }
 
 /* Grid Container */
@@ -307,7 +307,7 @@
 .template-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    border-color: #1971c2;
+    border-color: var(--app-icon-active-color);
 }
 
 .template-card:hover .template-thumbnail {
@@ -367,8 +367,8 @@
 .template-category-badge {
     display: inline-block;
     padding: 2px 6px;
-    background: #e3f2fd;
-    color: #1971c2;
+    background: var(--app-icon-active-bg);
+    color: var(--app-icon-active-color);
     font-size: 9px;
     font-weight: 600;
     border-radius: 8px;
@@ -482,7 +482,7 @@
 }
 
 .template-tik-btn:hover {
-    background: #1971c2;
+    background: var(--app-icon-active-color);
     color: white;
     transform: scale(1.1);
 }

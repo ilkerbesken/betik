@@ -125,6 +125,8 @@ class BetikApp {
         this.pressStartPos = null;
         this.moveThreshold = 10; // px-hareket toleransı
 
+        this.checkToolbarCollision();
+
         // 120Hz render loop — cap at ~8.33ms per frame
         this._TARGET_FRAME_MS = 1000 / 120; // ~8.33ms
         this._lastFrameTime = 0;
@@ -212,6 +214,7 @@ class BetikApp {
     }
 
     init() {
+        this.movePopupsToRoot();
         this.setupCanvas();
         this.setupEventListeners();
         this.setupToolbar();
@@ -334,6 +337,23 @@ class BetikApp {
         }
     }
 
+    movePopupsToRoot() {
+        const popups = document.querySelectorAll('.property-popup');
+        const overlay = document.getElementById('bottomSheetOverlay');
+        
+        // Move overlay to the end of body
+        if (overlay) {
+            document.body.appendChild(overlay);
+        }
+        
+        // Move all popups to the end of body (after overlay)
+        popups.forEach(popup => {
+            document.body.appendChild(popup);
+        });
+        
+        console.log('[App] Popups moved to body root for better stacking context');
+    }
+
     setupCanvas() {
         // ... (unchanged)
         // İlk tuval ayarlarını uygula
@@ -354,6 +374,7 @@ class BetikApp {
             this.state.objects = oldObjects;
             this.needsRedrawOffscreen = true;
             this.needsRender = true;
+            this.checkToolbarCollision();
         });
     }
 
@@ -1058,10 +1079,10 @@ class BetikApp {
             if (content && icon) {
                 if (content.style.display === 'none') {
                     content.style.display = 'flex';
-                    icon.setAttribute('name', 'chevron-left');
+                    icon.setAttribute('name', 'info-square');
                 } else {
                     content.style.display = 'none';
-                    icon.setAttribute('name', 'chevron-right');
+                    icon.setAttribute('name', 'info-circle');
                 }
             }
         });
@@ -1072,11 +1093,14 @@ class BetikApp {
             if (extra) {
                 if (extra.style.display === 'none') {
                     extra.style.display = 'flex';
+                    document.body.classList.add('left-extra-open');
                     if (icon) icon.setAttribute('name', 'chevron-left');
                 } else {
                     extra.style.display = 'none';
+                    document.body.classList.remove('left-extra-open');
                     if (icon) icon.setAttribute('name', 'chevron-right');
                 }
+                this.checkToolbarCollision();
             }
         });
     }
@@ -2531,6 +2555,36 @@ class BetikApp {
             g.style.borderRight = 'none';
             g.style.marginRight = '0';
         });
+
+        this.checkToolbarCollision();
+    }
+
+    checkToolbarCollision() {
+        const toolbarLeft = document.querySelector('.toolbar-left');
+        const toolbarCenter = document.querySelector('.toolbar-center');
+        
+        if (!toolbarLeft || !toolbarCenter) return;
+        
+        // Don't check if vertical, as it won't collide with left toolbar in the same way
+        if (toolbarCenter.classList.contains('vertical')) {
+            document.body.classList.remove('toolbar-collision');
+            return;
+        }
+
+        const leftRect = toolbarLeft.getBoundingClientRect();
+        const centerRect = toolbarCenter.getBoundingClientRect();
+        
+        // Add some margin (20px) to the check
+        const hasCollision = centerRect.left < leftRect.right + 20;
+        
+        if (hasCollision) {
+            document.body.classList.add('toolbar-collision');
+        } else {
+            // Only remove if left-extra-open is NOT active, because left-extra-open also needs the toolbar down
+            if (!document.body.classList.contains('left-extra-open')) {
+                document.body.classList.remove('toolbar-collision');
+            }
+        }
     }
 
     setupToolbarOrient() {
@@ -2550,6 +2604,7 @@ class BetikApp {
             const nowVertical = toolbarCenter.classList.toggle('vertical');
             document.body.classList.toggle('toolbar-is-vertical', nowVertical);
             localStorage.setItem('betik_toolbar_orient', nowVertical ? 'vertical' : 'horizontal');
+            this.checkToolbarCollision();
         });
     }
 
