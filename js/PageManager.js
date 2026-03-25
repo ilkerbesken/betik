@@ -236,10 +236,16 @@ class PageManager {
         this.renderPageList();
     }
 
-    saveCurrentPageState(force = false) {
+    saveCurrentPageState(force = false, skipClone = false) {
         if (this.currentPageIndex >= 0 && this.currentPageIndex < this.pages.length) {
             const page = this.pages[this.currentPageIndex];
-            page.objects = Utils.deepClone(this.app.state.objects);
+            
+            // Only deepClone if not skipped. Skipping clone is useful for performance
+            // when we know we will serialize the live state immediately (e.g. autosave).
+            if (!skipClone) {
+                page.objects = Utils.deepClone(this.app.state.objects);
+            }
+            
             if (this.app.canvasSettings) {
                 page.backgroundColor = this.app.canvasSettings.settings.backgroundColor;
                 page.backgroundPattern = this.app.canvasSettings.settings.pattern;
@@ -257,25 +263,39 @@ class PageManager {
     }
 
     updateCurrentPageThumbnail(force = false) {
-        if (!this.app.canvas) return;
+        this.updatePageThumbnail(this.currentPageIndex, force);
+    }
+
+    /**
+     * Belirli bir sayfanın küçük resmini güncelle
+     */
+    updatePageThumbnail(index, force = false, skipRender = false) {
+        if (!this.app.canvas || index < 0 || index >= this.pages.length) return;
 
         // If not forced, only update if the sidebar is actually visible to save CPU
         const sidebarVisible = this.sidebar && !this.sidebar.classList.contains('collapsed');
         if (!force && !sidebarVisible) return;
+
+        const page = this.pages[index];
 
         // Küçük bir küçük resim oluştur
         const tempCanvas = document.createElement('canvas');
         const ctx = tempCanvas.getContext('2d');
         const scale = 0.15; // Küçük resim ölçeği
 
-        const canvasW = this.app.canvas.width;
-        const canvasH = this.app.canvas.height;
-        if (canvasW <= 0 || canvasH <= 0) return;
+        // Boyutları sayfa yapısına göre belirle
+        let w = this.getPageWidth();
+        let h = this.getPageHeight();
 
-        tempCanvas.width = canvasW * scale;
-        tempCanvas.height = canvasH * scale;
+        if (page.pdfDimensions) {
+            w = page.pdfDimensions.width;
+            h = page.pdfDimensions.height;
+        }
 
-        const page = this.pages[this.currentPageIndex];
+        if (w <= 0 || h <= 0) return;
+
+        tempCanvas.width = w * scale;
+        tempCanvas.height = h * scale;
 
         // Arkaplanı çiz
         const bgColor = (this.app.canvasSettings && this.app.canvasSettings.colors[page.backgroundColor])
@@ -285,10 +305,21 @@ class PageManager {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
+        // PDF Arkaplanını çiz (Eğer varsa)
+        const isPdfBoard = this.app.pdfManager && this.app.pdfManager.isLoaded;
+        if (isPdfBoard) {
+            this.app.pdfManager.drawToContext(ctx, page, 0, 0, tempCanvas.width, tempCanvas.height);
+        }
+
         // Nesneleri çiz
         ctx.save();
         ctx.scale(scale, scale);
-        const objectsToDraw = Utils.deepClone(this.app.state.objects);
+
+        // Eğer güncel sayfaysa state.objects kullan, değilse sayfanın kendi objelerini kullan
+        const objectsToDraw = (index === this.currentPageIndex)
+            ? this.app.state.objects
+            : (page.objects || []);
+
         objectsToDraw.forEach(obj => {
             this.app.drawObject(ctx, obj);
         });
@@ -302,9 +333,19 @@ class PageManager {
             page.thumbnail = null; // Fallback
         }
 
-        if (sidebarVisible || force) {
+        if (!skipRender && (sidebarVisible || force)) {
             this.renderPageList();
         }
+    }
+
+    /**
+     * Tüm sayfaların küçük resimlerini yenile
+     */
+    refreshAllThumbnails() {
+        this.pages.forEach((_, index) => {
+            this.updatePageThumbnail(index, true, true);
+        });
+        this.renderPageList();
     }
 
     deletePage(index, event) {

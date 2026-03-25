@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Betik</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon/favicon.svg">
-    <meta name="theme-color" content="#262626">
+    <meta name="theme-color" content="#616161">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,6 +38,7 @@
 
     <link rel="stylesheet" href="style.css?v=0.8.4">
     <link rel="stylesheet" href="css/template-gallery.css?v=0.8.1">
+    <link rel="stylesheet" href="calendar.css?v=1.0.0">
 
     <!-- PDF.js for PDF annotation support -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -59,8 +60,13 @@
     <div id="dashboard" class="dashboard">
         <div class="dashboard-sidebar">
             <div class="workspace-header">
-                <div class="avatar">T</div>
-                <span class="workspace-name">Betik</span>
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
+                    <div class="avatar">T</div>
+                    <span class="workspace-name">Betik</span>
+                </div>
+                <button id="btnSidebarToggle" class="sidebar-toggle-btn" title="Menüyü Kapat">
+                    <app-icon name="chevron-left" class="toggle-icon"></app-icon>
+                </button>
             </div>
 
             <!-- Mobile Search and Actions -->
@@ -144,7 +150,6 @@
                         <button id="btnViewOptions" class="btn btn-secondary" title="Görünüm Ayarları">
                             <app-icon name="ruler" alt="view" class="icon-small"
                                 style="width: 14px; margin-right: 5px;"></app-icon>
-                            Görünüm
                         </button>
                         <div class="view-options-dropdown" id="viewOptionsDropdown">
                             <div class="option-group">
@@ -163,12 +168,15 @@
                                 style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
                                 <label>Icon Rengi</label>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
-                                    <input type="color" id="uiIconColorPicker" value="#262626"
+                                    <input type="color" id="uiIconColorPicker" value="#616161"
                                         style="width: 40px; height: 30px; border: 1px solid #ddd; border-radius: 4px; padding: 2px; background: white; cursor: pointer;">
-                                    <button id="btnApplyIconColor" class="btn btn-primary"
-                                        style="font-size: 11px; padding: 4px 8px; height: auto;">Uygula</button>
-                                    <button id="btnResetIconColor" class="btn btn-secondary"
-                                        style="font-size: 11px; padding: 4px 8px; height: auto;">Sıfırla</button>
+                                    <button id="btnApplyIconColor" class="btn btn-primary">
+                                        <app-icon name="check" alt="view" class="icon-small"
+                                            style="color:white; color:active var(--app-icon-color)"></app-icon>
+                                    </button>
+                                    <button id="btnResetIconColor" class="btn btn-secondary">
+                                        <app-icon name="refresh-ccw-01" alt="view" class="icon-small"></app-icon>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -253,7 +261,7 @@
             <div class="modal-body">
                 <button class="import-option-btn" id="btnModalUploadPDF">
                     <div class="option-icon-wrapper">
-                        <app-icon name="pdf-anno" alt="pdf"></app-icon>
+                        <app-icon name="simcard" alt="pdf"></app-icon>
                     </div>
                     <div class="option-content">
                         <span class="option-title">PDF içe aktar</span>
@@ -1116,7 +1124,8 @@
 
         <div class="status-bar">
             <div class="status-info">
-                <button class="tool-btn" id="btnToggleStatusInfo" title="Aç/Kapat" style="margin-right: 2px;">
+                <button class="tool-btn" id="btnToggleStatusInfo" title="Bilgi (meraklısına)"
+                    style="margin-right: 2px;">
                     <app-icon name="info-circle" id="statusInfoDirectionIcon" alt="expand"></app-icon>
                 </button>
                 <div id="statusInfoContent"
@@ -1380,17 +1389,47 @@
                     style="position: static; font-size: 24px;">×</button>
             </header>
 
-            <div class="texture-selection" style="margin-bottom: 20px;">
-                <label style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 8px; display: block;">Desen
-                    Seçin</label>
-                <div class="segmented-control">
-                    <label class="segment">
-                        <input type="radio" name="coverTexture" value="linear" checked>
-                        <span>Çizgili</span>
-                    </label>
-                    <label class="segment">
-                        <input type="radio" name="coverTexture" value="dots">
-                        <span>Noktalı</span>
+            <div class="cover-options-container"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="option-group">
+                    <label
+                        style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Kağıt
+                        Dokusu</label>
+                    <select id="coverPaperTexture" class="form-select"
+                        style="width: 100%; font-size: 12px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="none">Yok</option>
+                        <option value="linear">Çizgili</option>
+                        <option value="dots">Noktalı</option>
+                        <option value="linen">Keten</option>
+                        <option value="leather">Deri</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label
+                        style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Detaylar</label>
+                    <select id="coverMetallicDetail" class="form-select"
+                        style="width: 100%; font-size: 12px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="none">Yok</option>
+                        <option value="spiral">Spiral Cilt</option>
+                        <option value="elastic">Lastik Bant</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label
+                        style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">Kapak
+                        Etiketi</label>
+                    <select id="coverLabelStyle" class="form-select"
+                        style="width: 100%; font-size: 12px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="none">Yok</option>
+                        <option value="label">Modern Etiket</option>
+                        <option value="tape">Bant (Washi Tape)</option>
+                    </select>
+                </div>
+                <div class="option-group" style="display: flex; align-items: flex-end;">
+                    <label class="checkbox-container"
+                        style="font-size: 12px; font-weight: 600; color: #666; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="showFolderIconOnCover">
+                        Klasör İkonu Göster
                     </label>
                 </div>
             </div>
@@ -1741,6 +1780,7 @@
     <script src="./js/TikFileManager.js?v=0.8.0"></script>
     <script src="./js/PageManager.js?v=0.8.0"></script>
     <script src="./js/Dashboard.js?v=0.8.2"></script>
+    <script src="./js/calendar.js?v=1.0.0"></script>
     <script src="./js/TableTool.js?v=0.8.0"></script>
     <script src="./js/TextTool.js?v=0.8.0"></script>
     <script src="./js/TimerTool.js?v=0.8.0"></script>

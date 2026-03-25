@@ -92,7 +92,8 @@ class PDFIncrementalSave {
                     thickness: thickness,
                     color: rgb(color.r, color.g, color.b),
                     opacity: opacity,
-                    lineCap: 'round'
+                    lineCap: 'Round',
+                    lineJoin: 'Round'
                 });
             }
         } 
@@ -112,7 +113,8 @@ class PDFIncrementalSave {
                 end: { x: endX, y: pageHeight - endY },
                 thickness: thickness,
                 color: rgb(color.r, color.g, color.b),
-                opacity: obj.opacity || 1
+                opacity: obj.opacity || 1,
+                lineCap: 'Round'
             });
 
             if (obj.type === 'arrow') {
@@ -170,13 +172,15 @@ class PDFIncrementalSave {
             start: { x: x2, y: pageHeight - y2 },
             end: { x: px1, y: pageHeight - py1 },
             thickness: thickness,
-            color: rgb(color.r, color.g, color.b)
+            color: rgb(color.r, color.g, color.b),
+            lineCap: 'Round'
         });
         page.drawLine({
             start: { x: x2, y: pageHeight - y2 },
             end: { x: px2, y: pageHeight - py2 },
             thickness: thickness,
-            color: rgb(color.r, color.g, color.b)
+            color: rgb(color.r, color.g, color.b),
+            lineCap: 'Round'
         });
     }
 

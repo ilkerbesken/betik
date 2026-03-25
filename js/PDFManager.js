@@ -10,6 +10,7 @@ class PDFManager {
         this.currentUrl = null;
         this.isLoaded = false;
         this.pageBuffers = new Map(); // Stores offscreen canvases for each page
+        this.loadingBuffers = new Set(); // To prevent redundant concurrent loads
 
         // PDF.js settings
         if (typeof pdfjsLib !== 'undefined') {
@@ -64,6 +65,7 @@ class PDFManager {
 
                 // Switch to first page
                 this.app.pageManager.switchPage(0, true, false);
+                this.app.pageManager.refreshAllThumbnails();
                 this.app.render();
             }
 
@@ -82,13 +84,17 @@ class PDFManager {
     async getPageBuffer(pageNum) {
         if (!this.isLoaded || !this.pdfDoc) return null;
 
-        if (this.pageBuffers.has(pageNum)) {
-            return this.pageBuffers.get(pageNum);
+        const pageId = Number(pageNum);
+        if (this.pageBuffers.has(pageId)) {
+            return this.pageBuffers.get(pageId);
         }
+
+        if (this.loadingBuffers.has(pageId)) return null;
+        this.loadingBuffers.add(pageId);
 
         // Render lazily if not in buffer
         try {
-            const page = await this.pdfDoc.getPage(pageNum);
+            const page = await this.pdfDoc.getPage(pageId);
             const viewport = page.getViewport({ scale: 2.0 }); // 2x for retina/zoom quality
 
             const buffer = document.createElement('canvas');
@@ -106,8 +112,14 @@ class PDFManager {
                 this.textSelector.renderTextLayer(page, viewport);
             }
 
-            this.pageBuffers.set(pageNum, buffer);
-            console.log(`Page ${pageNum} buffered`);
+            this.pageBuffers.set(pageId, buffer);
+            this.loadingBuffers.delete(pageId);
+            console.log(`Page ${pageId} buffered`);
+
+            // Update thumbnail for this page
+            if (this.app.pageManager) {
+                this.app.pageManager.updatePageThumbnail(pageId - 1, true);
+            }
 
             // Trigger a redraw now that we have the background
             this.app.redrawOffscreen();
@@ -115,7 +127,8 @@ class PDFManager {
 
             return buffer;
         } catch (error) {
-            console.error(`Error buffering PDF page ${pageNum}:`, error);
+            console.error(`Error buffering PDF page ${pageId}:`, error);
+            this.loadingBuffers.delete(pageId);
             return null;
         }
     }
@@ -124,14 +137,18 @@ class PDFManager {
      * Render the PDF background for a specific page onto the given context
      */
     drawToContext(ctx, page, x, y, width, height) {
-        if (!this.isLoaded || !page.pdfPageNumber) return;
+        if (!this.isLoaded || !this.pdfDoc) return;
 
-        const buffer = this.pageBuffers.get(page.pdfPageNumber);
+        // Ensure page number exists (backward compatibility for old saves)
+        const pageNum = Number(page.pdfPageNumber || (this.app.pageManager.pages.indexOf(page) + 1));
+        if (!pageNum || isNaN(pageNum)) return;
+
+        const buffer = this.pageBuffers.get(pageNum);
         if (buffer) {
             ctx.drawImage(buffer, x, y, width, height);
         } else {
             // Initiate lazy load
-            this.getPageBuffer(page.pdfPageNumber);
+            this.getPageBuffer(pageNum);
         }
     }
 

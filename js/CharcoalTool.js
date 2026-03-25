@@ -76,7 +76,7 @@ class CharcoalTool {
 
         // Fallback to Canvas2D
         ctx.save();
-        ctx.fillStyle = object.color === 'rainbow' ? '#262626' : object.color;
+        ctx.fillStyle = object.color === 'rainbow' ? '#616161' : object.color;
         const baseOpacity = object.opacity || 0.9;
         const baseWidth = object.width || 5;
 

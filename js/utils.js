@@ -205,7 +205,13 @@ const Utils = {
             return seen.get(obj);
         }
 
-        if (Array.isArray(obj)) {
+        if (Array.isArray(obj) || (obj && obj.buffer instanceof ArrayBuffer)) {
+            // Optimization for large numeric arrays (like point data)
+            if (obj.length > 50 && typeof obj[0] === 'number') {
+                const arrClone = Array.isArray(obj) ? [...obj] : new obj.constructor(obj);
+                seen.set(obj, arrClone);
+                return arrClone;
+            }
             const arrClone = [];
             seen.set(obj, arrClone);
             for (let i = 0; i < obj.length; i++) {

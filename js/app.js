@@ -250,6 +250,16 @@ class BetikApp {
         // Expose to window for PropertiesSidebar to use during manual sync
         window.updateRangeProgress = updateRangeProgress;
 
+        // PWA Theme Color Sync: CSS değişkenini meta etiketine yansıt
+        const updateThemeColor = () => {
+            const appColor = getComputedStyle(document.documentElement).getPropertyValue('--app-icon-color').trim();
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (appColor && metaTheme) {
+                metaTheme.setAttribute('content', appColor);
+            }
+        };
+        updateThemeColor();
+
         // PWA File Handling API: .tik dosyasının çift tıklama ile açılması
         this._setupLaunchQueue();
     }
@@ -467,7 +477,10 @@ class BetikApp {
         if (isShape && shapePickerBtn) {
             shapePickerBtn.classList.add('active');
         } else if (toolBtn) {
-            toolBtn.classList.add('active');
+            // Eğer PDF metin seçimi aktifse ve seç aracı seçiliyse, ana seç butonunu aktif gösterme
+            if (!(tool === 'select' && this.state.pdfTextSelectionActive)) {
+                toolBtn.classList.add('active');
+            }
         }
 
         // --- Context & Sidebar Sync ---
@@ -966,17 +979,15 @@ class BetikApp {
                 const tool = btn.dataset.tool;
                 const toolsWithoutSidebar = ['hand', 'verticalSpace'];
 
-                if (this.state.currentTool === tool && !toolsWithoutSidebar.includes(tool)) {
+                // If select tool is explicitly clicked while PDF text selection is active, deactivate it
+                if (tool === 'select' && this.state.pdfTextSelectionActive) {
+                    this.deactivatePdfTextSelection();
+                } else if (this.state.currentTool === tool && !toolsWithoutSidebar.includes(tool)) {
                     // Toolbar düğmesine ikinci kez tıklanınca sidebar'ı kapat/aç (toggle)
                     if (this.propertiesSidebar) {
                         this.propertiesSidebar.toggle();
                     }
                     return;
-                }
-
-                // If select tool is explicitly clicked while PDF text selection is active, deactivate it
-                if (tool === 'select' && this.state.pdfTextSelectionActive) {
-                    this.deactivatePdfTextSelection();
                 }
 
                 this.setTool(tool);

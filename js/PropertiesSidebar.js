@@ -818,7 +818,7 @@ class PropertiesSidebar {
             tape: { strokeWidth: 20, strokeColor: '#5c9bfe', opacity: 1.0, tapeMode: 'line', tapePattern: 'stripes' },
             table: { tableRows: 3, tableCols: 3, strokeWidth: 1, strokeColor: '#000000', opacity: 1.0 },
             text: { strokeWidth: 3, strokeColor: '#000000', opacity: 1.0 },
-            charcoal: { strokeWidth: 8, strokeColor: '#262626', opacity: 0.9 },
+            charcoal: { strokeWidth: 8, strokeColor: '#616161', opacity: 0.9 },
             'fountain-pen': { strokeWidth: 5, strokeColor: '#000000', opacity: 1.0, pressureEnabled: true },
             'vector-pen': { strokeWidth: 3, strokeColor: '#000000', opacity: 1.0 }
         };
@@ -1566,7 +1566,7 @@ class PropertiesSidebar {
 
         // Tape Pattern Color Sync
         const patternButtons = document.querySelectorAll('.pattern-btn');
-        const currentColor = this.app.state.strokeColor === 'rainbow' ? '#262626' : this.app.state.strokeColor;
+        const currentColor = this.app.state.strokeColor === 'rainbow' ? '#616161' : this.app.state.strokeColor;
         patternButtons.forEach(btn => {
             btn.style.color = currentColor;
             const colorSyncDiv = btn.querySelector('.color-sync');

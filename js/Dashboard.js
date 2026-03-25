@@ -33,20 +33,28 @@ class Dashboard {
         this.boards = [];
         this.folders = [];
         this.viewSettings = { gridSize: 'xsmall' };
+        this.sidebarCollapsed = false;
         this.expandedFolders = [];
         this.customCovers = [];
 
         this.defaultCovers = [
-            { id: 'c1', bg: '#ff5c5c', texture: 'linear' },
-            { id: 'c2', bg: '#ffb85c', texture: 'linear' },
-            { id: 'c3', bg: '#ffd900', texture: 'linear' },
-            { id: 'c4', bg: '#fab005', texture: 'linear' },
-            { id: 'c5', bg: '#5cbd62', texture: 'linear' },
-            { id: 'c6', bg: '#5c9bfe', texture: 'linear' },
-            { id: 'c7', bg: '#b45cff', texture: 'linear' },
-            { id: 'c8', bg: '#313131ff', texture: 'linear' }
+            { id: 'c1', bg: '#ff5c5c', texture: 'none' },
+            { id: 'c2', bg: '#ffb85c', texture: 'none' },
+            { id: 'c3', bg: '#ffd900', texture: 'none' },
+            { id: 'c4', bg: '#fab005', texture: 'none' },
+            { id: 'c5', bg: '#5cbd62', texture: 'none' },
+            { id: 'c6', bg: '#5c9bfe', texture: 'none' },
+            { id: 'c7', bg: '#b45cff', texture: 'none' },
+            { id: 'c8', bg: '#313131', texture: 'none' }
         ];
         this.customCovers = []; // Will load in initAsync
+        this._pdfBase64Cache = new Map(); // Cache for PDF base64 strings to speed up saving
+
+        this.folderIcons = [
+            'folder', 'star-01', 'book-open-01', 'file-02', 'search-refraction', 'mail-01', 
+            'briefcase-01', 'calendar', 'camera-01', 'image-01', 'map-01', 'globe-01', 
+            'music-note-01', 'heart', 'phone', 'settings-02'
+        ];
 
         this.initialized = false;
         this.initAsync();
@@ -61,6 +69,7 @@ class Dashboard {
         this.boards = await this.loadDataAsync('wb_boards', []);
         this.folders = await this.loadDataAsync('wb_folders', []);
         this.viewSettings = await this.loadDataAsync('wb_view_settings', { gridSize: 'xsmall' });
+        this.sidebarCollapsed = await this.loadDataAsync('wb_sidebar_collapsed', false);
         this.expandedFolders = await this.loadDataAsync('wb_expanded_folders', []);
         this.customCovers = await this.loadDataAsync('wb_custom_covers', []);
 
@@ -146,6 +155,7 @@ class Dashboard {
         try {
             this.renderSidebar();
             this.renderBoards();
+            this.setupSidebarToggle();
 
             if (this.btnNewBoard) {
                 this.btnNewBoard.onclick = () => {
@@ -407,6 +417,12 @@ class Dashboard {
             }
         });
 
+        // Handle dynamic nav items like Calendar
+        const navCalendar = document.getElementById('navCalendar');
+        if (navCalendar) {
+            navCalendar.classList.toggle('active', this.currentView === 'calendar');
+        }
+
         // Dynamic Folders Tree
         const rootFolders = this.folders.filter(f => !f.parentId);
         this.renderFolderTree(rootFolders, this.folderList, 0);
@@ -532,7 +548,7 @@ class Dashboard {
                 <div class="folder-content">
                     <app-icon name="arrow-dashboard" class="folder-chevron ${isExpanded ? 'rotated' : ''}" style="width: 6px; opacity: 0.4; transition: transform 0.2s; margin-right: 4px; ${hasChildren ? '' : 'visibility: hidden;'}"></app-icon>
                     <div class="folder-color-bar" style="background: ${folderColor};"></div>
-                    <app-icon name="folder" class="folder-icon"></app-icon>
+                    <app-icon name="${folder.icon || 'folder'}" class="folder-icon"></app-icon>
                     <span class="folder-name" spellcheck="false" style="color: ${folderColor === '#ccc' ? 'inherit' : folderColor};">${folder.name}</span>
                 </div>
                 <div class="folder-menu-trigger">⋮</div>
@@ -557,7 +573,14 @@ class Dashboard {
                     </div>
                     <div class="folder-color-palette">
                         ${['#ccc', '#b8e994', '#ffbe76', '#ff7979', '#4a90e2', '#862e9c', '#f1c40f', '#1abc9c', '#34495e', '#7f8c8d'].map(c => `
-                            <div class="color-option" style="background: ${c}" data-color="${c}" title="Renk Değiştir"></div>
+                            <div class="color-option ${folder.color === c ? 'active' : ''}" style="background: ${c}" data-color="${c}" title="Renk Değiştir"></div>
+                        `).join('')}
+                    </div>
+                    <div class="folder-icon-palette">
+                        ${this.folderIcons.map(icon => `
+                            <div class="icon-option ${(folder.icon || 'folder') === icon ? 'active' : ''}" data-icon="${icon}" title="İkon Değiştir">
+                                <app-icon name="${icon}" style="width: 14px; height: 14px;"></app-icon>
+                            </div>
                         `).join('')}
                     </div>
                 </div>
@@ -647,6 +670,14 @@ class Dashboard {
                 opt.onclick = (e) => {
                     e.stopPropagation();
                     this.changeFolderColor(folder.id, opt.dataset.color);
+                    dropdown.classList.remove('show');
+                };
+            });
+
+            dropdown.querySelectorAll('.icon-option').forEach(opt => {
+                opt.onclick = (e) => {
+                    e.stopPropagation();
+                    this.changeFolderIcon(folder.id, opt.dataset.icon);
                     dropdown.classList.remove('show');
                 };
             });
@@ -742,7 +773,7 @@ class Dashboard {
     }
 
     renderBoards() {
-        if (!this.boardGrid) return;
+        if (!this.boardGrid || this.currentView === 'calendar') return;
         this.boardGrid.innerHTML = '';
 
         // Use in-memory boards (already up-to-date after any mutation).
@@ -834,14 +865,45 @@ class Dashboard {
 
             const hasImage = board.coverImage;
             const coverBg = board.coverBg || '#4a90e2';
-            const coverTexture = board.coverTexture || 'linear';
+            const paperTexture = board.paperTexture || board.coverTexture || 'none';
+            const metallicDetail = board.metallicDetail || 'none';
+            const labelStyle = board.labelStyle || 'none';
+            const showFolderIcon = board.showFolderIcon || false;
 
-            const notebookCoverHTML = `<div class="notebook-cover ${hasImage ? '' : `cover-texture-${coverTexture}`}"
+            let coverClasses = `notebook-cover`;
+            if (!hasImage && paperTexture !== 'none') coverClasses += ` cover-texture-${paperTexture}`;
+            if (!hasImage && metallicDetail !== 'none') coverClasses += ` cover-detail-${metallicDetail}`;
+
+            let labelHTML = '';
+            if (labelStyle !== 'none') {
+                labelHTML = `
+                    <div class="notebook-cover-label label-style-${labelStyle}">
+                        <div class="label-title">${board.name}</div>
+                        <div class="label-date">${new Date(board.lastModified).toLocaleDateString()}</div>
+                    </div>
+                `;
+            }
+
+            let folderIconHTML = '';
+            if (showFolderIcon && board.folderId) {
+                const folder = this.folders.find(f => f.id === board.folderId);
+                if (folder) {
+                    folderIconHTML = `
+                        <div class="cover-folder-icon">
+                            <app-icon name="${folder.icon || 'folder'}" size="14"></app-icon>
+                        </div>
+                    `;
+                }
+            }
+
+            const notebookCoverHTML = `<div class="${coverClasses}"
                          style="background-color: ${coverBg}; ${hasImage ? `background-image: url(${board.coverImage}); background-size: cover; background-position: center;` : ''}">
                         ${board.isPDF
                     ? `<app-icon name="pdf" style="width: 64px; height: 64px; opacity: 0.8; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></app-icon>`
                     : ''
                 }
+                        ${labelHTML}
+                        ${folderIconHTML}
                         <div class="notebook-spine"></div>
                    </div>`;
 
@@ -930,13 +992,19 @@ class Dashboard {
     }
 
     async switchView(view) {
+        if (window.calendar && view !== 'calendar') {
+            window.calendar.hide();
+        } else if (window.calendar && view === 'calendar') {
+            window.calendar.show();
+        }
         this.currentView = view;
         const folder = this.folders.find(f => f.id === view);
         const titles = {
             all: 'Tüm Sayfalar',
             recent: 'Son Kullanılanlar',
             favorites: 'Favoriler',
-            trash: 'Çöp Kutusu'
+            trash: 'Çöp Kutusu',
+            calendar: 'Takvim'
         };
         const title = titles[view] || (folder ? folder.name : 'Klasör');
         this.breadcrumb.textContent = `Betik / ${title}`;
@@ -994,6 +1062,26 @@ class Dashboard {
                 };
             }
         }, 150);
+    }
+
+    setupSidebarToggle() {
+        const sidebar = document.querySelector('.dashboard-sidebar');
+        const toggleBtn = document.getElementById('btnSidebarToggle');
+        if (!sidebar || !toggleBtn) return;
+
+        // Apply initial state
+        if (this.sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            toggleBtn.title = 'Menüyü Aç';
+        }
+
+        toggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            sidebar.classList.toggle('collapsed', this.sidebarCollapsed);
+            toggleBtn.title = this.sidebarCollapsed ? 'Menüyü Aç' : 'Menüyü Kapat';
+            this.saveDataAsync('wb_sidebar_collapsed', this.sidebarCollapsed);
+        };
     }
 
     setupStorageSettings() {
@@ -1274,6 +1362,15 @@ class Dashboard {
         }
     }
 
+    async changeFolderIcon(id, icon) {
+        const folder = this.folders.find(f => f.id === id);
+        if (folder) {
+            folder.icon = icon;
+            await this.saveDataAsync('wb_folders', this.folders);
+            this.renderSidebar();
+        }
+    }
+
     async deleteFolder(id) {
         const getAllChildren = (folderId) => {
             let result = [folderId];
@@ -1436,7 +1533,7 @@ class Dashboard {
             preview: null,
             folderId: this.currentView.startsWith('f_') ? this.currentView : null,
             coverBg: '#4a90e2',
-            coverTexture: 'linear'
+            coverTexture: 'none'
         };
 
         this.boards.push(newBoard);
@@ -1529,6 +1626,7 @@ class Dashboard {
 
     async loadBoardContent(id, templateId = null) {
         console.log(`[Dashboard] Loading content for board: ${id}`);
+        this._pdfBase64Cache.delete(id); // Clear specific cache for this board to ensure fresh state
 
         // Reset state
         if (this.app.pageManager) this.app.pageManager.clear();
@@ -1594,6 +1692,7 @@ class Dashboard {
                     this.app.pageManager.pages = pages;
                     this.app.pageManager.renderPageList();
                     this.app.pageManager.switchPage(0, true, false);
+                    this.app.pageManager.refreshAllThumbnails();
                 }
             } else if (objects) {
                 console.log(`[Dashboard] Legacy objects found in save file.`);
@@ -1610,6 +1709,7 @@ class Dashboard {
                     }];
                     this.app.pageManager.currentPageIndex = 0;
                     this.app.pageManager.renderPageList();
+                    this.app.pageManager.updateCurrentPageThumbnail(true);
                 }
             }
         } else {
@@ -1654,60 +1754,55 @@ class Dashboard {
         }
 
         const runSave = async () => {
-            // 1. Sync current page state before saving everything
-            if (this.app.pageManager) {
-                this.app.pageManager.saveCurrentPageState();
+            // 0. Skip autosave if the user is actively drawing
+            if (!force && this.app.tools[this.app.state.currentTool]?.isDrawing) {
+                this.saveCurrentBoard(false);
+                return;
             }
 
-            // 2. Update board meta (Throttled)
+            // 1. Sync current page state (skip clone if we serialize immediately)
+            if (this.app.pageManager) {
+                this.app.pageManager.saveCurrentPageState(force, !force); 
+            }
+
+            // 2. Prepare board meta (Snapshot for async save)
             const boardIndex = this.boards.findIndex(b => b.id === boardId);
+            let boardMetaToSave = null;
             if (boardIndex !== -1) {
                 const board = this.boards[boardIndex];
                 const now = Date.now();
 
-                // Only generate preview if forced or 60s passed since last preview
-                let preview = null;
                 const shouldUpdatePreview = force || !board._lastPreviewTime || (now - board._lastPreviewTime > 60000);
-
                 if (shouldUpdatePreview) {
                     try {
-                        preview = this.app.canvas.toDataURL('image/webp', 0.4); // Lower quality (0.4) for faster generation
-                        board.preview = preview;
+                        board.preview = this.app.canvas.toDataURL('image/webp', 0.4);
                         board._lastPreviewTime = now;
-                    } catch (error) {
-                        console.warn('Could not generate preview:', error);
-                    }
+                    } catch (error) { console.warn('Preview error:', error); }
                 }
 
                 board.lastModified = now;
                 board.objectCount = (this.app.state.objects || []).length;
 
-                // Only save wb_boards (heavy file) if forced or 30s passed since last meta save
                 const shouldSaveMeta = force || !board._lastMetaSaveTime || (now - board._lastMetaSaveTime > 30000);
                 if (shouldSaveMeta) {
                     board._lastMetaSaveTime = now;
-                    await this.saveDataAsync('wb_boards', this.boards);
+                    boardMetaToSave = [...this.boards];
                 }
             }
 
-            // Serializer: TikFileManager varsa kullan, yoksa basit deep clone
+            // 3. Serializer definition
             const tikFM = this.app.tikFileManager;
             const serializeObj = (obj) => {
                 if (!obj) return null;
-
                 let o;
                 if (tikFM) {
                     o = tikFM._serializeObject(obj);
                 } else {
                     o = Object.assign({}, obj);
-
-                    // Coordinates rounding
                     if (o.x !== undefined) o.x = Math.round(o.x * 100000) / 100000;
                     if (o.y !== undefined) o.y = Math.round(o.y * 100000) / 100000;
                     if (o.width !== undefined) o.width = Math.round(o.width * 100000) / 100000;
                     if (o.height !== undefined) o.height = Math.round(o.height * 100000) / 100000;
-
-                    // Fast point serialization
                     if (o.points && Array.isArray(o.points) && !o._flat) {
                         const flat = new Float32Array(o.points.length * 3);
                         for (let i = 0; i < o.points.length; i++) {
@@ -1716,43 +1811,46 @@ class Dashboard {
                             flat[i * 3 + 1] = p.y;
                             flat[i * 3 + 2] = p.pressure !== undefined ? p.pressure : 0.5;
                         }
-                        o.points = Array.from(flat); // Convert back for JSON storage
+                        o.points = Array.from(flat);
                         o._flat = true;
                     }
                 }
-
-                // IMPORTANT: Strip away ANY non-serializable garbage that tools might have attached
                 for (const key in o) {
                     const val = o[key];
                     if (val === undefined || typeof val === 'function' || val instanceof Node) {
                         delete o[key];
                     } else if (key.startsWith('_') && key !== '_flat') {
-                        // Skip internal caches but keep _flat marker
                         delete o[key];
                     }
                 }
-
                 return o;
             };
 
-            const optimizedPages = this.app.pageManager ? this.app.pageManager.pages.map(page => {
+            // 4. Serialize EVERYTHING synchronously to avoid inconsistency during awaits
+            const optimizedPages = this.app.pageManager ? this.app.pageManager.pages.map((page, idx) => {
                 const optimizedPage = Object.assign({}, page);
-                delete optimizedPage.thumbnail; // Clear huge base64 to save MBs
-                optimizedPage.objects = (page.objects || []).map(obj => serializeObj(obj));
+                delete optimizedPage.thumbnail;
+                const sourceObjects = (idx === this.app.pageManager.currentPageIndex) 
+                    ? this.app.state.objects 
+                    : (page.objects || []);
+                optimizedPage.objects = sourceObjects.map(obj => serializeObj(obj));
                 return optimizedPage;
             }) : null;
 
-            // Check if this is a PDF board and we should embed it
-            let pdfBase64 = null;
-            if (this.app.pdfManager && this.app.pdfManager.isLoaded) {
+            // 5. Async Operations
+            if (boardMetaToSave) {
+                await this.saveDataAsync('wb_boards', boardMetaToSave);
+            }
+
+            let pdfBase64 = this._pdfBase64Cache.get(boardId) || null;
+            if (!pdfBase64 && this.app.pdfManager && this.app.pdfManager.isLoaded) {
                 try {
                     const pdfBlob = await Utils.db.get(boardId);
                     if (pdfBlob instanceof Blob) {
                         pdfBase64 = await this.app.tikFileManager._blobToBase64(pdfBlob);
+                        this._pdfBase64Cache.set(boardId, pdfBase64);
                     }
-                } catch (e) {
-                    console.warn('[Dashboard] Could not fetch PDF blob for embedding:', e);
-                }
+                } catch (e) { console.warn('PDF fetch error:', e); }
             }
 
             const content = {
@@ -1762,26 +1860,24 @@ class Dashboard {
                 pdfBase64: pdfBase64
             };
 
-            const rawSize = JSON.stringify(content).length;
-            console.log(`[Dashboard] Board ${boardId} content prepared for save. Size: ${(rawSize / 1024).toFixed(1)} KB`);
-
             await this.saveDataAsync(`wb_content_${boardId}`, content);
-            console.log(`[Autosave] Board ${boardId} saved ${force ? '(FORCED)' : '(DEBOUNCED)'}`);
 
-            // NEW: Always Save as PDF logic for native mode
+            // 6. Background PDF save for native mode
             const board = this.boards.find(b => b.id === boardId);
-            // PERFORMANCE: Only generate heavy PDF on force save (e.g. Ctrl+S or closing the board)
             if (force && board && board.alwaysSaveAsPDF && window.fileSystemManager.dirHandle) {
-                // We do PDF saving asynchronously to not block the main save success feedback
                 setTimeout(async () => {
                     try {
-                        const pdfBlob = await this.app.exportManager.generatePDFBlob();
-                        if (pdfBlob) {
-                            await window.fileSystemManager._savePDFToNative(boardId, pdfBlob);
+                        let pdfBlob;
+                        if (this.app.pdfManager && this.app.pdfManager.isLoaded) {
+                            const originalPdfBlob = await Utils.db.get(boardId);
+                            const saver = new PDFIncrementalSave(this.app);
+                            const pdfBytes = await saver.export(originalPdfBlob);
+                            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                        } else {
+                            pdfBlob = await this.app.exportManager.generatePDFBlob();
                         }
-                    } catch (err) {
-                        console.error('[Dashboard] Error during background PDF save:', err);
-                    }
+                        if (pdfBlob) await window.fileSystemManager._savePDFToNative(boardId, pdfBlob);
+                    } catch (err) { console.error('Background PDF save error:', err); }
                 }, 500);
             }
         };
@@ -1791,9 +1887,22 @@ class Dashboard {
         } else {
             return new Promise((resolve) => {
                 this._saveTimeout = setTimeout(async () => {
-                    await runSave();
-                    resolve();
-                }, 1000); // 1s debounce feels more stable for heavy strokes
+                    // Use requestIdleCallback if available to not block drawing
+                    if (window.requestIdleCallback) {
+                        window.requestIdleCallback(async (deadline) => {
+                            if (deadline.timeRemaining() > 10 || deadline.didTimeout) {
+                                await runSave();
+                                resolve();
+                            } else {
+                                // Defer again if busy
+                                this.saveCurrentBoard(false).then(resolve);
+                            }
+                        }, { timeout: 2000 });
+                    } else {
+                        await runSave();
+                        resolve();
+                    }
+                }, 3000); // 3s debounce for non-forced autosave
             });
         }
     }
@@ -1818,6 +1927,7 @@ class Dashboard {
     async showDashboard() {
         try {
             await this.saveCurrentBoard(true); // Always force save when going back
+            this._pdfBase64Cache.clear(); // Clear cache when leaving board
         } catch (error) {
             console.error('[Dashboard] Background save failed, but proceeding to dashboard:', error);
         }
@@ -2054,7 +2164,7 @@ class Dashboard {
 
             if (btnResetIconColor) {
                 btnResetIconColor.onclick = () => {
-                    const defaultColor = '#262626';
+                    const defaultColor = '#616161';
                     if (iconColorPicker) iconColorPicker.value = defaultColor;
                     this.viewSettings.iconColor = defaultColor;
                     this.saveData('wb_view_settings', this.viewSettings);
@@ -2117,12 +2227,13 @@ class Dashboard {
 
         if (!modal || !grid || !addBtn || !colorInput) return;
  
-        // Setup texture selection listener
-        const textureRadios = modal.querySelectorAll('input[name="coverTexture"]');
-        textureRadios.forEach(radio => {
-            radio.onchange = () => {
-                this.renderCoverGrid(this.activeBoardForCover);
-            };
+        const paperTextureSelect = document.getElementById('coverPaperTexture');
+        const metallicDetailSelect = document.getElementById('coverMetallicDetail');
+        const labelStyleSelect = document.getElementById('coverLabelStyle');
+        const showFolderIconCheck = document.getElementById('showFolderIconOnCover');
+
+        [paperTextureSelect, metallicDetailSelect, labelStyleSelect, showFolderIconCheck].forEach(el => {
+            if (el) el.onchange = () => this.renderCoverGrid(this.activeBoardForCover);
         });
 
         if (closeBtn) closeBtn.onclick = () => modal.classList.remove('show');
@@ -2133,9 +2244,12 @@ class Dashboard {
                 const color = colorInput.value;
                 if (!color) return;
 
-                const selectedTexture = modal.querySelector('input[name="coverTexture"]:checked')?.value || 'linear';
+                const paperTexture = document.getElementById('coverPaperTexture')?.value || 'none';
+                const metallicDetail = document.getElementById('coverMetallicDetail')?.value || 'none';
+                const labelStyle = document.getElementById('coverLabelStyle')?.value || 'none';
+                const showFolderIcon = document.getElementById('showFolderIconOnCover')?.checked || false;
 
-                const newCover = { id: 'custom_' + Date.now(), bg: color, texture: selectedTexture };
+                const newCover = { id: 'custom_' + Date.now(), bg: color, paperTexture, metallicDetail, labelStyle, showFolderIcon };
                 this.customCovers = Array.isArray(this.customCovers) ? this.customCovers : [];
                 this.customCovers.unshift(newCover);
                 this.saveData('wb_custom_covers', this.customCovers);
@@ -2144,7 +2258,10 @@ class Dashboard {
                     const board = (this.boards || []).find(b => b.id === this.activeBoardForCover);
                     if (board) {
                         board.coverBg = color;
-                        board.coverTexture = selectedTexture;
+                        board.paperTexture = paperTexture;
+                        board.metallicDetail = metallicDetail;
+                        board.labelStyle = labelStyle;
+                        board.showFolderIcon = showFolderIcon;
                         delete board.coverImage; // Remove image if color selected
                         await this.saveDataAsync('wb_boards', this.boards);
                         this.renderBoards();
@@ -2155,7 +2272,10 @@ class Dashboard {
                         const board = (this.boards || []).find(b => b.id === selId);
                         if (board) {
                             board.coverBg = color;
-                            board.coverTexture = selectedTexture;
+                            board.paperTexture = paperTexture;
+                            board.metallicDetail = metallicDetail;
+                            board.labelStyle = labelStyle;
+                            board.showFolderIcon = showFolderIcon;
                             delete board.coverImage;
                         }
                     });
@@ -2255,16 +2375,38 @@ class Dashboard {
         const modal = document.getElementById('coverModal');
 
         if (modal) {
-            // Set initial texture from current board if not bulk
+            // Set initial values from current board if not bulk
             if (boardId) {
                 const board = (this.boards || []).find(b => b.id == boardId);
-                const tex = (board && board.coverTexture === 'dots') ? 'dots' : 'linear';
-                const radio = modal.querySelector(`input[name="coverTexture"][value="${tex}"]`);
-                if (radio) radio.checked = true;
+                const paperTex = (board && board.paperTexture) || (board && board.coverTexture) || 'none';
+                const metalDetail = (board && board.metallicDetail) || 'none';
+                const labelStyle = (board && board.labelStyle) || 'none';
+                const showFolderIcon = (board && board.showFolderIcon) || false;
+
+                const paperSelect = document.getElementById('coverPaperTexture');
+                if (paperSelect) paperSelect.value = paperTex;
+
+                const metalSelect = document.getElementById('coverMetallicDetail');
+                if (metalSelect) metalSelect.value = metalDetail;
+
+                const labelSelect = document.getElementById('coverLabelStyle');
+                if (labelSelect) labelSelect.value = labelStyle;
+
+                const folderCheck = document.getElementById('showFolderIconOnCover');
+                if (folderCheck) folderCheck.checked = showFolderIcon;
             } else {
-                // Default to linear for bulk
-                const radio = modal.querySelector(`input[name="coverTexture"][value="linear"]`);
-                if (radio) radio.checked = true;
+                // Default for bulk
+                const paperSelect = document.getElementById('coverPaperTexture');
+                if (paperSelect) paperSelect.value = 'none';
+
+                const metalSelect = document.getElementById('coverMetallicDetail');
+                if (metalSelect) metalSelect.value = 'none';
+
+                const labelSelect = document.getElementById('coverLabelStyle');
+                if (labelSelect) labelSelect.value = 'none';
+
+                const folderCheck = document.getElementById('showFolderIconOnCover');
+                if (folderCheck) folderCheck.checked = false;
             }
 
             modal.classList.add('show');
@@ -2296,7 +2438,10 @@ class Dashboard {
             ...this.customCovers.map(c => ({ ...c, isDefault: false }))
         ];
 
-        const selectedTexture = document.querySelector('input[name="coverTexture"]:checked')?.value || 'linear';
+        const paperTexture = document.getElementById('coverPaperTexture')?.value || 'none';
+        const metallicDetail = document.getElementById('coverMetallicDetail')?.value || 'none';
+        const labelStyle = document.getElementById('coverLabelStyle')?.value || 'none';
+        const showFolderIcon = document.getElementById('showFolderIconOnCover')?.checked || false;
 
         allCovers.forEach(cover => {
             const item = document.createElement('div');
@@ -2304,7 +2449,8 @@ class Dashboard {
 
             const isImage = !!cover.image;
             if (!isImage) {
-                item.classList.add(`cover-texture-${selectedTexture}`);
+                if (paperTexture !== 'none') item.classList.add(`cover-texture-${paperTexture}`);
+                if (metallicDetail !== 'none') item.classList.add(`cover-detail-${metallicDetail}`);
             }
 
             if (isImage) {
@@ -2320,7 +2466,10 @@ class Dashboard {
                 if (isImage) {
                     if (board.coverImage === cover.image) item.classList.add('active');
                 } else {
-                    if (board.coverBg === cover.bg && !board.coverImage && board.coverTexture === selectedTexture) {
+                    if (board.coverBg === cover.bg && !board.coverImage && 
+                        board.coverTexture === selectedTexture &&
+                        (board.paperTexture || 'none') === paperTexture &&
+                        (board.metallicDetail || 'none') === metallicDetail) {
                         item.classList.add('active');
                     }
                 }
@@ -2342,12 +2491,14 @@ class Dashboard {
                     if (isImage) {
                         target.coverBg = '#ffffff';
                         target.coverImage = cover.image;
-                        target.coverTexture = 'none';
                     } else {
                         target.coverBg = cover.bg;
-                        target.coverTexture = selectedTexture;
                         target.coverImage = null;
                     }
+                    target.paperTexture = paperTexture;
+                    target.metallicDetail = metallicDetail;
+                    target.labelStyle = labelStyle;
+                    target.showFolderIcon = showFolderIcon;
                     console.log('Board after cover applied:', target);
                 };
 
@@ -2709,7 +2860,7 @@ class Dashboard {
             preview: null,
             folderId: this.currentView.startsWith('f_') ? this.currentView : null,
             coverBg: '#4a90e2',
-            coverTexture: 'linear'
+            coverTexture: 'none'
         };
 
         this.boards.push(newBoard);
@@ -2734,19 +2885,63 @@ class Dashboard {
                 const count = this.selectedBoards.size;
                 if (count === 0) return;
 
+                const isTrash = this.currentView === 'trash';
                 const confirmed = await Utils.showConfirm({
-                    title: 'Notları Sil',
-                    message: `${count} notu silmek istediğinize emin misiniz?`,
-                    confirmText: 'Sil',
+                    title: isTrash ? 'Kalıcı Olarak Sil' : 'Notları Çöp Kutusuna Taşı',
+                    message: isTrash 
+                        ? `${count} notu kalıcı olarak silmek istediğinize emin misiniz?`
+                        : `${count} notu çöp kutusuna taşımak istediğinize emin misiniz?`,
+                    confirmText: isTrash ? 'Kalıcı Sil' : 'Çöp Kutusuna Taşı',
                     type: 'danger'
                 });
 
                 if (confirmed) {
-                    // Collect IDs first to avoid set modification during iteration
-                    const idsToArchive = Array.from(this.selectedBoards);
-                    for (const id of idsToArchive) {
-                        await this.deleteBoard(id);
+                    const idsToProcess = Array.from(this.selectedBoards);
+                    
+                    if (isTrash) {
+                        // Hard Delete: IndexedDB + File System cleanup in parallel
+                        await Promise.all(idsToProcess.map(async id => {
+                            const board = this.boards.find(b => b.id === id);
+                            if (board) {
+                                await window.fileSystemManager.removeItem(`wb_content_${id}`);
+                                if (board.isPDF) {
+                                    Utils.db.delete(id).catch(err => console.error('PDF silme hatası:', err));
+                                }
+                            }
+                        }));
+
+                        // Update in-memory state
+                        this.boards = this.boards.filter(b => !idsToProcess.includes(b.id));
+                        
+                        // Mark as deleted for sync
+                        const deletedIds = await this.loadDataAsync('wb_deleted_ids', []);
+                        let changed = false;
+                        idsToProcess.forEach(id => {
+                            if (!deletedIds.includes(id)) {
+                                deletedIds.push(id);
+                                changed = true;
+                            }
+                        });
+                        if (changed) await this.saveDataAsync('wb_deleted_ids', deletedIds);
+                        
+                        // Immediate Drive sync
+                        this._syncDeletionToDrive(idsToProcess);
+                    } else {
+                        // Soft Delete: Move to trash in memory
+                        idsToProcess.forEach(id => {
+                            const board = this.boards.find(b => b.id === id);
+                            if (board) board.deleted = true;
+                        });
                     }
+
+                    // Save boards only once
+                    await this.saveDataAsync('wb_boards', this.boards);
+
+                    // Close tabs once
+                    if (this.app.tabManager) {
+                        idsToProcess.forEach(id => this.app.tabManager.closeTab(id));
+                    }
+
                     this.clearSelection();
                 }
             };
@@ -2755,9 +2950,18 @@ class Dashboard {
         const btnFav = document.getElementById('btnBulkFavorite');
         if (btnFav) {
             btnFav.onclick = async () => {
-                for (const id of this.selectedBoards) {
-                    await this.toggleFavorite(id);
-                }
+                const idsToProcess = Array.from(this.selectedBoards);
+                if (idsToProcess.length === 0) return;
+
+                idsToProcess.forEach(id => {
+                    const board = this.boards.find(b => b.id === id);
+                    if (board) {
+                        board.favorite = !board.favorite;
+                    }
+                });
+
+                // Save boards only once
+                await this.saveDataAsync('wb_boards', this.boards);
                 this.clearSelection();
             };
         }
@@ -2851,7 +3055,7 @@ class Dashboard {
                 const paddingLeft = 16 + (level * 24);
                 html += `
                     <div class="folder-picker-item" data-id="${f.id}" style="padding: 12px 16px; padding-left: ${paddingLeft}px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 18px; ${level > 0 ? 'opacity: 0.7;' : ''}">${level > 0 ? '↳ ' : ''}<app-icon name="folder"></app-icon></span>
+                        <span style="font-size: 18px; ${level > 0 ? 'opacity: 0.7;' : ''}">${level > 0 ? '↳ ' : ''}<app-icon name="${f.icon || 'folder'}"></app-icon></span>
                         <div style="display: flex; flex-direction: column; overflow: hidden;">
                             <span style="font-weight: ${level === 0 ? '600' : '500'}; font-size: ${14 - (level * 0.5)}px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.name}</span>
                         </div>

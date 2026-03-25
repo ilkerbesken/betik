@@ -5,7 +5,7 @@
 }
 
 :root {
-    --app-icon-color: #262626;
+    --app-icon-color: #616161;
     --app-icon-active-color: var(--app-icon-color);
     /* Derived colors for hover and active backgrounds */
     --app-icon-active-bg: color-mix(in srgb, var(--app-icon-color), transparent 88%);
@@ -586,7 +586,7 @@ input[type="range"]::-moz-range-progress {
     width: 16px;
     height: 16px;
     opacity: 0.7;
-    color: #262626;
+    color: #616161;
 }
 
 .menu-item .shortcut {
@@ -683,7 +683,7 @@ input[type="range"]::-moz-range-progress {
 .customize-tool-item app-icon {
     width: 14px;
     height: 14px;
-    color: #262626;
+    color: #616161;
 }
 
 .tool-toggle {
@@ -1040,7 +1040,7 @@ input[type="range"] {
 .pattern-item .icon-tiny {
     width: 12px;
     height: 12px;
-    color: #262626;
+    color: #616161;
 }
 
 .val-badge {
@@ -1127,7 +1127,7 @@ input[type="range"] {
 .pattern-btn .icon {
     width: 17px;
     height: 17px;
-    color: #262626;
+    color: #616161;
 }
 
 .pattern-btn:hover {
@@ -1152,7 +1152,7 @@ input[type="range"] {
     padding: 6px 12px;
     border: none;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -1165,11 +1165,12 @@ input[type="range"] {
 
 .btn-primary {
     background: var(--app-icon-active-color);
-    color: white;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    background: #1976d2;
+    background: var(--app-icon-hover-bg);
+    color: var(--app-icon-color);
 }
 
 .btn-secondary {
@@ -1323,7 +1324,7 @@ input[type="range"] {
     gap: 4px;
     transition: background-color 0.2s;
     user-select: none;
-    color: #262626;
+    color: #616161;
 }
 
 .context-menu-item:hover {
@@ -1338,7 +1339,7 @@ input[type="range"] {
     font-size: 14px;
     width: 24px;
     display: flex;
-    color: #262626;
+    color: #616161;
     align-items: center;
     justify-content: center;
 }
@@ -1551,7 +1552,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     width: 14px;
     height: 14px;
     object-fit: contain;
-    color: #262626;
+    color: #616161;
 }
 
 .properties-sidebar .label {
@@ -2014,7 +2015,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     width: 16px;
     height: 16px;
     object-fit: contain;
-    color: #262626;
+    color: #616161;
 }
 
 /* Brush Settings Specific Popup */
@@ -2160,7 +2161,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     display: inline-block;
     filter: none !important;
     /* Disable existing icon filters */
-    color: #262626;
+    color: #616161;
 }
 
 .property-trigger-btn {
@@ -2192,8 +2193,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 .property-trigger-btn .icon {
     height: 16px;
     width: auto;
-    color: #262626;
-    /* Optional: filter to match other icons if needed, but they seem to be colored #262626 by default */
+    color: #616161;
+    /* Optional: filter to match other icons if needed, but they seem to be colored #616161 by default */
 }
 
 /* Zoom Controls */
@@ -2214,7 +2215,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #262626;
+    color: #616161;
     transition: all 0.2s;
 }
 
@@ -2535,6 +2536,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         /* Space for scroll */
     }
 
+    .sidebar-toggle-btn {
+        display: none !important;
+    }
+
     .dashboard-main {
         display: none !important;
     }
@@ -2566,7 +2571,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         width: 16px !important;
         height: 16px !important;
         opacity: 0.6;
-        color: #262626;
+        color: #616161;
     }
 
     .btn-new-note-tree {
@@ -2602,7 +2607,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     #btnColorToggle.floating-action-btn img.icon {
         width: 20px;
         height: 20px;
-        color: #262626;
+        color: #616161;
     }
 
     .page-navigation-group {
@@ -3528,6 +3533,77 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     display: flex;
     flex-direction: column;
     padding: 16px 12px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Collapsed State Styles */
+.dashboard-sidebar.collapsed {
+    width: 64px;
+    padding: 16px 8px;
+}
+
+.dashboard-sidebar.collapsed .workspace-name,
+.dashboard-sidebar.collapsed .nav-item span,
+.dashboard-sidebar.collapsed .section-title span,
+.dashboard-sidebar.collapsed .folder-name,
+.dashboard-sidebar.collapsed .folder-chevron,
+.dashboard-sidebar.collapsed .folder-menu-trigger,
+.dashboard-sidebar.collapsed .sidebar-action-btn,
+.dashboard-sidebar.collapsed #folderList {
+    display: none !important;
+}
+
+.dashboard-sidebar.collapsed .section-title {
+    justify-content: center;
+    padding: 0 0 8px 0;
+}
+
+.dashboard-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.dashboard-sidebar.collapsed .nav-icon,
+.dashboard-sidebar.collapsed .folder-icon {
+    margin: 0;
+}
+
+.dashboard-sidebar.collapsed .workspace-header {
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.dashboard-sidebar.collapsed .folder-item {
+    padding-left: 8px !important; /* Reset indentation */
+}
+
+.sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #666;
+    opacity: 0.6;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    opacity: 1;
+}
+
+.dashboard-sidebar.collapsed .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.dashboard-sidebar.collapsed .sidebar-toggle-btn {
+    margin-left: 0;
 }
 
 .workspace-header {
@@ -3538,7 +3614,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     margin-bottom: 24px;
     cursor: pointer;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: background 0.2s, padding 0.3s;
 }
 
 .workspace-header:hover {
@@ -3678,8 +3754,44 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     transition: transform 0.2s;
 }
 
-.color-option:hover {
-    transform: scale(1.2);
+.color-option.active {
+    border: 1.5px solid #616161;
+    transform: scale(1.1);
+}
+
+.folder-icon-palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    padding: 8px;
+    border-top: 1px solid #efefef;
+    margin-top: 4px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.icon-option {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    color: #666;
+}
+
+.icon-option:hover {
+    background: #f0f0f0;
+    color: #616161;
+}
+
+.icon-option.active {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    color: #616161;
 }
 
 .folder-dropdown {
@@ -3742,7 +3854,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     width: 16px;
     height: 16px;
     opacity: 0.7;
-    color: #262626;
+    color: #616161;
 }
 
 .nav-item.active app-icon {
@@ -3826,7 +3938,6 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
 .btn-icon.active {
     background: var(--app-icon-hover-bg);
-    border-color: var(--app-icon-hover-bg);
     color: white;
 }
 
@@ -3840,7 +3951,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     padding: 0 24px;
     font-size: 14px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(25, 113, 194, 0.3);
+    box-shadow: 0 2px 8px rgba(143, 143, 143, 0.3);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -3875,7 +3986,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 .search-icon {
     width: 14px;
     height: 14px;
-    color: #262626;
+    color: #616161;
 }
 
 .dashboard-content {
@@ -3889,6 +4000,12 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     display: grid;
     gap: 32px;
     padding: 10px;
+}
+
+.board-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    border: 2px dashed var(--app-icon-color, #3498db);
 }
 
 .board-card {
@@ -4146,10 +4263,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.05) 50%,
-            rgba(255, 255, 255, 0) 100%);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 100% 12px;
     pointer-events: none;
 }
 
@@ -4157,9 +4272,176 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px);
     background-size: 15px 15px;
     pointer-events: none;
+}
+
+/* Paper Textures */
+.cover-texture-linen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 3px 3px;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.cover-texture-leather::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.2'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+}
+
+/* Metallic Details */
+.cover-detail-spiral::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 5%;
+    bottom: 5%;
+    width: 12px;
+    background-image: repeating-linear-gradient(
+        transparent 0px,
+        transparent 10px,
+        #888 10px,
+        #eee 11px,
+        #bbb 13px,
+        #444 14px,
+        transparent 14px,
+        transparent 20px
+    );
+    z-index: 20;
+    filter: drop-shadow(2px 0 2px rgba(0,0,0,0.3));
+}
+
+.cover-detail-corners::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background-image: 
+        linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
+        linear-gradient(45deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
+        linear-gradient(-135deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
+        linear-gradient(-45deg, #d4af37 0%, #f1d592 50%, #b8860b 100%);
+    background-repeat: no-repeat;
+    background-size: 24px 24px;
+    background-position: top right, bottom right;
+    mask-image: 
+        radial-gradient(circle at 100% 0%, black 100%, transparent 100%),
+        radial-gradient(circle at 100% 100%, black 100%, transparent 100%),
+        radial-gradient(circle at 0% 100%, black 100%, transparent 100%),
+        radial-gradient(circle at 0% 0%, black 100%, transparent 100%);
+    mask-size: 24px 6px;
+    mask-repeat: no-repeat;
+    mask-position: top right, bottom right;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.cover-detail-elastic::before {
+      content: '';
+      position: absolute;
+      right: 8%;
+      top: 0;
+      bottom: 0;
+      width: 12%;
+      background: inherit;
+      box-shadow: 
+          inset 0 0 100px rgba(0, 0, 0, 0.4),
+          inset -1px 0 2px rgba(255,255,255,0.05),
+          inset 1px 0 2px rgba(0,0,0,0.3),
+          1px 0 3px rgba(0,0,0,0.2);
+      z-index: 18;
+  }
+
+.cover-detail-elastic::after {
+     content: '';
+     position: absolute;
+     right: 8%;
+     top: 0;
+     bottom: 0;
+     width: 12%;
+     background-image: repeating-linear-gradient(
+         90deg,
+         transparent 0,
+         transparent 2%,
+         rgba(255,255,255,0.03) 3px,
+         rgba(255,255,255,0.03) 4px,
+         rgba(0,0,0,0.05) 4px,
+         rgba(0,0,0,0.05) 6px
+     );
+     z-index: 19;
+     pointer-events: none;
+ }
+
+/* Cover Labels */
+.notebook-cover-label {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2px 2px;
+    width: 60%;
+    height: 30%;
+    border-style: solid;
+    border-color:rgba(0,0,0,1);
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.label-style-label {
+    background: #fff;
+    border: 0.6vh double rgb(36, 36, 36);
+    border-radius: 4px;
+    color: #333;
+}
+
+.label-style-tape {
+    background: rgba(255, 255, 255, 0.8);
+    border-left: 2px dashed rgba(0,0,0,0.1);
+    border-right: 2px dashed rgba(0,0,0,0.1);
+    backdrop-filter: blur(2px);
+    color: #444;
+}
+
+.label-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.label-date {
+    font-size: 8px;
+    opacity: 0.6;
+}
+
+/* Folder Icon on Cover */
+.cover-folder-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    z-index: 10;
 }
 
 .custom-cover-creator {
@@ -4255,7 +4537,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     font-size: 48px;
     margin-bottom: 16px;
     opacity: 0.5;
-    color: #262626;
+    color: #616161;
 }
 
 
@@ -4267,11 +4549,11 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     padding: 8px 16px;
     font-size: 13px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+    box-shadow: 0 4px 12px rgba(82, 82, 82, 0.2);
 }
 
 #btnNewBoard:hover {
-    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+    box-shadow: 0 6px 16px rgba(82, 82, 82, 0.2);
     transform: translateY(-1px);
 }
 
@@ -4871,13 +5153,14 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 }
 
 .btn-timer-start {
-    background: #2563eb;
+    background: var(--app-icon-color);
     color: white;
     border: none;
 }
 
 .btn-timer-start:hover {
-    background: #1d4ed8;
+    background: var(--app-icon-hover-bg);
+    color: var(--app-icon-color);
 }
 
 .btn-timer-start.active {
