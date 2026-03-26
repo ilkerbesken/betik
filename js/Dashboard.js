@@ -68,7 +68,7 @@ class Dashboard {
         // Now load data using the new async manager
         this.boards = await this.loadDataAsync('wb_boards', []);
         this.folders = await this.loadDataAsync('wb_folders', []);
-        this.viewSettings = await this.loadDataAsync('wb_view_settings', { gridSize: 'xsmall', rememberLastPage: true });
+        this.viewSettings = await this.loadDataAsync('wb_view_settings', { gridSize: 'xsmall', rememberLastPage: true, autosaveInterval: '3000' });
         this.sidebarCollapsed = await this.loadDataAsync('wb_sidebar_collapsed', false);
         this.expandedFolders = await this.loadDataAsync('wb_expanded_folders', []);
         this.customCovers = await this.loadDataAsync('wb_custom_covers', []);
@@ -1236,6 +1236,28 @@ class Dashboard {
 
         // ─── Mobil Yedekleme Butonları ────────────────────────────
         this._setupMobileStorageButtons();
+
+        // ─── Otomatik Kayıt Ayarları ──────────────────────────────
+        const autosaveOptions = document.getElementById('autosaveOptions');
+        if (autosaveOptions) {
+            const radios = autosaveOptions.querySelectorAll('input[type="radio"]');
+            const currentVal = this.viewSettings.autosaveInterval || '3000';
+            
+            // Set initial state
+            radios.forEach(radio => {
+                if (radio.value === currentVal) {
+                    radio.checked = true;
+                }
+                
+                radio.onchange = async () => {
+                    if (radio.checked) {
+                        this.viewSettings.autosaveInterval = radio.value;
+                        await this.saveDataAsync('wb_view_settings', this.viewSettings);
+                        Utils.showToast('Otomatik kayıt ayarı güncellendi.', 'success');
+                    }
+                };
+            });
+        }
     }
 
     _setupMobileStorageButtons() {
@@ -1941,6 +1963,13 @@ class Dashboard {
         if (force) {
             return await runSave();
         } else {
+            const interval = this.viewSettings.autosaveInterval || '3000';
+            
+            // If autosave is off, don't schedule a periodic save
+            if (interval === 'off') {
+                return;
+            }
+
             return new Promise((resolve) => {
                 this._saveTimeout = setTimeout(async () => {
                     // Use requestIdleCallback if available to not block drawing
@@ -1958,7 +1987,7 @@ class Dashboard {
                         await runSave();
                         resolve();
                     }
-                }, 3000); // 3s debounce for non-forced autosave
+                }, parseInt(interval)); // Use the selected interval
             });
         }
     }

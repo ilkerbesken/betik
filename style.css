@@ -99,6 +99,49 @@ input,
 textarea,
 [contenteditable="true"] {
     -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Segmented Control for Settings */
+.segmented-control {
+    display: flex;
+    background: #f1f3f5;
+    padding: 3px;
+    border-radius: 9px;
+    gap: 2px;
+}
+
+.segmented-control label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+}
+
+.segmented-control input[type="radio"] {
+    display: none;
+}
+
+.segmented-control .segment-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #495057;
+    border-radius: 7px;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.segmented-control input[type="radio"]:checked + .segment-label {
+    background: #fff;
+    color: #212529;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+    -webkit-user-select: text;
     user-select: text;
 }
 

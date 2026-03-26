@@ -1724,7 +1724,44 @@
                     <p id="gdrive-status" style="font-size: 12px; color: #555; margin-top: 10px; min-height: 18px;"></p>
                 </div>
 
-                <!-- ── Bölüm 3: JSON Yedek (Sadece Mobil) 
+                <!-- ── Bölüm 3: Otomatik Kayıt Ayarları ── -->
+                <div class="form-group" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <p
+                        style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 12px;">
+                        <app-icon name="save-01" style="width: 14px; margin-right: 8px; opacity: 0.7;"></app-icon>
+                        Otomatik Kayıt
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div id="autosaveOptions" class="segmented-control">
+                            <label>
+                                <input type="radio" name="autosaveInterval" value="3000">
+                                <span class="segment-label">Hemen</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="autosaveInterval" value="60000">
+                                <span class="segment-label">1dk</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="autosaveInterval" value="300000">
+                                <span class="segment-label">5dk</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="autosaveInterval" value="600000">
+                                <span class="segment-label">10dk</span>
+                            </label>
+                            <label title="Sadece belge kapatıldığında kaydedilir">
+                                <input type="radio" name="autosaveInterval" value="off">
+                                <span class="segment-label">Kapanınca</span>
+                            </label>
+                        </div>
+                        <p style="font-size: 11px; color: #888; line-height: 1.4;">
+                            Değişikliklerin ne sıklıkla kaydedileceğini seçin. "Belge Kapanınca" seçilirse sadece sayfadan
+                            ayrıldığınızda kaydedilir.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ── Bölüm 4: JSON Yedek (Sadece Mobil) 
 
                 <div id="mobile-storage-section"
                     style="display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
