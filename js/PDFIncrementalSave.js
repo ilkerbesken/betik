@@ -20,9 +20,14 @@ class PDFIncrementalSave {
             const bytes = originalPdfData instanceof Blob 
                 ? await originalPdfData.arrayBuffer() 
                 : originalPdfData;
+            
+            if (!bytes || bytes.byteLength === 0) {
+                throw new Error("Original PDF data is empty.");
+            }
             pdfDoc = await PDFDocument.load(bytes);
         } else {
-            pdfDoc = await PDFDocument.create();
+            // For incremental save, we REQUIRE original data to avoid data loss
+            throw new Error("Original PDF data is missing for incremental save.");
         }
 
         const pages = this.app.pageManager.pages;

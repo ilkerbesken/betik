@@ -68,7 +68,7 @@ class Dashboard {
         // Now load data using the new async manager
         this.boards = await this.loadDataAsync('wb_boards', []);
         this.folders = await this.loadDataAsync('wb_folders', []);
-        this.viewSettings = await this.loadDataAsync('wb_view_settings', { gridSize: 'xsmall' });
+        this.viewSettings = await this.loadDataAsync('wb_view_settings', { gridSize: 'xsmall', rememberLastPage: true });
         this.sidebarCollapsed = await this.loadDataAsync('wb_sidebar_collapsed', false);
         this.expandedFolders = await this.loadDataAsync('wb_expanded_folders', []);
         this.customCovers = await this.loadDataAsync('wb_custom_covers', []);
@@ -77,7 +77,7 @@ class Dashboard {
         this.setupStorageSettings();
 
         // ─── Cloud Sync Logic ─────────────────────────────────────
-        if (localStorage.getItem('betik_gdrive_token')) {
+        if (localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`)) {
             setTimeout(async () => {
                 const cloud = new CloudStorageManager(this.app);
 
@@ -121,7 +121,7 @@ class Dashboard {
     async _syncDeletionToDrive(ids) {
         if (!ids || ids.length === 0) return;
         const list = Array.isArray(ids) ? ids : [ids];
-        if (localStorage.getItem('betik_gdrive_token')) {
+        if (localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`)) {
             const cloud = this.getCloudSync();
             if (cloud) {
                 await cloud.deleteFromDrive(list);
@@ -1007,7 +1007,7 @@ class Dashboard {
             calendar: 'Takvim'
         };
         const title = titles[view] || (folder ? folder.name : 'Klasör');
-        this.breadcrumb.textContent = `Betik / ${title}`;
+        this.breadcrumb.textContent = `${APP_CONFIG.NAME} / ${title}`;
 
         // Show/Hide Empty Trash button
         if (this.btnEmptyTrash) {
@@ -1328,7 +1328,7 @@ class Dashboard {
         const btnSignOut = document.getElementById('btn-gdrive-signout');
         if (btnSignOut) {
             // Eğer token kayıtlıysa göster
-            if (localStorage.getItem('betik_gdrive_token')) {
+            if (localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`)) {
                 btnSignOut.style.display = 'flex';
             }
             btnSignOut.onclick = async () => {
@@ -1346,7 +1346,7 @@ class Dashboard {
             await this.saveDataAsync('wb_folders', this.folders);
             this.renderSidebar();
             if (this.currentView === id) {
-                this.breadcrumb.textContent = `Betik / ${folder.name}`;
+                this.breadcrumb.textContent = `${APP_CONFIG.NAME} / ${folder.name}`;
             }
         } else {
             this.renderSidebar();
@@ -1617,7 +1617,7 @@ class Dashboard {
         // Fit to width by default 
         if (this.app.zoomManager) {
             setTimeout(() => {
-                this.app.zoomManager.fitToWidth(10);
+                this.app.zoomManager.fitToWidth(10, true);
                 this.hideLoading();
             }, 100);
             this.hideLoading();
@@ -1638,15 +1638,34 @@ class Dashboard {
         // Check if there is an associated PDF in IndexedDB
         let pdfLoaded = false;
         try {
-            const pdfBlob = await Utils.db.get(id);
+            let pdfBlob = await Utils.db.get(id);
+            
+            // Fallback: If not in DB, try loading from native file system
+            if (!pdfBlob && window.fileSystemManager.mode === 'native' && this.app.pdfManager) {
+                const board = this.boards.find(b => b.id === id);
+                if (board && board.isPDF) {
+                    console.log('[Dashboard] PDF not in DB, attempting native load...');
+                    pdfBlob = await window.fileSystemManager._loadPDFFromNative(id);
+                    if (pdfBlob) {
+                        await Utils.db.save(id, pdfBlob);
+                        console.log('[Dashboard] Native PDF successfully recovered and saved to DB.');
+                    }
+                }
+            }
+
             if (pdfBlob && this.app.pdfManager) {
-                console.log('[Dashboard] PDF found in DB, loading...');
+                if (pdfBlob.size === 0) {
+                    console.warn('[Dashboard] PDF blob is empty (0 bytes)!');
+                    throw new Error("PDF dosyası boş görünüyor.");
+                }
+                console.log(`[Dashboard] PDF source found (${pdfBlob.size} bytes), loading...`);
                 const pdfUrl = URL.createObjectURL(pdfBlob);
-                await this.app.pdfManager.loadPDF(pdfUrl);
+                const success = await this.app.pdfManager.loadPDF(pdfUrl);
+                if (!success) throw new Error("PDF yüklenemedi.");
                 pdfLoaded = true;
             }
         } catch (error) {
-            console.error('Error loading PDF from DB:', error);
+            console.error('Error loading PDF:', error);
         }
 
         const savedData = await this.loadDataAsync(`wb_content_${id}`, null);
@@ -1691,7 +1710,13 @@ class Dashboard {
                 if (this.app.pageManager) {
                     this.app.pageManager.pages = pages;
                     this.app.pageManager.renderPageList();
-                    this.app.pageManager.switchPage(0, true, false);
+                    
+                    // Son kalınan sayfayı geri yükle (Eğer ayar açıksa)
+                    const lastPageIndex = (this.viewSettings.rememberLastPage !== false && savedData.currentPageIndex !== undefined) 
+                        ? savedData.currentPageIndex 
+                        : 0;
+                    this.app.pageManager.switchPage(lastPageIndex, true, false);
+                    
                     this.app.pageManager.refreshAllThumbnails();
                 }
             } else if (objects) {
@@ -1699,18 +1724,26 @@ class Dashboard {
                 const deserializedObjects = await Promise.all((objects || []).map(obj => deserializeObj(obj)));
                 this.app.state.objects = deserializedObjects;
                 if (this.app.pageManager) {
-                    this.app.pageManager.pages = [{
-                        id: Date.now(),
-                        name: 'Sayfa 1',
-                        objects: Utils.deepClone(this.app.state.objects),
-                        backgroundColor: 'white',
-                        backgroundPattern: 'none',
-                        thumbnail: null
-                    }];
-                    this.app.pageManager.currentPageIndex = 0;
-                    this.app.pageManager.renderPageList();
-                    this.app.pageManager.updateCurrentPageThumbnail(true);
+                    if (pdfLoaded) {
+                        // For PDF legacy saves, we don't want to replace pages, just objects on first page
+                        this.app.pageManager.switchPage(0, true, false);
+                    } else {
+                        this.app.pageManager.pages = [{
+                            id: Date.now(),
+                            name: 'Sayfa 1',
+                            objects: Utils.deepClone(this.app.state.objects),
+                            backgroundColor: 'white',
+                            backgroundPattern: 'none',
+                            thumbnail: null
+                        }];
+                        this.app.pageManager.currentPageIndex = 0;
+                        this.app.pageManager.renderPageList();
+                        this.app.pageManager.updateCurrentPageThumbnail(true);
+                    }
                 }
+            } else if (pdfLoaded) {
+                // If PDF loaded but no objects or pages in savedData
+                this.app.pageManager.switchPage(0, true, false);
             }
         } else {
             console.log('[Dashboard] No saved content found, creating fresh board.');
@@ -1728,6 +1761,9 @@ class Dashboard {
                     }];
                     this.app.pageManager.currentPageIndex = 0;
                     this.app.pageManager.renderPageList();
+                    this.app.pageManager.switchPage(0, true, false);
+                } else {
+                    // If PDF is loaded but no saved content, ensure we are on page 1
                     this.app.pageManager.switchPage(0, true, false);
                 }
             }
@@ -1842,22 +1878,33 @@ class Dashboard {
                 await this.saveDataAsync('wb_boards', boardMetaToSave);
             }
 
-            let pdfBase64 = this._pdfBase64Cache.get(boardId) || null;
-            if (!pdfBase64 && this.app.pdfManager && this.app.pdfManager.isLoaded) {
-                try {
-                    const pdfBlob = await Utils.db.get(boardId);
-                    if (pdfBlob instanceof Blob) {
-                        pdfBase64 = await this.app.tikFileManager._blobToBase64(pdfBlob);
-                        this._pdfBase64Cache.set(boardId, pdfBase64);
-                    }
-                } catch (e) { console.warn('PDF fetch error:', e); }
+            // PDF base64 handling:
+            // CRITICAL: We only include pdfBase64 if it's NOT already in the main DB 
+            // OR if it's the very first save of a newly imported Tik file.
+            // For regular autosaves, including 10MB+ of base64 in the JSON content
+            // is the main cause of stuttering on PDF boards.
+            let pdfBase64 = null;
+            const pdfSourceInDB = await Utils.db.get(boardId);
+            
+            if (!pdfSourceInDB) {
+                pdfBase64 = this._pdfBase64Cache.get(boardId) || null;
+                if (!pdfBase64 && this.app.pdfManager && this.app.pdfManager.isLoaded) {
+                    try {
+                        const pdfBlob = await Utils.db.get(boardId);
+                        if (pdfBlob instanceof Blob) {
+                            pdfBase64 = await this.app.tikFileManager._blobToBase64(pdfBlob);
+                            this._pdfBase64Cache.set(boardId, pdfBase64);
+                        }
+                    } catch (e) { console.warn('PDF fetch error:', e); }
+                }
             }
 
             const content = {
                 version: "2.1",
                 pages: optimizedPages,
+                currentPageIndex: this.app.pageManager ? this.app.pageManager.currentPageIndex : 0,
                 objects: optimizedPages ? null : (this.app.state.objects || []).map(obj => serializeObj(obj)),
-                pdfBase64: pdfBase64
+                pdfBase64: pdfBase64 // Will be null for regular autosaves if PDF is already in DB
             };
 
             await this.saveDataAsync(`wb_content_${boardId}`, content);
@@ -1870,12 +1917,21 @@ class Dashboard {
                         let pdfBlob;
                         if (this.app.pdfManager && this.app.pdfManager.isLoaded) {
                             const originalPdfBlob = await Utils.db.get(boardId);
-                            const saver = new PDFIncrementalSave(this.app);
-                            const pdfBytes = await saver.export(originalPdfBlob);
-                            pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-                        } else {
+                            if (originalPdfBlob) {
+                                const saver = new PDFIncrementalSave(this.app);
+                                const pdfBytes = await saver.export(originalPdfBlob);
+                                pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                            } else {
+                                console.warn('[Dashboard] Original PDF blob missing from DB, skipping background save to prevent data loss.');
+                            }
+                        } else if (!board.isPDF) {
+                            // Only use generatePDFBlob for NON-PDF boards (regular drawings that user wants to keep as PDF)
+                            // For PDF boards, if pdfManager.isLoaded is false, we should NOT overwrite the original PDF.
                             pdfBlob = await this.app.exportManager.generatePDFBlob();
+                        } else {
+                            console.warn('[Dashboard] PDF board not loaded yet, skipping background PDF save to avoid data loss.');
                         }
+                        
                         if (pdfBlob) await window.fileSystemManager._savePDFToNative(boardId, pdfBlob);
                     } catch (err) { console.error('Background PDF save error:', err); }
                 }, 500);
@@ -2123,6 +2179,16 @@ class Dashboard {
                 e.stopPropagation();
                 dropdown.classList.toggle('show');
             };
+
+            // Remember last page toggle
+             const checkRememberLastPage = document.getElementById('checkRememberLastPage');
+             if (checkRememberLastPage) {
+                 checkRememberLastPage.checked = this.viewSettings.rememberLastPage !== false;
+                 checkRememberLastPage.onchange = () => {
+                     this.viewSettings.rememberLastPage = checkRememberLastPage.checked;
+                     this.saveData('wb_view_settings', this.viewSettings);
+                 };
+             }
 
             // Size buttons
             dropdown.querySelectorAll('.size-btn').forEach(btn => {
@@ -3197,7 +3263,7 @@ class Dashboard {
     }
 
     setupAutoSync() {
-        if (!localStorage.getItem('betik_gdrive_token')) return;
+        if (!localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`)) return;
 
         let syncTimer = null;
         const cloud = this.getCloudSync();

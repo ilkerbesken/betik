@@ -194,8 +194,19 @@ const Utils = {
     deepClone(obj, seen = new WeakMap()) {
         if (obj === null || typeof obj !== 'object') return obj;
 
+        // StructuredClone fallback for simple data structures (much faster for large arrays of points)
+        // Note: structuredClone doesn't handle HTML elements or circular references well in some contexts,
+        // so we check if we can use it for pure data parts.
+        if (typeof structuredClone === 'function' && !(obj instanceof HTMLCanvasElement || obj instanceof HTMLImageElement || obj instanceof Node)) {
+            try {
+                // Only use structuredClone for simple objects/arrays that don't contain DOM nodes
+                return structuredClone(obj);
+            } catch (e) {
+                // Fallback to manual deepClone if structuredClone fails (e.g. contains DOM nodes)
+            }
+        }
+
         // IndexedDB compatibility: Never clone DOM elements, maintain Ref if needed elsewhere
-        // but for deep cloning state, we usually want to avoid these if possible
         if (obj instanceof HTMLCanvasElement || obj instanceof HTMLImageElement || obj instanceof Node) {
             return obj; 
         }
@@ -266,7 +277,7 @@ const Utils = {
     },
     // IndexedDB for large file storage (PDFs)
     db: {
-        name: 'BetikPDFDB',
+        name: `${APP_CONFIG.NAME}PDFDB`,
         store: 'pdfs',
         version: 1,
         async open() {
@@ -313,10 +324,10 @@ const Utils = {
 
     // Toast Notification System
     showToast(message, type = 'info') {
-        let toast = document.getElementById('betik-toast');
+        let toast = document.getElementById(APP_CONFIG.TOAST_ID);
         if (!toast) {
             toast = document.createElement('div');
-            toast.id = 'betik-toast';
+            toast.id = APP_CONFIG.TOAST_ID;
             toast.style.cssText = `
                 position: fixed;
                 bottom: 110px;

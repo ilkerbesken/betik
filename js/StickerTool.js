@@ -20,7 +20,7 @@ class StickerTool {
      */
     loadStickers() {
         try {
-            const saved = localStorage.getItem('betik_stickers');
+            const saved = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}stickers`);
             const userStickers = saved ? JSON.parse(saved) : [];
 
             // Define default stickers
@@ -61,7 +61,7 @@ class StickerTool {
         try {
             // Only save user stickers (filter out defaults)
             const userStickers = this.stickers.filter(s => !this.isDefaultSticker(s));
-            localStorage.setItem('betik_stickers', JSON.stringify(userStickers));
+            localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}stickers`, JSON.stringify(userStickers));
         } catch (e) {
             console.error('Error saving stickers:', e);
         }
@@ -554,7 +554,7 @@ class StickerTool {
     }
 
     /**
-     * Handle pointer events to satisfy BetikApp interface
+     * Handle pointer events to satisfy App interface
      */
     handlePointerDown(e, pos, canvas, ctx, state) {
         if (!this.isPlacing) return false;

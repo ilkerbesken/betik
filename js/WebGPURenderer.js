@@ -39,6 +39,7 @@ class WebGPURenderer {
             this._strokePipeline = await this._buildStrokePipeline();
             this._charcoalPipeline = await this._buildCharcoalPipeline();
             this._fountainPenPipeline = await this._buildFountainPenPipeline();
+            this._imagePipeline = await this._buildImagePipeline();
 
             this._ready = true;
             this._supported = true;
@@ -150,6 +151,39 @@ fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
         `;
     }
 
+    _imageShaderSrc() {
+        return `
+struct Uniforms {
+    transform: mat4x4<f32>,
+    opacity: f32,
+    _pad: vec3<f32>,
+};
+@group(0) @binding(0) var<uniform> u: Uniforms;
+@group(0) @binding(1) var s: sampler;
+@group(0) @binding(2) var t: texture_2d<f32>;
+
+struct VertexOut {
+    @builtin(position) clip: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+};
+
+@vertex
+fn vs_main(@location(0) pos: vec2<f32>, @location(1) uv: vec2<f32>) -> VertexOut {
+    var out: VertexOut;
+    out.clip = u.transform * vec4<f32>(pos, 0.0, 1.0);
+    out.uv = uv;
+    return out;
+}
+
+@fragment
+fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
+    var color = textureSample(t, s, v.uv);
+    color.a = color.a * u.opacity;
+    return color;
+}
+        `;
+    }
+
     // ── Pipeline Builders ───────────────────────────────────────
 
     async _buildStrokePipeline() {
@@ -216,6 +250,45 @@ fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
             primitive: { topology: 'triangle-strip' }
         });
         return { pipeline, layout };
+    }
+
+    async _buildImagePipeline() {
+        const mod = this._device.createShaderModule({ code: this._imageShaderSrc() });
+        const layout = this._device.createBindGroupLayout({
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+                { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
+                { binding: 2, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d' } }
+            ]
+        });
+        const pipe = await this._device.createRenderPipelineAsync({
+            layout: this._device.createPipelineLayout({ bindGroupLayouts: [layout] }),
+            vertex: { 
+                module: mod, 
+                entryPoint: 'vs_main', 
+                buffers: [{ 
+                    arrayStride: 16, 
+                    attributes: [
+                        { shaderLocation: 0, offset: 0, format: 'float32x2' }, 
+                        { shaderLocation: 1, offset: 8, format: 'float32x2' }
+                    ] 
+                }] 
+            },
+            fragment: { 
+                module: mod, 
+                entryPoint: 'fs_main', 
+                targets: [{ 
+                    format: this._format, 
+                    blend: { 
+                        color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' }, 
+                        alpha: { srcFactor: 'one',       dstFactor: 'one-minus-src-alpha', operation: 'add' } 
+                    } 
+                }] 
+            },
+            primitive: { topology: 'triangle-strip' }
+        });
+        this._sampler = this._device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
+        return { pipeline: pipe, layout };
     }
 
     async _buildCharcoalPipeline() {
@@ -484,6 +557,69 @@ fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
             vBuf.destroy(); uBuf.destroy();
             return true;
         } catch (e) { console.error('[WebGPU] drawFountainPen error:', e); return false; }
+    }
+
+    drawImage(targetCtx, image, x, y, width, height, zoom, viewWidth, viewHeight, pan, opacity = 1.0) {
+        if (!this._ready || !this._supported) return false;
+        try {
+            const w = Math.ceil(viewWidth), h = Math.ceil(viewHeight);
+            if (this._gpuCanvas.width !== w || this._gpuCanvas.height !== h) {
+                this._gpuCanvas.width = w; this._gpuCanvas.height = h;
+                this._context.configure({ device: this._device, format: this._format, alphaMode: 'premultiplied' });
+            }
+
+            const texture = this._device.createTexture({
+                size: [image.width, image.height, 1],
+                format: 'rgba8unorm',
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+            });
+            this._device.queue.copyExternalImageToTexture({ source: image }, { texture: texture }, [image.width, image.height]);
+
+            const verts = new Float32Array([
+                x, y, 0, 0,
+                x + width, y, 1, 0,
+                x, y + height, 0, 1,
+                x + width, y + height, 1, 1
+            ]);
+            const vBuf = this._uploadBuffer(verts);
+
+            const ortho = this._buildWorldToClip(w, h, zoom, pan);
+            const uData = new Float32Array(16 + 4);
+            uData.set(ortho);
+            uData[16] = opacity;
+            const uBuf = this._device.createBuffer({ size: uData.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+            this._device.queue.writeBuffer(uBuf, 0, uData);
+
+            const bg = this._device.createBindGroup({
+                layout: this._imagePipeline.layout,
+                entries: [
+                    { binding: 0, resource: { buffer: uBuf } },
+                    { binding: 1, resource: this._sampler },
+                    { binding: 2, resource: texture.createView() }
+                ]
+            });
+
+            const encoder = this._device.createCommandEncoder();
+            const pass = encoder.beginRenderPass({
+                colorAttachments: [{ 
+                    view: this._context.getCurrentTexture().createView(), 
+                    loadOp: 'clear', 
+                    clearValue: { r: 0, g: 0, b: 0, a: 0 }, 
+                    storeOp: 'store' 
+                }]
+            });
+            pass.setPipeline(this._imagePipeline.pipeline);
+            pass.setBindGroup(0, bg);
+            pass.setVertexBuffer(0, vBuf);
+            pass.draw(4);
+            pass.end();
+
+            this._device.queue.submit([encoder.finish()]);
+            targetCtx.drawImage(this._gpuCanvas, 0, 0, w, h);
+
+            vBuf.destroy(); uBuf.destroy(); texture.destroy();
+            return true;
+        } catch (e) { console.error('[WebGPU] drawImage error:', e); return false; }
     }
 
 

@@ -342,7 +342,7 @@ class GrabImageTool {
 
         // Draw everything from current page to this canvas
         // We need a version of drawObject that works for any context.
-        // BetikApp.drawObject is available.
+        // App.drawObject is available.
 
         // Draw background
         const page = this.app.pageManager.pages[this.app.pageManager.currentPageIndex];
@@ -392,8 +392,8 @@ class GrabImageTool {
                 try {
                     await navigator.share({
                         files: [file],
-                        title: 'Betik Ekran Görüntüsü',
-                        text: 'Betik ile yakalandı'
+                        title: `${APP_CONFIG.NAME} Ekran Görüntüsü`,
+                        text: `${APP_CONFIG.NAME} ile yakalandı`
                     });
                     this.selection = null;
                     this.app.needsRender = true;
@@ -410,7 +410,7 @@ class GrabImageTool {
         const canvas = await this.captureArea();
         if (!canvas) return;
 
-        const fileName = 'betik_ekran_yakalama_' + Date.now() + '.png';
+        const fileName = `${APP_CONFIG.ID}_ekran_yakalama_` + Date.now() + '.png';
 
         // Check if we have a native file system handle
         const fsm = window.fileSystemManager;
@@ -445,7 +445,7 @@ class GrabImageTool {
         const canvas = await this.captureArea();
         if (!canvas) return;
 
-        const fileName = 'betik_capture_' + Date.now() + '.png';
+        const fileName = `${APP_CONFIG.ID}_capture_` + Date.now() + '.png';
         const csm = this.app.cloudStorageManager;
         if (!csm) {
             Utils.showToast('Bulut depolama sistemi hazır değil.', 'warning');
@@ -474,7 +474,7 @@ class GrabImageTool {
         if (navigator.share && navigator.canShare) {
             this.shareImage();
         } else {
-            const subject = encodeURIComponent('Betik Ekran Görüntüsü');
+            const subject = encodeURIComponent(`${APP_CONFIG.NAME} Ekran Görüntüsü`);
             const body = encodeURIComponent('Ekran görüntüsünü kopyalayıp buraya yapıştırabilirsiniz.');
             window.location.href = `mailto:?subject=${subject}&body=${body}`;
             Utils.showToast('E-posta açıldı. Lütfen görüntüyü kopyalayıp yapıştırın.', 'info');

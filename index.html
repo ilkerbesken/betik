@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>Betik</title>
+    <title>Uygulama</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon/favicon.svg">
     <meta name="theme-color" content="#616161">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Betik">
+    <meta name="apple-mobile-web-app-title" content="Uygulama">
     <link rel="apple-touch-icon" href="assets/favicon/favicon.svg">
     <link rel="manifest" href="./manifest.json?v=1.0.7">
 
@@ -62,7 +62,7 @@
             <div class="workspace-header">
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden;">
                     <div class="avatar">T</div>
-                    <span class="workspace-name">Betik</span>
+                    <span class="workspace-name">Yeni</span>
                 </div>
                 <button id="btnSidebarToggle" class="sidebar-toggle-btn" title="Menüyü Kapat">
                     <app-icon name="chevron-left" class="toggle-icon"></app-icon>
@@ -104,7 +104,10 @@
                     </div>
                 </div>
                 <div class="nav-section">
-                    <div class="section-title">KOLEKSİYONLAR</div>
+                    <div class="section-title" 
+                    style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                        <span>KOLEKSİYONLAR</span>
+                    </div>
                     <div class="nav-item" data-view="favorites">
                         <app-icon name="star-01" class="nav-icon"></app-icon>
                         <span>Favoriler</span>
@@ -116,7 +119,8 @@
                 </div>
                 <div class="nav-section">
                     <div class="section-title"
-                        style="display: flex; justify-content: space-between; align-items: center;">
+                        style="display: flex; justify-content: space-between; align-items: center;
+                        margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                         <span>KLASÖRLER</span>
                         <button id="btnNewFolder" class="sidebar-action-btn" title="Yeni Klasör">
                             <span style="font-size: 16px;">+</span>
@@ -130,7 +134,7 @@
                 <div class="nav-section"
                     style="margin-top: auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                     <div class="nav-item" id="btnStorageSettings">
-                        <app-icon name="settings" class="nav-icon" style="opacity: 0.6;"></app-icon>
+                        <app-icon name="folder-search" class="nav-icon" style="opacity: 0.6;"></app-icon>
                         <span>Depolama Ayarları</span>
                     </div>
                 </div>
@@ -138,7 +142,7 @@
         </div>
         <div class="dashboard-main">
             <header class="dashboard-header">
-                <div class="breadcrumb">Betik / Tüm Sayfalar</div>
+                <div class="breadcrumb">Yeni / Tüm Sayfalar</div>
                 <div class="header-actions">
                     <div class="search-bar">
                         <app-icon name="select" class="search-icon" style="opacity: 0.5;"></app-icon>
@@ -161,6 +165,18 @@
                                     <button class="size-btn" data-size="small" title="Küçük">Küçük</button>
                                     <button class="size-btn" data-size="medium" title="Orta">Orta</button>
                                     <button class="size-btn" data-size="large" title="Büyük">Büyük</button>
+                                </div>
+                            </div>
+
+                            <div class="option-group"
+                                style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                                <label>Genel Ayarlar</label>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                                    <span style="font-size: 13px; color: #444;">Son Kalınan Sayfayı Hatırla</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="checkRememberLastPage" checked>
+                                        <span class="slider round"></span>
+                                    </label>
                                 </div>
                             </div>
 
@@ -272,7 +288,7 @@
                         <app-icon name="dot-tik" alt="tik"></app-icon>
                     </div>
                     <div class="option-content">
-                        <span class="option-title">betik dosyası aç (.tik)</span>
+                        <span class="option-title">Yeni dosyası aç (.tik)</span>
                     </div>
                 </button>
             </div>
@@ -1402,6 +1418,8 @@
                         <option value="dots">Noktalı</option>
                         <option value="linen">Keten</option>
                         <option value="leather">Deri</option>
+                        <option value="kraft">Kraft</option>
+                        <option value="plus">Artı</option>
                     </select>
                 </div>
                 <div class="option-group">
@@ -1479,11 +1497,11 @@
         </div>
         <!-- <div class="menu-item" id="menuOpenTik">
             <app-icon name="dot-tik" class="icon-small"></app-icon>
-            <span>Betik Dosyası Aç (.tik)</span>
+            <span>Yeni Dosyası Aç (.tik)</span>
         </div> -->
         <div class="menu-item" id="menuSaveTik">
             <app-icon name="save-01" class="icon-small"></app-icon>
-            <span>Betik Olarak Kaydet (.tik)</span>
+            <span>Yeni Olarak Kaydet (.tik)</span>
         </div>
         <div class="menu-item" id="btnSaveAsTemplate">
             <app-icon name="layout-alt-04" class="icon-small"></app-icon>

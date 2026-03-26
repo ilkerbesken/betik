@@ -1,6 +1,6 @@
 {
-    "name": "Betik",
-    "short_name": "Betik",
+    "name": "Yeni",
+    "short_name": "Yeni",
     "description": "Profesyonel Dijital Beyaz Tahta Uygulaması",
     "start_url": "index.html",
     "display": "standalone",
@@ -24,10 +24,10 @@
     "file_handlers": [
         {
             "action": "./",
-            "name": "Betik Notu",
+            "name": "Yeni Notu",
             "accept": {
-                "application/x-betik": [".tik"],
-                "application/betik": [".tik"],
+                "application/x-yeni": [".tik"],
+                "application/yeni": [".tik"],
                 "application/octet-stream": [".tik"],
                 "text/plain": [".tik"]
             },

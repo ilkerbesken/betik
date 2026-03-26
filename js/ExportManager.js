@@ -1,5 +1,5 @@
 /**
- * ExportManager - Handles Exporting Betik to PNG, SVG, and PDF
+ * ExportManager - Handles Exporting to PNG, SVG, and PDF
  */
 class ExportManager {
     constructor(app) {
@@ -31,7 +31,7 @@ class ExportManager {
 
         // 2. Download
         const link = document.createElement('a');
-        link.download = `betik_page_${this.app.pageManager.currentPageIndex + 1}.png`;
+        link.download = `${APP_CONFIG.ID}_page_${this.app.pageManager.currentPageIndex + 1}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
@@ -84,7 +84,7 @@ class ExportManager {
 
         const blob = new Blob([svgContent], { type: 'image/svg+xml' });
         const link = document.createElement('a');
-        link.download = `betik_page_${this.app.pageManager.currentPageIndex + 1}.svg`;
+        link.download = `${APP_CONFIG.ID}_page_${this.app.pageManager.currentPageIndex + 1}.svg`;
         link.href = URL.createObjectURL(blob);
         link.click();
     }
@@ -156,7 +156,7 @@ class ExportManager {
         const blob = await this.generatePDFBlob();
         if (blob) {
             const link = document.createElement('a');
-            link.download = `betik_export_${Date.now()}.pdf`;
+            link.download = `${APP_CONFIG.ID}_export_${Date.now()}.pdf`;
             link.href = URL.createObjectURL(blob);
             link.click();
         }
@@ -189,7 +189,7 @@ class ExportManager {
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const link = document.createElement('a');
             const board = dashboard.boards.find(b => b.id === boardId);
-            const name = board ? board.name : 'betik_export';
+            const name = board ? board.name : `${APP_CONFIG.ID}_export`;
             
             link.download = `${name}_annotated.pdf`;
             link.href = URL.createObjectURL(blob);
@@ -300,7 +300,7 @@ class ExportManager {
 
         const blob = new Blob([svgContent], { type: 'image/svg+xml' });
         const link = document.createElement('a');
-        link.download = `betik_page_${this.app.pageManager.currentPageIndex + 1}.svg`;
+        link.download = `${APP_CONFIG.ID}_page_${this.app.pageManager.currentPageIndex + 1}.svg`;
         link.href = URL.createObjectURL(blob);
         link.click();
     }

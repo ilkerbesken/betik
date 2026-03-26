@@ -1,5 +1,5 @@
 /**
- * TabManager - Manages multiple betik tabs (boards) in a dropdown
+ * TabManager - Manages multiple tabs (boards) in a dropdown
  */
 class TabManager {
     constructor(app) {

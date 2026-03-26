@@ -33,23 +33,23 @@ class PDFManager {
             this.currentUrl = url;
             const loadingTask = pdfjsLib.getDocument(url);
             this.pdfDoc = await loadingTask.promise;
-            this.isLoaded = true;
             this.pageBuffers.clear();
             if (this.textSelector) this.textSelector.clear();
 
             console.log(`PDF loaded: ${this.pdfDoc.numPages} pages`);
+            this.isLoaded = true; // Set early to allow rendering if needed
 
             if (this.app.pageManager) {
-                // Clear existing pages for the new PDF
-                this.app.pageManager.pages = [];
+                // Populate a temporary array first to avoid partial state during async loading
+                const newPages = [];
 
                 for (let i = 1; i <= this.pdfDoc.numPages; i++) {
                     const pdfPage = await this.pdfDoc.getPage(i);
                     // Use scale 1.5 or 2.0 for better quality when zooming
                     const viewport = pdfPage.getViewport({ scale: 2.0 });
 
-                    this.app.pageManager.pages.push({
-                        id: Date.now() + i,
+                    newPages.push({
+                        id: Date.now() + i + Math.random(),
                         name: `Sayfa ${i}`,
                         objects: [],
                         backgroundColor: 'white',
@@ -63,15 +63,18 @@ class PDFManager {
                     });
                 }
 
-                // Switch to first page
-                this.app.pageManager.switchPage(0, true, false);
+                // Update the app's page list once fully loaded
+                this.app.pageManager.pages = newPages;
+
+                // Caller should handle switching/rendering
+                this.app.pageManager.renderPageList();
                 this.app.pageManager.refreshAllThumbnails();
-                this.app.render();
             }
 
             return true;
         } catch (error) {
             console.error('Error loading PDF:', error);
+            this.isLoaded = false;
             return false;
         }
     }
@@ -114,16 +117,15 @@ class PDFManager {
 
             this.pageBuffers.set(pageId, buffer);
             this.loadingBuffers.delete(pageId);
-            console.log(`Page ${pageId} buffered`);
+            
+            // Trigger a redraw now that we have the background
+            this.app.needsRedrawOffscreen = true;
+            this.app.needsRender = true;
 
             // Update thumbnail for this page
             if (this.app.pageManager) {
                 this.app.pageManager.updatePageThumbnail(pageId - 1, true);
             }
-
-            // Trigger a redraw now that we have the background
-            this.app.redrawOffscreen();
-            this.app.render();
 
             return buffer;
         } catch (error) {
@@ -145,6 +147,20 @@ class PDFManager {
 
         const buffer = this.pageBuffers.get(pageNum);
         if (buffer) {
+            // Use WebGPU for faster composition if supported and available
+            const gpu = window.webGPURenderer;
+            if (gpu && gpu.isSupported) {
+                const zoom = this.app.zoomManager.zoom;
+                const pan = this.app.zoomManager.pan;
+                const viewW = this.app.canvas.clientWidth;
+                const viewH = this.app.canvas.clientHeight;
+
+                // drawImage(targetCtx, image, x, y, width, height, zoom, viewWidth, viewHeight, pan, opacity)
+                const success = gpu.drawImage(ctx, buffer, x, y, width, height, zoom, viewW, viewH, pan);
+                if (success) return;
+            }
+
+            // Fallback to Canvas2D
             ctx.drawImage(buffer, x, y, width, height);
         } else {
             // Initiate lazy load

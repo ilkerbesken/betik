@@ -17,6 +17,70 @@ app-icon {
     color: var(--app-icon-color);
 }
 
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--app-icon-active-color);
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px var(--app-icon-active-color);
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(14px);
+    -ms-transform: translateX(14px);
+    transform: translateX(14px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 20px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow: hidden;
@@ -1993,8 +2057,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
 /* Property Popup Styles */
 .property-popup {
-    position: fixed !important; /* Fixed position to break out of any sidebar stacking context */
-    z-index: 99999 !important; /* Maximum possible value */
+    position: fixed !important;
+    /* Fixed position to break out of any sidebar stacking context */
+    z-index: 99999 !important;
+    /* Maximum possible value */
     background: #ffffff !important;
     border: 1px solid #e0e0e0;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
@@ -2004,7 +2070,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     flex-direction: column;
     width: max-content;
     max-width: 95vw;
-    pointer-events: auto !important; /* Ensure it's interactive */
+    pointer-events: auto !important;
+    /* Ensure it's interactive */
 }
 
 .property-popup.show {
@@ -2328,8 +2395,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         overflow-y: hidden !important;
         white-space: nowrap !important;
         flex-wrap: nowrap !important;
-        scrollbar-width: none !important; /* Firefox */
-        -ms-overflow-style: none !important; /* IE/Edge */
+        scrollbar-width: none !important;
+        /* Firefox */
+        -ms-overflow-style: none !important;
+        /* IE/Edge */
         -webkit-overflow-scrolling: touch !important;
     }
 
@@ -2339,7 +2408,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     }
 
     .toolbar-center {
-        justify-content: flex-start !important; /* Needed for proper scrolling */
+        justify-content: flex-start !important;
+        /* Needed for proper scrolling */
     }
 
     /* Tablet View (481px-768px): Floating UI Stacking at the Top */
@@ -2355,7 +2425,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
             max-width: 95vw !important;
             height: 48px !important;
             background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: none !important; /* FIXED: Removed blur to prevent interference */
+            backdrop-filter: none !important;
+            /* FIXED: Removed blur to prevent interference */
             border: 1px solid rgba(0, 0, 0, 0.08) !important;
             border-radius: 14px !important;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
@@ -2364,8 +2435,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
             display: flex !important;
             gap: 2px !important;
             align-items: center !important;
-            justify-content: flex-start !important; /* Changed from center to allow scrolling */
-            overflow-x: auto !important; /* Enable scrolling */
+            justify-content: flex-start !important;
+            /* Changed from center to allow scrolling */
+            overflow-x: auto !important;
+            /* Enable scrolling */
             overflow-y: hidden !important;
             flex-wrap: nowrap !important;
             scrollbar-width: none !important;
@@ -2385,12 +2458,15 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
             width: max-content !important;
             max-width: 95vw !important;
             height: 44px !important;
-            background: #ffffff !important; /* SOLID white to prevent dimming from background */
-            backdrop-filter: none !important; /* Remove blur to prevent graying out */
+            background: #ffffff !important;
+            /* SOLID white to prevent dimming from background */
+            backdrop-filter: none !important;
+            /* Remove blur to prevent graying out */
             border: 1px solid rgba(0, 0, 0, 0.15) !important;
             border-radius: 12px !important;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
-            z-index: 15000 !important; /* Above bottomSheetOverlay (10000) */
+            z-index: 15000 !important;
+            /* Above bottomSheetOverlay (10000) */
             padding: 0 10px !important;
             /* display is managed by JS */
             overflow-x: auto !important;
@@ -2411,7 +2487,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
             padding: 0 6px !important;
             height: 32px !important;
             align-items: center !important;
-            flex-shrink: 0 !important; /* Prevent groups from shrinking */
+            flex-shrink: 0 !important;
+            /* Prevent groups from shrinking */
         }
 
         .toolbar-center .tool-group:last-child {
@@ -2882,13 +2959,16 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         width: max-content !important;
         max-width: 95vw !important;
         height: 40px !important;
-        background: #ffffff !important; /* SOLID white */
-        backdrop-filter: none !important; /* Remove blur */
+        background: #ffffff !important;
+        /* SOLID white */
+        backdrop-filter: none !important;
+        /* Remove blur */
         border: 1px solid rgba(0, 0, 0, 0.15) !important;
         border-radius: 12px !important;
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
         padding: 0 8px !important;
-        z-index: 15000 !important; /* Above bottomSheetOverlay (10000) */
+        z-index: 15000 !important;
+        /* Above bottomSheetOverlay (10000) */
         justify-content: flex-start !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
@@ -2947,14 +3027,18 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     /* STACK BOTTOM SHEETS ON TOP OF PROPERTIES SIDEBAR */
     .property-popup {
         position: fixed !important;
-        bottom: 20px !important; /* Standard bottom sheet position */
+        bottom: 20px !important;
+        /* Standard bottom sheet position */
         left: 50% !important;
-        transform: translateX(-50%) translateY(100%) !important; /* Start off-screen */
+        transform: translateX(-50%) translateY(100%) !important;
+        /* Start off-screen */
         width: 95vw !important;
         max-width: 500px !important;
         max-height: 80vh !important;
-        border-radius: 24px 24px 0 0 !important; /* Rounded top corners for bottom sheet */
-        z-index: 99999 !important; /* Top of everything */
+        border-radius: 24px 24px 0 0 !important;
+        /* Rounded top corners for bottom sheet */
+        z-index: 99999 !important;
+        /* Top of everything */
         background: #ffffff !important;
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3) !important;
         display: none;
@@ -2965,7 +3049,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
     .property-popup.mobile-visible {
         display: flex !important;
-        transform: translateX(-50%) translateY(0) !important; /* Slide in */
+        transform: translateX(-50%) translateY(0) !important;
+        /* Slide in */
     }
 
     .property-popup::after {
@@ -2975,7 +3060,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
     /* Keep zoom controls inside status-bar but ensure visibility */
     .status-bar .zoom-controls {
-        position: static;
+    position: static;
         display: flex;
         background: transparent;
         border: none;
@@ -3576,7 +3661,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 }
 
 .dashboard-sidebar.collapsed .folder-item {
-    padding-left: 8px !important; /* Reset indentation */
+    padding-left: 8px !important;
+    /* Reset indentation */
 }
 
 .sidebar-toggle-btn {
@@ -4282,9 +4368,9 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: 
-        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-image:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
     background-size: 3px 3px;
     pointer-events: none;
     opacity: 0.8;
@@ -4300,6 +4386,33 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     pointer-events: none;
 }
 
+.cover-texture-kraft::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    filter: url(#void-texture);
+    background-image:
+        linear-gradient(to bottom,
+            rgba(194, 167, 87, 0.241) 0%,
+            rgba(162, 125, 55, 0.255) 100%);
+    background-size: 3px 3px;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+
+.cover-texture-plus::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: #e5e5f7;
+    background: radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent) 25px 25px, linear-gradient(#444cf7 2px, transparent 2px) 0 -1px, linear-gradient(90deg, #444cf7 2px, #e5e5f7 2px) -1px 0;
+    background-size: 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+
 /* Metallic Details */
 .cover-detail-spiral::before {
     content: '';
@@ -4308,25 +4421,23 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     top: 5%;
     bottom: 5%;
     width: 12px;
-    background-image: repeating-linear-gradient(
-        transparent 0px,
-        transparent 10px,
-        #888 10px,
-        #eee 11px,
-        #bbb 13px,
-        #444 14px,
-        transparent 14px,
-        transparent 20px
-    );
+    background-image: repeating-linear-gradient(transparent 0px,
+            transparent 10px,
+            #888 10px,
+            #eee 11px,
+            #bbb 13px,
+            #444 14px,
+            transparent 14px,
+            transparent 20px);
     z-index: 20;
-    filter: drop-shadow(2px 0 2px rgba(0,0,0,0.3));
+    filter: drop-shadow(2px 0 2px rgba(0, 0, 0, 0.3));
 }
 
 .cover-detail-corners::after {
     content: '';
     position: absolute;
     inset: -1px;
-    background-image: 
+    background-image:
         linear-gradient(135deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
         linear-gradient(45deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
         linear-gradient(-135deg, #d4af37 0%, #f1d592 50%, #b8860b 100%),
@@ -4334,7 +4445,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     background-repeat: no-repeat;
     background-size: 24px 24px;
     background-position: top right, bottom right;
-    mask-image: 
+    mask-image:
         radial-gradient(circle at 100% 0%, black 100%, transparent 100%),
         radial-gradient(circle at 100% 100%, black 100%, transparent 100%),
         radial-gradient(circle at 0% 100%, black 100%, transparent 100%),
@@ -4347,40 +4458,38 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 }
 
 .cover-detail-elastic::before {
-      content: '';
-      position: absolute;
-      right: 8%;
-      top: 0;
-      bottom: 0;
-      width: 12%;
-      background: inherit;
-      box-shadow: 
-          inset 0 0 100px rgba(0, 0, 0, 0.4),
-          inset -1px 0 2px rgba(255,255,255,0.05),
-          inset 1px 0 2px rgba(0,0,0,0.3),
-          1px 0 3px rgba(0,0,0,0.2);
-      z-index: 18;
-  }
+    content: '';
+    position: absolute;
+    right: 8%;
+    top: 0;
+    bottom: 0;
+    width: 12%;
+    background: inherit;
+    box-shadow:
+        inset 0 0 100px rgba(0, 0, 0, 0.4),
+        inset -1px 0 2px rgba(255, 255, 255, 0.05),
+        inset 1px 0 2px rgba(0, 0, 0, 0.3),
+        1px 0 3px rgba(0, 0, 0, 0.2);
+    z-index: 18;
+}
 
 .cover-detail-elastic::after {
-     content: '';
-     position: absolute;
-     right: 8%;
-     top: 0;
-     bottom: 0;
-     width: 12%;
-     background-image: repeating-linear-gradient(
-         90deg,
-         transparent 0,
-         transparent 2%,
-         rgba(255,255,255,0.03) 3px,
-         rgba(255,255,255,0.03) 4px,
-         rgba(0,0,0,0.05) 4px,
-         rgba(0,0,0,0.05) 6px
-     );
-     z-index: 19;
-     pointer-events: none;
- }
+    content: '';
+    position: absolute;
+    right: 8%;
+    top: 0;
+    bottom: 0;
+    width: 12%;
+    background-image: repeating-linear-gradient(90deg,
+            transparent 0,
+            transparent 2%,
+            rgba(255, 255, 255, 0.03) 3px,
+            rgba(255, 255, 255, 0.03) 4px,
+            rgba(0, 0, 0, 0.05) 4px,
+            rgba(0, 0, 0, 0.05) 6px);
+    z-index: 19;
+    pointer-events: none;
+}
 
 /* Cover Labels */
 .notebook-cover-label {
@@ -4392,11 +4501,11 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     width: 60%;
     height: 30%;
     border-style: solid;
-    border-color:rgba(0,0,0,1);
+    border-color: rgba(0, 0, 0, 1);
     text-align: center;
     z-index: 10;
     pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .label-style-label {
@@ -4408,8 +4517,8 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
 .label-style-tape {
     background: rgba(255, 255, 255, 0.8);
-    border-left: 2px dashed rgba(0,0,0,0.1);
-    border-right: 2px dashed rgba(0,0,0,0.1);
+    border-left: 2px dashed rgba(0, 0, 0, 0.1);
+    border-right: 2px dashed rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(2px);
     color: #444;
 }
@@ -4542,7 +4651,7 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
 
 
 .nav-section:not(:first-child) {
-    margin-top: 12px;
+    margin-top: 4px;
 }
 
 #btnNewBoard {
@@ -5342,8 +5451,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
         border: none !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        z-index: 99999 !important; /* FIXED: High z-index to stay above overlay */
-        background: #ffffff !important; /* FIXED: Solid background */
+        z-index: 99999 !important;
+        /* FIXED: High z-index to stay above overlay */
+        background: #ffffff !important;
+        /* FIXED: Solid background */
 
         /* Animation states */
         transform: translateY(100%) !important;
@@ -5729,8 +5840,10 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
         box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
         border: none !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        z-index: 99999 !important; /* FIXED: High z-index to stay above overlay */
-        background: #ffffff !important; /* FIXED: Solid background */
+        z-index: 99999 !important;
+        /* FIXED: High z-index to stay above overlay */
+        background: #ffffff !important;
+        /* FIXED: Solid background */
 
         /* Animation states */
         transform: translateY(100%) !important;
@@ -5829,13 +5942,17 @@ body.toolbar-collision:not(.toolbar-is-vertical) .properties-sidebar {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.4); /* Slightly darker for better contrast */
-    backdrop-filter: none !important; /* Remove blur to prevent interference with popup */
-    z-index: 90000; /* High, but MUST be below property-popup (99999) */
+    background: rgba(0, 0, 0, 0.4);
+    /* Slightly darker for better contrast */
+    backdrop-filter: none !important;
+    /* Remove blur to prevent interference with popup */
+    z-index: 90000;
+    /* High, but MUST be below property-popup (99999) */
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease;
-    pointer-events: auto; /* Catch clicks to close popups */
+    pointer-events: auto;
+    /* Catch clicks to close popups */
 }
 
 #bottomSheetOverlay.show {

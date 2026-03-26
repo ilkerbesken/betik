@@ -429,8 +429,8 @@ class EraserTool {
         const radius = (state ? state.strokeWidth : 20) / 2;
         this.eraserSize = radius; // Sync logical size for consistency
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
         ctx.lineWidth = 1;
 
         ctx.beginPath();
@@ -438,11 +438,14 @@ class EraserTool {
         ctx.fill();
         ctx.stroke();
 
-        // Tiny center dot
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        // Tiny center dot (like pen tool)
+        ctx.fillStyle = 'black';
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 0.5;
         ctx.beginPath();
-        ctx.arc(x, y, 1, 0, Math.PI * 2);
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
         ctx.restore();
     }
 }

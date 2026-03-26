@@ -160,7 +160,7 @@ class ZoomManager {
         this.zoomAtPoint(center.x, center.y, 0.8);
     }
 
-    fitToWidth(marginPX = 20) {
+    fitToWidth(marginPX = 20, keepPanY = false) {
         const { width: viewW } = this.getLogicalDims();
         const pageWidth = this.app.pageManager.getPageWidth();
 
@@ -175,8 +175,10 @@ class ZoomManager {
         const scaledWidth = pageWidth * this.zoom;
         this.pan.x = (viewW - scaledWidth) / 2;
 
-        // Tepeden başlat
-        this.pan.y = 40;
+        // Tepeden başlat (Eğer korunması istenmiyorsa)
+        if (!keepPanY) {
+            this.pan.y = 40;
+        }
 
         this.updateUI();
         this.clampPan();

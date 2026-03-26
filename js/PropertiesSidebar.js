@@ -912,12 +912,12 @@ class PropertiesSidebar {
             type: p.type,
             dataUrl: p.canvas.toDataURL()
         }));
-        localStorage.setItem('betik_custom_tapes', JSON.stringify(patternsToSave));
+        localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}custom_tapes`, JSON.stringify(patternsToSave));
     }
 
     loadCustomTapePatterns() {
         try {
-            const saved = localStorage.getItem('betik_custom_tapes');
+            const saved = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}custom_tapes`);
             if (saved) {
                 const patterns = JSON.parse(saved);
                 this.customTapePatterns = patterns.map(p => {
@@ -1620,7 +1620,7 @@ class PropertiesSidebar {
 
     loadQuickColors() {
         const tool = this.app.state.currentTool;
-        let storageKey = `betik_quick_colors_${tool}`;
+        let storageKey = `${APP_CONFIG.STORAGE_PREFIX}quick_colors_${tool}`;
         let defaults = ['#000000', '#ff5c5c', '#5c9bfe'];
 
         if (tool === 'highlighter') {
@@ -1632,7 +1632,7 @@ class PropertiesSidebar {
             this.quickColors = JSON.parse(saved);
         } else {
             // Check for a legacy generic key for backward compatibility if not specifically set for this tool
-            const legacy = localStorage.getItem('betik_quick_colors');
+            const legacy = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}quick_colors`);
             if (legacy && tool !== 'highlighter') {
                 this.quickColors = JSON.parse(legacy);
             } else {
@@ -1643,7 +1643,7 @@ class PropertiesSidebar {
 
     saveQuickColors() {
         const tool = this.app.state.currentTool;
-        let storageKey = `betik_quick_colors_${tool}`;
+        let storageKey = `${APP_CONFIG.STORAGE_PREFIX}quick_colors_${tool}`;
         localStorage.setItem(storageKey, JSON.stringify(this.quickColors));
     }
 
@@ -1852,11 +1852,11 @@ class PropertiesSidebar {
 
     loadQuickStrokeWidths() {
         const tool = this.app.state.currentTool;
-        let storageKey = 'betik_quick_strokes';
+        let storageKey = `${APP_CONFIG.STORAGE_PREFIX}quick_strokes`;
         let defaults = [3, 5, 7];
 
         if (tool === 'table') {
-            storageKey = 'betik_quick_strokes_table';
+            storageKey = `${APP_CONFIG.STORAGE_PREFIX}quick_strokes_table`;
             defaults = [1, 3, 5];
         }
 
@@ -1878,7 +1878,7 @@ class PropertiesSidebar {
 
     saveQuickStrokeWidths() {
         const tool = this.app.state.currentTool;
-        let storageKey = (tool === 'table') ? 'betik_quick_strokes_table' : 'betik_quick_strokes';
+        let storageKey = (tool === 'table') ? `${APP_CONFIG.STORAGE_PREFIX}quick_strokes_table` : `${APP_CONFIG.STORAGE_PREFIX}quick_strokes`;
         localStorage.setItem(storageKey, JSON.stringify(this.quickStrokeWidths));
     }
 

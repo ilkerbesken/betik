@@ -1,4 +1,4 @@
-const CACHE_NAME = 'betik-v1';
+const CACHE_NAME = 'yeni-v1';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

@@ -1271,7 +1271,7 @@ const Icons = {
 };
 
 
-class BetikIcon extends HTMLElement {
+class AppIcon extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -1357,5 +1357,5 @@ class BetikIcon extends HTMLElement {
 }
 
 if (!customElements.get('app-icon')) {
-  customElements.define('app-icon', BetikIcon);
+  customElements.define('app-icon', AppIcon);
 }

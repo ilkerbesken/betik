@@ -1,4 +1,23 @@
-class BetikApp {
+class App {
+    updateUITitles() {
+        // Update document title
+        document.title = APP_CONFIG.NAME;
+        
+        // Update common UI elements that contain the app name
+        const elements = [
+            { selector: '.workspace-name', text: APP_CONFIG.NAME },
+            { selector: '.breadcrumb', text: `${APP_CONFIG.NAME} / Tüm Sayfalar` },
+            { selector: '#btnModalOpenTik .option-title', text: `${APP_CONFIG.NAME} dosyası aç (${APP_CONFIG.FILE_EXTENSION})` },
+            { selector: '#menuSaveTik span', text: `${APP_CONFIG.NAME} Olarak Kaydet (${APP_CONFIG.FILE_EXTENSION})` },
+            { selector: '#menuOpenTik span', text: `${APP_CONFIG.NAME} Dosyası Aç (${APP_CONFIG.FILE_EXTENSION})` }
+        ];
+
+        elements.forEach(el => {
+            const dom = document.querySelector(el.selector);
+            if (dom) dom.textContent = el.text;
+        });
+    }
+
     deactivatePdfTextSelection() {
         this.state.pdfTextSelectionActive = false;
         if (this.pdfManager && this.pdfManager.textSelector) {
@@ -15,6 +34,7 @@ class BetikApp {
     }
 
     constructor() {
+        this.updateUITitles();
         this.canvas = document.getElementById('canvas');
         this.ctx = this.canvas.getContext('2d', { desynchronized: true }); // Performance tip for drawing
 
@@ -515,23 +535,26 @@ class BetikApp {
         // --- Cursor Sync ---
         const dotCursor = "url(\"data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='3' fill='black' stroke='white' stroke-width='1'/%3E%3C/svg%3E\") 8 8, auto";
 
-        if (tool === 'eraser') {
-            this.canvas.style.cursor = dotCursor;
-        } else if (tool === 'hand') {
-            this.canvas.style.cursor = 'grab';
+        let cursorStyle = 'none';
+        if (tool === 'hand') {
+            cursorStyle = 'grab';
         } else if (tool === 'select') {
-            this.canvas.style.cursor = 'default';
+            cursorStyle = 'default';
         } else if (tool === 'text') {
-            this.canvas.style.cursor = 'text';
-        } else if (tool === 'tape') {
-            this.canvas.style.cursor = dotCursor;
+            cursorStyle = 'text';
         } else if (tool === 'verticalSpace') {
-            this.canvas.style.cursor = 'ns-resize';
+            cursorStyle = 'ns-resize';
         } else if (tool === 'grab-image') {
-            this.canvas.style.cursor = 'crosshair';
-        } else {
-            this.canvas.style.cursor = dotCursor;
+            cursorStyle = 'crosshair';
+        } else if (tool !== 'eraser') {
+            // Default for pen, charcoal, fountain-pen, vector-pen, highlighter, shape, arrow, tape, sticker, table
+            cursorStyle = dotCursor;
         }
+
+        // Apply cursor aggressively to both canvas and its container
+        this.canvas.style.cursor = cursorStyle;
+        const container = document.getElementById('canvas-container');
+        if (container) container.style.cursor = cursorStyle;
 
         this.updateStatus();
     }
@@ -1580,8 +1603,7 @@ class BetikApp {
             this.state.pickShapeMode = false;
             const btn = document.getElementById('btnTapePickShape');
             if (btn) btn.classList.remove('active');
-            const dotCursor = "url(\"data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='8' cy='8' r='3' fill='black' stroke='white' stroke-width='1'/%3E%3C/svg%3E\") 8 8, auto";
-            this.canvas.style.cursor = dotCursor;
+            this.canvas.style.cursor = 'none';
             return;
         }
 
@@ -2391,12 +2413,18 @@ class BetikApp {
 
         // Silgi imleci - World Coordinates
         if (this.state.currentTool === 'eraser' && currentTool.drawCursor) {
+            // Enforce cursor hidden for eraser
+            if (this.canvas.style.cursor !== 'none') {
+                this.canvas.style.cursor = 'none';
+                const container = document.getElementById('canvas-container');
+                if (container) container.style.cursor = 'none';
+            }
+
             const worldPosGlobal = this.zoomManager.getPointerWorldPos({
                 offsetX: this.currentMousePos.x,
                 offsetY: this.currentMousePos.y
             });
-            const pageY = this.pageManager.getPageY(this.pageManager.currentPageIndex);
-            currentTool.drawCursor(this.ctx, worldPosGlobal.x, worldPosGlobal.y - pageY, this.state);
+            currentTool.drawCursor(this.ctx, worldPosGlobal.x, worldPosGlobal.y, this.state);
         }
 
         // Seçim gösterimi
@@ -2456,7 +2484,7 @@ class BetikApp {
         ];
 
         // Load visible tools from localStorage
-        let visibleTools = JSON.parse(localStorage.getItem('betik_visible_tools'));
+        let visibleTools = JSON.parse(localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}visible_tools`));
         if (!visibleTools) {
             // Default all visible
             visibleTools = this.toolConfigs.map(t => t.id);
@@ -2531,7 +2559,7 @@ class BetikApp {
             this.state.visibleTools = this.state.visibleTools.filter(id => id !== toolId);
         }
 
-        localStorage.setItem('betik_visible_tools', JSON.stringify(this.state.visibleTools));
+        localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}visible_tools`, JSON.stringify(this.state.visibleTools));
         this.applyToolbarVisibility();
     }
 
@@ -2604,7 +2632,7 @@ class BetikApp {
         if (!btn || !toolbarCenter) return;
 
         // Restore state from localStorage
-        const isVertical = localStorage.getItem('betik_toolbar_orient') === 'vertical';
+        const isVertical = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}toolbar_orient`) === 'vertical';
         if (isVertical) {
             toolbarCenter.classList.add('vertical');
             document.body.classList.add('toolbar-is-vertical');
@@ -2614,7 +2642,7 @@ class BetikApp {
             e.stopPropagation();
             const nowVertical = toolbarCenter.classList.toggle('vertical');
             document.body.classList.toggle('toolbar-is-vertical', nowVertical);
-            localStorage.setItem('betik_toolbar_orient', nowVertical ? 'vertical' : 'horizontal');
+            localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}toolbar_orient`, nowVertical ? 'vertical' : 'horizontal');
             this.checkToolbarCollision();
         });
     }
@@ -2662,10 +2690,10 @@ class BetikApp {
     }
 
     showToast(message, type = 'info') {
-        let toast = document.getElementById('betik-toast');
+        let toast = document.getElementById(APP_CONFIG.TOAST_ID);
         if (!toast) {
             toast = document.createElement('div');
-            toast.id = 'betik-toast';
+            toast.id = APP_CONFIG.TOAST_ID;
             toast.style.cssText = `
                 position: fixed;
                 bottom: 110px;
@@ -2707,5 +2735,5 @@ class BetikApp {
 }
 
 // Uygulamayı başlat
-window.app = new BetikApp();
+window.app = new App();
 window.dashboard = new Dashboard(window.app);

@@ -1,5 +1,5 @@
 // calendar.js - Modern Takvim Mantığı ve Entegrasyonu
-class BetikCalendar {
+class Calendar {
     constructor(containerId, app) {
         this.containerId = containerId;
         this.app = app;
@@ -152,7 +152,7 @@ class BetikCalendar {
         }
         
         const breadcrumb = document.querySelector('.breadcrumb');
-        if (breadcrumb) breadcrumb.textContent = 'Betik / Takvim';
+        if (breadcrumb) breadcrumb.textContent = `${APP_CONFIG.NAME} / Takvim`;
     }
 
     renderSidebarNotes() {
@@ -331,7 +331,7 @@ class BetikCalendar {
             };
             firstSection.appendChild(calendarNavItem);
         }
-        window.calendar = new BetikCalendar('calendarContainer', window.app);
+        window.calendar = new Calendar('calendarContainer', window.app);
         window.calendar.init();
     };
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();

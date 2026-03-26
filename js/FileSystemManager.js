@@ -31,7 +31,8 @@ class FileSystemManager {
     async init() {
         if (this._initialized) return;
 
-        this.db = new Dexie("BetikDB");
+        // Initialize Dexie
+        this.db = new Dexie(`${APP_CONFIG.NAME}DB`);
         this.db.version(1).stores({
             settings: 'key',
             data: 'key'
@@ -103,15 +104,16 @@ class FileSystemManager {
             return [`wb_content_${boardId}.tik`];
         }
 
-        // Dosya adı: board adı (sanitize edilmiş) + .tik
+        // Strokes/objects are always stored in .tik format
+        // Background PDF is stored in .pdf format (managed separately)
         const safeName = this._sanitizeName(board.name) || boardId;
         const fileName = `${safeName}.tik`;
 
         if (!board.folderId) {
-            return [fileName];  // Kök dizin
+            return [fileName];  // Root directory
         }
 
-        // Klasör yolunu recursive olarak çöz
+        // Resolve folder path recursively
         const folderPath = this._getFolderPath(board.folderId);
         return [...folderPath, fileName];
     }
@@ -159,7 +161,7 @@ class FileSystemManager {
             console.log('[FileSystemManager] localStorage migrasyonu yapılıyor...');
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && (key.startsWith('wb_') || key.startsWith('betik_'))) {
+                if (key && (key.startsWith('wb_') || key.startsWith(APP_CONFIG.STORAGE_PREFIX))) {
                     try {
                         const val = JSON.parse(localStorage.getItem(key));
                         await this.saveItem(key, val, true);
@@ -366,7 +368,8 @@ class FileSystemManager {
         let binaryData;
         if (typeof pako !== 'undefined') {
             const compressed = pako.gzip(content);
-            const header = new TextEncoder().encode('BETIK!');
+            // Write custom header - for easy identification
+            const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE || 'BETIK!');
             binaryData = new Uint8Array(header.length + compressed.length);
             binaryData.set(header);
             binaryData.set(compressed, header.length);
@@ -406,9 +409,11 @@ class FileSystemManager {
 
             // TikFileManager'daki aynı inflate mantığı
             let jsonStr;
-            const isBetik = uint8[0] === 66 && uint8[1] === 69 && uint8[2] === 84 && uint8[3] === 73 && uint8[4] === 75 && uint8[5] === 33;
-            // "BETIK!" imzasını kontrol et
-            if (isBetik) {
+            const signature = new TextDecoder().decode(uint8.slice(0, 6));
+            // Hem yeni imzayı hem de eski "BETIK!" imzasını destekle
+            const isImzali = signature === APP_CONFIG.SIGNATURE || signature === "BETIK!";
+
+            if (isImzali) {
                 const dataOnly = uint8.slice(6);
                 jsonStr = pako.inflate(dataOnly, { to: 'string' });
             } else if (uint8[0] === 0x1f && uint8[1] === 0x8b) {
@@ -421,7 +426,36 @@ class FileSystemManager {
 
             return JSON.parse(jsonStr);
         } catch (e) {
-            console.error(`[FileSystemManager] ${fileName} okuma hatası:`, e);
+            // console.error(`[FileSystemManager] ${fileName} okuma hatası:`, e);
+            return null;
+        }
+    }
+
+    /**
+     * PDF dosyasını yerel klasörden oku.
+     */
+    async _loadPDFFromNative(boardId) {
+        if (!this.dirHandle) return null;
+
+        const board = this._boards.find(b => b.id === boardId);
+        if (!board) return null;
+
+        const pathSegments = this._getBoardFilePathFromBoard(board);
+        // extension is already .pdf if board.isPDF is true
+        const folders = pathSegments.slice(0, -1);
+        const fileName = pathSegments[pathSegments.length - 1];
+
+        try {
+            let targetDir = this.dirHandle;
+            for (const folderName of folders) {
+                targetDir = await targetDir.getDirectoryHandle(folderName, { create: false });
+            }
+
+            const fileHandle = await targetDir.getFileHandle(fileName, { create: false });
+            const file = await fileHandle.getFile();
+            return file; // File is a Blob
+        } catch (e) {
+            console.error(`[FileSystemManager] PDF ${fileName} okuma hatası:`, e);
             return null;
         }
     }
@@ -506,7 +540,7 @@ class FileSystemManager {
                         await this.db.data.put({ key, value: val });
                         return val;
                     }
-                } else if (key.startsWith('wb_') || key.startsWith('betik_')) {
+                } else if (key.startsWith('wb_') || key.startsWith(APP_CONFIG.STORAGE_PREFIX)) {
                     const val = await this._loadMetaFromNative(key);
                     if (val) {
                          // IndexedDB'ye yazma, meta veriler her zaman wb_boards/wb_folders ile yönetilmeli
@@ -667,45 +701,119 @@ class FileSystemManager {
             }
 
             // 2. Eğer hiç board gelmediyse veya ek zorlama istenirse dosyaları fiziksel olarak tara
-            // (Bu kısım biraz yavaştır ama meta dosyası yoksa kurtarıcıdır)
             const discovered = await this._scanDirectoryRecursive(this.dirHandle);
             const currentBoards = await this.getItem('wb_boards', []);
             const currentFolders = await this.getItem('wb_folders', []);
+            
+            // Group files by base name (path without extension)
+            const groupedFiles = new Map();
+            for (const fileItem of discovered) {
+                const folderPath = fileItem.path.slice(0, -1).join('/');
+                const baseName = fileItem.name.replace(/\.(tik|pdf)$/i, '');
+                const groupKey = folderPath ? `${folderPath}/${baseName}` : baseName;
+                
+                if (!groupedFiles.has(groupKey)) {
+                    groupedFiles.set(groupKey, {
+                        name: baseName,
+                        folderPath: fileItem.path.slice(0, -1),
+                        files: []
+                    });
+                }
+                groupedFiles.get(groupKey).files.push(fileItem);
+            }
+
             let physicalImports = 0;
 
-            for (const fileItem of discovered) {
-                // Eğer bu dosya (yoluna göre) meta içinde yoksa ekle
-                const pathStr = fileItem.path.join('/');
+            for (const group of groupedFiles.values()) {
+                const tikFile = group.files.find(f => f.name.toLowerCase().endsWith('.tik'));
+                const pdfFile = group.files.find(f => f.name.toLowerCase().endsWith('.pdf'));
+                
+                // Determine if this group is already tracked
                 const exists = currentBoards.some(b => {
-                    const bPath = this._getBoardFilePathFromBoard(b).join('/');
-                    return bPath === pathStr;
+                    const bName = b.name; 
+                    const bFolderPath = this._getFolderPath(b.folderId).join('/');
+                    const groupFolderPath = group.folderPath.join('/');
+                    
+                    // Match by name and folder path
+                    // Use sanitized name comparison to be safe
+                    return bFolderPath === groupFolderPath && 
+                           (bName === group.name || this._sanitizeName(bName) === group.name);
                 });
 
                 if (!exists) {
-                    // Yeni bir board metadata nesnesi oluştur
+                    const isPDF = !!pdfFile;
+                    const boardId = 'b_' + Date.now() + Math.random().toString(36).substr(2, 5);
+                    const lastModified = (tikFile || pdfFile).lastModified || Date.now();
+
                     const newBoard = {
-                        id: 'b_' + Date.now() + Math.random().toString(36).substr(2, 5),
-                        name: fileItem.name.replace('.tik', ''),
-                        lastModified: fileItem.lastModified || Date.now(),
+                        id: boardId,
+                        name: group.name,
+                        lastModified: lastModified,
                         favorite: false,
                         deleted: false,
-                        folderId: null, // Klasör hiyerarşisi fiziksel taranınca ID eşleşmesi zorlaşabilir
-                        coverBg: '#4a90e2',
-                        coverTexture: 'linear'
+                        folderId: null,
+                        coverBg: isPDF ? '#fa5252' : '#4a90e2',
+                        coverTexture: isPDF ? 'dots' : 'linear',
+                        isPDF: isPDF,
+                        alwaysSaveAsPDF: isPDF
                     };
 
-                    // Eğer klasör içindeyse klasörü de oluştur/bul
-                    if (fileItem.path.length > 1) {
-                         // TODO: Klasör ağacını canlandıracak bir mantık eklenebilir
+                    // Klasör hiyerarşisini canlandır
+                    if (group.folderPath.length > 0) {
+                        let parentFolderId = null;
+                        for (const folderName of group.folderPath) {
+                            let folder = currentFolders.find(f => f.name === folderName && (f.parentId === parentFolderId || (!f.parentId && !parentFolderId)));
+                            if (!folder) {
+                                folder = {
+                                    id: 'f_' + Date.now() + Math.random().toString(36).substr(2, 5),
+                                    name: folderName,
+                                    parentId: parentFolderId,
+                                    icon: 'folder',
+                                    color: '#74c0fc'
+                                };
+                                currentFolders.push(folder);
+                                folderCount++;
+                            }
+                            parentFolderId = folder.id;
+                        }
+                        newBoard.folderId = parentFolderId;
+                    }
+
+                    if (isPDF && pdfFile.file) {
+                        if (window.Utils && window.Utils.db) {
+                            await window.Utils.db.save(boardId, pdfFile.file);
+                        }
                     }
 
                     currentBoards.push(newBoard);
                     physicalImports++;
+                } else {
+                    // Even if board exists, ensure PDF is in IndexedDB
+                    if (pdfFile && pdfFile.file) {
+                        const board = currentBoards.find(b => {
+                            const bName = b.name;
+                            const bFolderPath = this._getFolderPath(b.folderId).join('/');
+                            const groupFolderPath = group.folderPath.join('/');
+                            return bFolderPath === groupFolderPath && 
+                                   (bName === group.name || this._sanitizeName(bName) === group.name);
+                        });
+                        
+                        if (board && window.Utils && window.Utils.db) {
+                            const existingPdf = await window.Utils.db.get(board.id);
+                            if (!existingPdf) {
+                                await window.Utils.db.save(board.id, pdfFile.file);
+                                console.log(`[FileSystemManager] Missing PDF restored to DB for: ${board.name}`);
+                            }
+                        }
+                    }
                 }
             }
 
-            if (physicalImports > 0) {
+            if (physicalImports > 0 || folderCount > 0) {
                 await this.saveItem('wb_boards', currentBoards, true);
+                if (folderCount > 0) {
+                    await this.saveItem('wb_folders', currentFolders, true);
+                }
             }
 
             return { 
@@ -726,12 +834,13 @@ class FileSystemManager {
                 if (entry.name === '_meta' || entry.name.startsWith('.')) continue; // ignore
                 const subResults = await this._scanDirectoryRecursive(entry, [...currentPath, entry.name]);
                 results.push(...subResults);
-            } else if (entry.name.endsWith('.tik')) {
+            } else if (entry.name.toLowerCase().endsWith('.tik') || entry.name.toLowerCase().endsWith('.pdf')) {
                 const file = await entry.getFile();
                 results.push({
                     name: entry.name,
                     path: [...currentPath, entry.name],
-                    lastModified: file.lastModified
+                    lastModified: file.lastModified,
+                    file: file
                 });
             }
         }
@@ -764,7 +873,8 @@ class FileSystemManager {
     _getBoardFilePathFromBoard(board) {
         if (!board) return [];
         const safeName = this._sanitizeName(board.name) || board.id;
-        const fileName = `${safeName}.tik`;
+        const extension = board.isPDF ? '.pdf' : '.tik';
+        const fileName = `${safeName}${extension}`;
         if (!board.folderId) return [fileName];
         const folderPath = this._getFolderPath(board.folderId);
         return [...folderPath, fileName];

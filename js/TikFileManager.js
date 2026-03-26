@@ -93,8 +93,9 @@ class TikFileManager {
             version: '2.1',
             format: 'tik',
             savedAt: new Date().toISOString(),
-            appVersion: 'Betik',
+            appVersion: APP_CONFIG.NAME,
             pages: pages,
+            currentPageIndex: this.app.pageManager ? this.app.pageManager.currentPageIndex : 0,
             objects: pages ? null : (this.app.state.objects || []).map(obj => this._serializeObject(obj)),
             pdfBase64: pdfBase64 || undefined
         };
@@ -102,24 +103,24 @@ class TikFileManager {
         const jsonStr = JSON.stringify(content);
         const compressed = pako.gzip(jsonStr);
 
-        // Özel Başlık (Magic Bytes): "BETIK!" + Veri
-        const header = new TextEncoder().encode('BETIK!');
+        // Özel Başlık (Magic Bytes): SIGNATURE + Veri
+        const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE);
         const finalData = new Uint8Array(header.length + compressed.length);
         finalData.set(header);
         finalData.set(compressed, header.length);
 
         // Dosya adı
         const boardName = boardId
-            ? (dashboard.boards.find(b => b.id === boardId)?.name || 'betik')
-            : 'betik';
-        const safeName = boardName.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ\s\-_]/g, '').trim() || 'betik';
+            ? (dashboard.boards.find(b => b.id === boardId)?.name || APP_CONFIG.ID)
+            : APP_CONFIG.ID;
+        const safeName = boardName.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ\s\-_]/g, '').trim() || APP_CONFIG.ID;
 
         // File System Access API ile kaydet
         if (window.showSaveFilePicker) {
             try {
                 const fileHandle = await window.showSaveFilePicker({
-                    suggestedName: `${safeName}.tik`,
-                    types: [{ description: 'Betik Notu (.tik)', accept: { 'application/x-betik': ['.tik'] } }]
+                    suggestedName: `${safeName}${APP_CONFIG.FILE_EXTENSION}`,
+                    types: [{ description: `${APP_CONFIG.NAME} Notu (${APP_CONFIG.FILE_EXTENSION})`, accept: { [APP_CONFIG.MIME_TYPE]: [APP_CONFIG.FILE_EXTENSION] } }]
                 });
                 const writable = await fileHandle.createWritable();
                 await writable.write(finalData);
@@ -134,9 +135,9 @@ class TikFileManager {
         }
 
         // Fallback: <a> download
-        const blob = new Blob([finalData], { type: 'application/x-betik' });
+        const blob = new Blob([finalData], { type: APP_CONFIG.MIME_TYPE });
         const link = document.createElement('a');
-        link.download = `${safeName}.tik`;
+        link.download = `${safeName}${APP_CONFIG.FILE_EXTENSION}`;
         link.href = URL.createObjectURL(blob);
         link.click();
         URL.revokeObjectURL(link.href);
@@ -162,7 +163,7 @@ class TikFileManager {
             version: '2.1',
             format: 'tik',
             savedAt: new Date().toISOString(),
-            appVersion: 'Betik',
+            appVersion: APP_CONFIG.NAME,
             templateId: template.id,
             templateName: template.name,
             pages: [{
@@ -178,9 +179,9 @@ class TikFileManager {
 
         const jsonStr = JSON.stringify(content);
         const compressed = pako.gzip(jsonStr);
-        
+
         // Özel Başlık (Magic Bytes)
-        const header = new TextEncoder().encode('BETIK!');
+        const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE);
         const finalData = new Uint8Array(header.length + compressed.length);
         finalData.set(header);
         finalData.set(compressed, header.length);
@@ -190,13 +191,13 @@ class TikFileManager {
         if (window.showSaveFilePicker) {
             try {
                 const fileHandle = await window.showSaveFilePicker({
-                    suggestedName: `${safeName}.tik`,
-                    types: [{ description: 'Betik Notu (.tik)', accept: { 'application/x-betik': ['.tik'] } }]
+                    suggestedName: `yedek_${Date.now()}${APP_CONFIG.FILE_EXTENSION}`,
+                    types: [{ description: `${APP_CONFIG.NAME} Notu (${APP_CONFIG.FILE_EXTENSION})`, accept: { [APP_CONFIG.MIME_TYPE]: [APP_CONFIG.FILE_EXTENSION] } }]
                 });
                 const writable = await fileHandle.createWritable();
                 await writable.write(finalData);
                 await writable.close();
-                this._showToast(`✅ "${template.name}" şablonu .tik olarak kaydedildi!`);
+                this._showToast(`✅ "${template.name}" şablonu ${APP_CONFIG.FILE_EXTENSION} olarak kaydedildi!`);
                 return;
             } catch (e) {
                 if (e.name === 'AbortError') return;
@@ -204,13 +205,13 @@ class TikFileManager {
             }
         }
 
-        const blob = new Blob([finalData], { type: 'application/x-betik' });
+        const blob = new Blob([finalData], { type: APP_CONFIG.MIME_TYPE });
         const link = document.createElement('a');
-        link.download = `${safeName}.tik`;
+        link.download = `yedek_${Date.now()}${APP_CONFIG.FILE_EXTENSION}`;
         link.href = URL.createObjectURL(blob);
         link.click();
         URL.revokeObjectURL(link.href);
-        this._showToast(`✅ "${template.name}" şablonu .tik olarak indirildi!`);
+        this._showToast(`✅ "${template.name}" şablonu ${APP_CONFIG.FILE_EXTENSION} olarak indirildi!`);
     }
 
     // ─────────────────────────────────────────────
@@ -223,7 +224,7 @@ class TikFileManager {
         if (window.showOpenFilePicker) {
             try {
                 const [fileHandle] = await window.showOpenFilePicker({
-                    types: [{ description: 'Betik Notu (.tik)', accept: { 'application/x-betik': ['.tik', '.tik'] } }],
+                    types: [{ description: `${APP_CONFIG.NAME} Notu (${APP_CONFIG.FILE_EXTENSION})`, accept: { [APP_CONFIG.MIME_TYPE]: [APP_CONFIG.FILE_EXTENSION] } }],
                     multiple: false
                 });
                 const file = await fileHandle.getFile();
@@ -254,11 +255,9 @@ class TikFileManager {
             const uint8 = new Uint8Array(arrayBuffer);
 
             let jsonStr;
-            // "BETIK!" imzasını kontrol et (66, 69, 84, 73, 75, 33)
-            // Gerûyü uyumluluk: eski "BETIK!" imzasını da destekle (84, 79, 77, 65, 82, 33)
-            const isBetik = uint8[0] === 66 && uint8[1] === 69 && uint8[2] === 84 && uint8[3] === 73 && uint8[4] === 75 && uint8[5] === 33;
-            const isLegacyBetik = uint8[0] === 84 && uint8[1] === 79 && uint8[2] === 77 && uint8[3] === 65 && uint8[4] === 82 && uint8[5] === 33;
-            const isImzali = isBetik || isLegacyBetik;
+            const signature = new TextDecoder().decode(uint8.slice(0, 6));
+            // Hem yeni imzayı hem de eski "BETIK!" ve "TOMAR!" imzalarını destekle
+            const isImzali = signature === APP_CONFIG.SIGNATURE || signature === "BETIK!" || signature === "TOMAR!";
 
             if (isImzali) {
                 // Başlığı atla (6 bayt) ve decompress et
@@ -268,7 +267,7 @@ class TikFileManager {
                 // Eski düz Gzip (geriye dönük uyumluluk)
                 jsonStr = pako.inflate(uint8, { to: 'string' });
             } else {
-                // Eski düz JSON
+                // Eski düz JSON veya yanlış format
                 jsonStr = new TextDecoder().decode(uint8);
             }
 
@@ -355,6 +354,7 @@ class TikFileManager {
                 const contentToSave = {
                     version: content.version || '2.1',
                     pages: pages,
+                    currentPageIndex: content.currentPageIndex !== undefined ? content.currentPageIndex : 0,
                     objects: pages ? null : []
                 };
 

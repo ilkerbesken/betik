@@ -1,29 +1,27 @@
-// ============================================================
-// CloudStorageManager.js  v2.0
-//
-// Google Drive yapısı:
-//   Betik/
-//     .settings/
-//       betik-manifest.json   ← SeCenek A: JSON yedek + meta
-//     Klasör Adı/             ← Gerçek Drive klasörleri
-//       Alt Klasör/
-//         not-adı.tik
-//       not-adı.tik
-//     köksüz-not.tik          ← Klasörsüz boardlar kök dizinde
-// ============================================================
+// [CloudStorageManager]
+// Drive'da uygulama verilerini senkronize etmek için kullanılır.
+// Yapı:
+//   UygulamaKlasörü/
+//       .settings/
+//           manifest.json   ← Seçenek A: JSON yedek + meta
+//       BoardIsmi.tik       ← Seçenek B: .tik formatında boardlar
+//       AltKlasör/
+//           AltBoard.tik
 
 class CloudStorageManager {
     constructor(app) {
         this.app = app;
-        this.GOOGLE_CLIENT_ID = '915367935470-6ok8pt4dhr4thmmf4g4n2v112tksehds.apps.googleusercontent.com';
+        this.GOOGLE_CLIENT_ID = '33182855133-ccl1it4e1puj0189p919f200870m0lsh.apps.googleusercontent.com';
         this.GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
         this.gisLoaded = false;
-        this.gdriveToken = localStorage.getItem('betik_gdrive_token');
+        this.gdriveToken = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`);
         this.isSyncing = false;
+        this.fsm = window.fileSystemManager;
 
         // Drive klasör ID önbelleği: path → driveId
-        // Örn: "Betik" → "1abc...", "Betik/Proje" → "2def..."
+        // Örn: "App" → "1abc...", "App/Proje" → "2def..."
         this._folderIdCache = {};
+        this._activeSyncs = new Set(); // Aynı anda birden fazla senkronizasyonu önle (boardId bazlı)
     }
 
     // ─── Platform Tespiti ────────────────────────────────────────
@@ -45,7 +43,7 @@ class CloudStorageManager {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `betik-yedek-${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `${APP_CONFIG.ID}-yedek-${new Date().toISOString().slice(0, 10)}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -106,7 +104,7 @@ class CloudStorageManager {
                 callback: (response) => {
                     if (response.error) return reject(new Error(response.error));
                     this.gdriveToken = response.access_token;
-                    localStorage.setItem('betik_gdrive_token', response.access_token);
+                    localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`, response.access_token);
                     resolve(response.access_token);
                 },
             });
@@ -120,7 +118,7 @@ class CloudStorageManager {
             google.accounts.oauth2.revoke(this.gdriveToken);
         }
         this.gdriveToken = null;
-        localStorage.removeItem('betik_gdrive_token');
+        localStorage.removeItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`);
     }
 
     async _ensureToken() {
@@ -144,8 +142,8 @@ class CloudStorageManager {
         try {
             await this._ensureToken();
             const fsm = window.fileSystemManager;
-            const betikFolderId = await this._getOrCreateDriveFolder('Betik', null);
-            const settingsFolderId = await this._getOrCreateDriveFolder('.settings', betikFolderId);
+            const appFolderId = await this._getOrCreateDriveFolder(APP_CONFIG.GDRIVE_FOLDER, null);
+            const settingsFolderId = await this._getOrCreateDriveFolder('.settings', appFolderId);
             
             let syncCount = 0;
             const locallyDeletedIds = await fsm.getItem('wb_deleted_ids', []);
@@ -156,7 +154,7 @@ class CloudStorageManager {
                 
                 // 1. Silinmiş mi?
                 if (locallyDeletedIds.includes(targetId)) {
-                    await this._garbageCollect(betikFolderId, await fsm.getItem('wb_boards', []), await fsm.getItem('wb_folders', []), [targetId]);
+                    await this._garbageCollect(appFolderId, await fsm.getItem('wb_boards', []), await fsm.getItem('wb_folders', []), [targetId]);
                     await this._syncManifest(settingsFolderId);
                     return { success: true, delta: true };
                 }
@@ -165,7 +163,7 @@ class CloudStorageManager {
                 const folders = await fsm.getItem('wb_folders', []);
                 const folder = folders.find(f => f.id === targetId);
                 if (folder) {
-                    await this._ensureDriveFolders(folders, betikFolderId);
+                    await this._ensureDriveFolders(folders, appFolderId);
                     await this._syncManifest(settingsFolderId);
                     return { success: true, delta: true };
                 }
@@ -177,7 +175,7 @@ class CloudStorageManager {
                     const meta = await fsm.getSyncMetadata(board.id) || { id: board.id };
                     const content = await fsm.getItem(`wb_content_${board.id}`, null);
                     if (content) {
-                        const driveFileId = await this._uploadBoardTik(board, content, folders, betikFolderId, meta.googleDriveFileId);
+                        const driveFileId = await this._uploadBoardTik(board, content, folders, appFolderId, meta.googleDriveFileId);
                         await fsm.setSyncMetadata(board.id, {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
@@ -192,7 +190,7 @@ class CloudStorageManager {
 
             // ─── SENARYO B: FULL SYNC (Uygulama açılışı veya Genel Yenileme) ───
             console.log('[CloudSync] Full Sync Başlatıldı...');
-            const remoteManifestFile = await this._findFileInFolder('betik-manifest.json', settingsFolderId);
+            const remoteManifestFile = await this._findFileInFolder(APP_CONFIG.MANIFEST_FILE, settingsFolderId);
             // ... (Full Pull logic starts here from original code)
 
             let localBoards = await fsm.getItem('wb_boards', []);
@@ -257,7 +255,7 @@ class CloudStorageManager {
                         }
 
                         for (const rb of boardsToSync) {
-                            const tikContent = await this._downloadBoardTik(rb, remoteFolders, betikFolderId);
+                            const tikContent = await this._downloadBoardTik(rb, remoteFolders, appFolderId);
                             if (tikContent) {
                                 await fsm.saveItem(`wb_content_${rb.id}`, tikContent, true);
                                 // Local listeyi güncelle/ekle
@@ -307,7 +305,7 @@ class CloudStorageManager {
             const folders = localFolders;
 
             // Uygulama klasör yapısını Drive'da yansıt
-            await this._ensureDriveFolders(folders, betikFolderId);
+            await this._ensureDriveFolders(folders, appFolderId);
 
             for (const board of boards) {
                 let meta = await fsm.getSyncMetadata(board.id);
@@ -322,7 +320,7 @@ class CloudStorageManager {
                 if (needsUpload) {
                     const content = await fsm.getItem(`wb_content_${board.id}`, null);
                     if (content) {
-                        const driveFileId = await this._uploadBoardTik(board, content, folders, betikFolderId, meta.googleDriveFileId);
+                        const driveFileId = await this._uploadBoardTik(board, content, folders, appFolderId, meta.googleDriveFileId);
                         await fsm.setSyncMetadata(board.id, {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
@@ -337,7 +335,7 @@ class CloudStorageManager {
             await this._syncManifest(settingsFolderId);
 
             // ── ÇÖP TOPLAMA (Garbage Collection) ──────────────────
-            await this._garbageCollect(betikFolderId, boards, folders, locallyDeletedIds);
+            await this._garbageCollect(appFolderId, boards, folders, locallyDeletedIds);
 
             // ── Temizlik: Artık silindiği kesinleşen ID'leri listeden çıkar ──
             if (locallyDeletedIds.length > 0) {
@@ -362,7 +360,7 @@ class CloudStorageManager {
 
             if (err.message?.includes('401') || err.message?.includes('token')) {
                 this.gdriveToken = null;
-                localStorage.removeItem('betik_gdrive_token');
+                localStorage.removeItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`);
             }
             return { success: false, message: err.message };
         } finally {
@@ -402,8 +400,8 @@ class CloudStorageManager {
 
     async uploadImage(blob, fileName) {
         await this._ensureToken();
-        const betikFolderId = await this._getOrCreateDriveFolder('Betik', null);
-        const screenshotsFolderId = await this._getOrCreateDriveFolder('Ekran Görüntüleri', betikFolderId);
+        const appFolderId = await this._getOrCreateDriveFolder(APP_CONFIG.GDRIVE_FOLDER, null);
+        const screenshotsFolderId = await this._getOrCreateDriveFolder('Ekran Görüntüleri', appFolderId);
         
         const arrayBuffer = await blob.arrayBuffer();
         const bytes = new Uint8Array(arrayBuffer);
@@ -472,7 +470,7 @@ class CloudStorageManager {
         if (!searchRes.ok) {
             if (searchRes.status === 401) {
                 this.gdriveToken = null;
-                localStorage.removeItem('betik_gdrive_token');
+                localStorage.removeItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`);
             }
             throw new Error(`Drive bağlantı hatası: ${searchRes.status}`);
         }
@@ -519,7 +517,7 @@ class CloudStorageManager {
      * Her uygulama klasörü → Drive'da bir alt klasör.
      * Sonuç: { appFolderId → driveId } haritası döner.
      */
-    async _ensureDriveFolders(folders, betikFolderId) {
+    async _ensureDriveFolders(folders, appFolderId) {
         const appFolderToDriveId = {}; // appFolderId → driveId
 
         // Kök klasörler önce, sonra alt klasörler (parentId zincirini çözmek için)
@@ -527,7 +525,7 @@ class CloudStorageManager {
 
         for (const folder of sorted) {
             const safeName = this._sanitizeName(folder.name) || folder.id;
-            let parentDriveId = betikFolderId;
+            let parentDriveId = appFolderId;
 
             if (folder.parentId && appFolderToDriveId[folder.parentId]) {
                 parentDriveId = appFolderToDriveId[folder.parentId];
@@ -559,9 +557,9 @@ class CloudStorageManager {
      * Bir board'un içeriğini .tik formatında Drive'a yükle.
      * Board'un klasörüne göre doğru Drive alt klasörünü kullanır.
      */
-    async _uploadBoardTik(board, content, folders, betikFolderId, existingFileId) {
+    async _uploadBoardTik(board, content, folders, appFolderId, existingFileId) {
         // Hedef Drive klasörünü bul
-        const targetFolderId = await this._getDriveTargetFolder(board, folders, betikFolderId);
+        const targetFolderId = await this._getDriveTargetFolder(board, folders, appFolderId);
 
         const safeName = this._sanitizeName(board.name) || board.id;
         const fileName = board.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
@@ -570,18 +568,18 @@ class CloudStorageManager {
         const tikBytes = await this._contentToTik(content, board.id);
 
         const appProperties = { boardId: board.id, type: 'board' };
-        return await this._uploadRawToDrive(fileName, tikBytes, 'application/x-betik', targetFolderId, existingFileId, appProperties);
+        return await this._uploadRawToDrive(fileName, tikBytes, APP_CONFIG.MIME_TYPE, targetFolderId, existingFileId, appProperties);
     }
 
     /**
      * Board'un Drive'daki hedef klasör ID'sini döndür.
      */
-    async _getDriveTargetFolder(board, folders, betikFolderId) {
-        if (!board.folderId) return betikFolderId;
+    async _getDriveTargetFolder(board, folders, appFolderId) {
+        if (!board.folderId) return appFolderId;
 
         // Klasör zincirini ID bazlı çöz (mükerrerliği önlemek için)
         const folderIds = this._getFolderPathIds(board.folderId, folders);
-        let currentParent = betikFolderId;
+        let currentParent = appFolderId;
         
         for (const fId of folderIds) {
             const folder = folders.find(f => f.id === fId);
@@ -676,10 +674,10 @@ class CloudStorageManager {
     /**
      * Bir board'un .tik dosyasını Drive'dan indir ve içeriği parse et.
      */
-    async _downloadBoardTik(boardMeta, folders, betikFolderId) {
+    async _downloadBoardTik(boardMeta, folders, appFolderId) {
         try {
             // Önce .tik dosyasını ara
-            const targetFolderId = await this._getDriveTargetFolder(boardMeta, folders, betikFolderId);
+            const targetFolderId = await this._getDriveTargetFolder(boardMeta, folders, appFolderId);
             const safeName = this._sanitizeName(boardMeta.name) || boardMeta.id;
             const fileName = boardMeta.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
 
@@ -741,7 +739,7 @@ class CloudStorageManager {
     // ─── Seçenek A: Manifest ──────────────────────────────────────
 
     /**
-     * .settings/betik-manifest.json'u güncelle.
+     * .settings/manifest.json'u güncelle.
      * Board listesi, klasör yapısı, ve tüm meta verileri içerir.
      */
     async _syncManifest(settingsFolderId) {
@@ -755,7 +753,7 @@ class CloudStorageManager {
             customCovers: await fsm.getItem('wb_custom_covers', [])
         };
 
-        const fileName = 'betik-manifest.json';
+        const fileName = APP_CONFIG.MANIFEST_FILE;
         const existing = await this._findFileInFolder(fileName, settingsFolderId);
         const jsonBytes = new TextEncoder().encode(JSON.stringify(manifest, null, 2));
         await this._uploadRawToDrive(fileName, jsonBytes, 'application/json', settingsFolderId, existing?.id);
@@ -889,7 +887,7 @@ class CloudStorageManager {
     /**
      * Drive'daki dosyaları ve klasörleri kontrol ederek manifest'te olmayanları siler.
      */
-    async _garbageCollect(betikFolderId, localBoards, localFolders, locallyDeletedIds = []) {
+    async _garbageCollect(appFolderId, localBoards, localFolders, locallyDeletedIds = []) {
         try {
             const headers = { Authorization: `Bearer ${this.gdriveToken}` };
             
@@ -920,7 +918,7 @@ class CloudStorageManager {
                 
                 for (const file of (data.files || [])) {
                     // Sadece Betik klasörü altındakileri kontrol et (manifest hariç)
-                    if (file.name === 'betik-manifest.json' || file.name === 'betik-manifest.json' || file.name === 'betik-manifest-v2.json') continue;
+                    if (file.name === APP_CONFIG.MANIFEST_FILE || file.name === 'betik-manifest.json' || file.name === 'betik-manifest-v2.json') continue;
                     
                     const type = file.appProperties?.type;
                     const boardId = file.appProperties?.boardId;
@@ -941,7 +939,8 @@ class CloudStorageManager {
                             }
                         }
                     } else if (type === 'folder') {
-                        if (folderId && file.name !== 'Betik' && file.name !== 'Betik' && file.name !== '.settings') {
+                        // Eğer bir klasörse (mimeType kontrolü) ve manifest'te yoksa sil
+                        if (folderId && file.name !== APP_CONFIG.GDRIVE_FOLDER && file.name !== '.settings') {
                             if (!folderIds.has(folderId)) {
                                 if (locallyDeletedIds.includes(folderId) || !isNew) {
                                     shouldDelete = true;

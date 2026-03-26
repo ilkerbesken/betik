@@ -18,7 +18,7 @@ class ColorPalette {
         ];
 
         // Kayıtlı renkleri yükle veya varsayılanları kullan
-        const savedColors = localStorage.getItem('betik_colors');
+        const savedColors = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}colors`);
         this.colors = savedColors ? JSON.parse(savedColors) : [...this.defaultColors];
 
         this.container = null;
@@ -112,7 +112,7 @@ class ColorPalette {
     }
 
     saveColors() {
-        localStorage.setItem('betik_colors', JSON.stringify(this.colors));
+        localStorage.setItem(`${APP_CONFIG.STORAGE_PREFIX}colors`, JSON.stringify(this.colors));
     }
 
     resetToDefaults() {
