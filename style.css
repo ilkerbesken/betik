@@ -141,9 +141,6 @@ textarea,
     color: #212529;
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
-    -webkit-user-select: text;
-    user-select: text;
-}
 
 #app {
     position: fixed;
