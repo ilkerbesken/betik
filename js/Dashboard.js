@@ -708,6 +708,10 @@ class Dashboard {
                                     <app-icon name="text-cursor" style="width: 10px; opacity: 0.6;"></app-icon>
                                     İsmi Değiştir
                                 </div>
+                                <div class="dropdown-item" data-action="share">
+                                    <app-icon name="share-01" style="width: 12px; opacity: 0.6;"></app-icon>
+                                    Paylaş / Dışa Aktar
+                                </div>
                                 <div class="dropdown-item" data-action="delete" style="color: #fa5252;">
                                     <app-icon name="trash" style="width: 12px; opacity: 0.6; filter: invert(36%) sepia(84%) saturate(1450%) hue-rotate(338deg) brightness(98%) contrast(98%);"></app-icon>
                                     Sil
@@ -755,6 +759,14 @@ class Dashboard {
                             e.stopPropagation();
                             dropdown.classList.remove('show');
                             this.deleteBoardConfirmation(note.id);
+                        };
+
+                        dropdown.querySelector('[data-action="share"]').onclick = async (e) => {
+                            e.stopPropagation();
+                            dropdown.classList.remove('show');
+                            if (window.fileSystemManager) {
+                                await window.fileSystemManager.exportBoards([note.id]);
+                            }
                         };
 
                         childContainer.appendChild(noteItem);
@@ -3039,6 +3051,19 @@ class Dashboard {
 
                     this.clearSelection();
                 }
+            };
+        }
+
+        const btnShare = document.getElementById('btnBulkShare');
+        if (btnShare) {
+            btnShare.onclick = async () => {
+                const idsToProcess = Array.from(this.selectedBoards);
+                if (idsToProcess.length === 0) return;
+                
+                if (window.fileSystemManager) {
+                    await window.fileSystemManager.exportBoards(idsToProcess);
+                }
+                this.clearSelection();
             };
         }
 

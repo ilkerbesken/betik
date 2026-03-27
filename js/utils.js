@@ -294,6 +294,15 @@ const Utils = {
             });
         },
         async save(id, blob) {
+            // 1. Önce OPFS'e kaydetmeyi dene (Büyük dosyalar için RAM dostu)
+            if (window.opfsManager) {
+                const success = await window.opfsManager.writeFile(`pdf_${id}.blob`, blob);
+                if (success) {
+                    console.log(`[Utils.db] PDF OPFS'e kaydedildi: ${id}`);
+                }
+            }
+
+            // 2. Her zaman IndexedDB'ye de kaydet (Backup/Garantili Erişim)
             const db = await this.open();
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(this.store, 'readwrite');
@@ -303,6 +312,16 @@ const Utils = {
             });
         },
         async get(id) {
+            // 1. Önce OPFS'den okumayı dene
+            if (window.opfsManager) {
+                const file = await window.opfsManager.readFile(`pdf_${id}.blob`);
+                if (file) {
+                    console.log(`[Utils.db] PDF OPFS'den yüklendi: ${id}`);
+                    return file;
+                }
+            }
+
+            // 2. IndexedDB Fallback
             const db = await this.open();
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(this.store, 'readonly');
@@ -312,6 +331,11 @@ const Utils = {
             });
         },
         async delete(id) {
+            // OPFS Silme
+            if (window.opfsManager) {
+                await window.opfsManager.deleteFile(`pdf_${id}.blob`);
+            }
+
             const db = await this.open();
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(this.store, 'readwrite');

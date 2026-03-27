@@ -58,61 +58,14 @@ class TikFileManager {
         const dashboard = window.dashboard;
         if (!dashboard) { Utils.showToast('Dashboard bulunamadı.', 'error'); return; }
 
-        // Mevcut sayfa durumunu diske/belleğe kaydet
-        if (this.app.pageManager) {
-            this.app.pageManager.saveCurrentPageState();
-        }
-
-        // Sayfaları serileştir
-        let pages = null;
-        if (this.app.pageManager) {
-            pages = this.app.pageManager.pages.map(page => {
-                const p = Utils.deepClone(page);
-                delete p.thumbnail; // Büyük base64 thumbnail'i kaldır
-                p.objects = p.objects.map(obj => this._serializeObject(obj));
-                return p;
-            });
-        }
-
-        // PDF binary verisini base64 olarak ekle
-        let pdfBase64 = null;
         const boardId = dashboard.currentBoardId;
-        if (boardId) {
-            try {
-                const pdfBlob = await Utils.db.get(boardId);
-                if (pdfBlob instanceof Blob) {
-                    pdfBase64 = await this._blobToBase64(pdfBlob);
-                    console.log('[TikFileManager] PDF verisi .tik dosyasına eklendi.');
-                }
-            } catch (e) {
-                console.warn('[TikFileManager] PDF verisi alınamadı:', e);
-            }
-        }
+        const board = dashboard.boards.find(b => b.id === boardId);
+        const boardName = board ? board.name : APP_CONFIG.ID;
 
-        const content = {
-            version: '2.1',
-            format: 'tik',
-            savedAt: new Date().toISOString(),
-            appVersion: APP_CONFIG.NAME,
-            pages: pages,
-            currentPageIndex: this.app.pageManager ? this.app.pageManager.currentPageIndex : 0,
-            objects: pages ? null : (this.app.state.objects || []).map(obj => this._serializeObject(obj)),
-            pdfBase64: pdfBase64 || undefined
-        };
+        // Content'i hazırla (Pako ile sıkıştırılmış veri döner)
+        const finalData = await this.createTikDataFromCurrentState();
 
-        const jsonStr = JSON.stringify(content);
-        const compressed = pako.gzip(jsonStr);
-
-        // Özel Başlık (Magic Bytes): SIGNATURE + Veri
-        const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE);
-        const finalData = new Uint8Array(header.length + compressed.length);
-        finalData.set(header);
-        finalData.set(compressed, header.length);
-
-        // Dosya adı
-        const boardName = boardId
-            ? (dashboard.boards.find(b => b.id === boardId)?.name || APP_CONFIG.ID)
-            : APP_CONFIG.ID;
+        // Dosya adı temizle
         const safeName = boardName.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ\s\-_]/g, '').trim() || APP_CONFIG.ID;
 
         // File System Access API ile kaydet
@@ -142,6 +95,97 @@ class TikFileManager {
         link.click();
         URL.revokeObjectURL(link.href);
         this._showToast('✅ .tik dosyası indirildi!');
+    }
+
+    /**
+     * Mevcut uygulama durumundan .tik formatında (imzalı + sıkıştırılmış) veri oluşturur.
+     */
+    async createTikDataFromCurrentState() {
+        await this._waitForPako();
+
+        // Mevcut sayfa durumunu diske/belleğe kaydet
+        if (this.app.pageManager) {
+            this.app.pageManager.saveCurrentPageState();
+        }
+
+        // Sayfaları serileştir
+        let pages = null;
+        if (this.app.pageManager) {
+            pages = this.app.pageManager.pages.map(page => {
+                const p = Utils.deepClone(page);
+                delete p.thumbnail;
+                p.objects = p.objects.map(obj => this._serializeObject(obj));
+                return p;
+            });
+        }
+
+        // PDF binary verisini base64 olarak ekle
+        let pdfBase64 = null;
+        const boardId = window.dashboard?.currentBoardId;
+        if (boardId) {
+            try {
+                const pdfBlob = await Utils.db.get(boardId);
+                if (pdfBlob instanceof Blob) {
+                    pdfBase64 = await this._blobToBase64(pdfBlob);
+                }
+            } catch (e) {
+                console.warn('[TikFileManager] PDF verisi alınamadı:', e);
+            }
+        }
+
+        const content = {
+            version: '2.1',
+            format: 'tik',
+            savedAt: new Date().toISOString(),
+            appVersion: APP_CONFIG.NAME,
+            pages: pages,
+            currentPageIndex: this.app.pageManager ? this.app.pageManager.currentPageIndex : 0,
+            objects: pages ? null : (this.app.state.objects || []).map(obj => this._serializeObject(obj)),
+            pdfBase64: pdfBase64 || undefined
+        };
+
+        const jsonStr = JSON.stringify(content);
+        const compressed = pako.gzip(jsonStr);
+
+        const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE);
+        const finalData = new Uint8Array(header.length + compressed.length);
+        finalData.set(header);
+        finalData.set(compressed, header.length);
+
+        return finalData;
+    }
+
+    /**
+     * Dışarıdan gelen content objesini .tik Blob'una dönüştürür.
+     */
+    async createTikBlob(content, boardName, boardId = null) {
+        await this._waitForPako();
+        
+        // Eğer content bir board ID'si ise (FileSystemManager'dan geliyorsa)
+        // o board'un tam içeriğini (sayfalar, objeler, pdf vb.) zaten içeriyor olmalı.
+        // Ama pdf verisi eksik olabilir, onu ekleyelim.
+        const effectiveId = boardId || content.id || (window.dashboard?.boards.find(b => b.name === boardName)?.id);
+
+        if (content && !content.pdfBase64 && effectiveId) {
+            try {
+                const pdfBlob = await Utils.db.get(effectiveId);
+                if (pdfBlob instanceof Blob) {
+                    content.pdfBase64 = await this._blobToBase64(pdfBlob);
+                    console.log('[TikFileManager] PDF verisi export dosyasına eklendi:', effectiveId);
+                }
+            } catch (e) {
+                console.warn('[TikFileManager] Export için PDF verisi alınamadı:', e);
+            }
+        }
+
+        const jsonStr = JSON.stringify(content);
+        const compressed = pako.gzip(jsonStr);
+        const header = new TextEncoder().encode(APP_CONFIG.SIGNATURE);
+        const finalData = new Uint8Array(header.length + compressed.length);
+        finalData.set(header);
+        finalData.set(compressed, header.length);
+
+        return new Blob([finalData], { type: APP_CONFIG.MIME_TYPE });
     }
 
     /**

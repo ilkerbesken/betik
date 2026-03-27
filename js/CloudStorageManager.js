@@ -11,7 +11,7 @@
 class CloudStorageManager {
     constructor(app) {
         this.app = app;
-        this.GOOGLE_CLIENT_ID = '33182855133-ccl1it4e1puj0189p919f200870m0lsh.apps.googleusercontent.com';
+        this.GOOGLE_CLIENT_ID = '915367935470-foe1s3qi94pstohb7p2svpbeu2v3oe66.apps.googleusercontent.com';
         this.GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
         this.gisLoaded = false;
         this.gdriveToken = localStorage.getItem(`${APP_CONFIG.STORAGE_PREFIX}gdrive_token`);
@@ -180,6 +180,29 @@ class CloudStorageManager {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
                         });
+
+                        // ── PDF Senkronizasyonu (Delta Sync'e Eklendi) ──
+                        if (board.isPDF) {
+                            try {
+                                const pdfBlob = await Utils.db.get(board.id);
+                                if (pdfBlob instanceof Blob) {
+                                    const safeName = this._sanitizeName(board.name) || board.id;
+                                    const pdfFileName = `${safeName}.pdf`;
+                                    const targetDriveFolderId = await this._getDriveTargetFolder(board, folders, appFolderId);
+                                    
+                                    // Drive'da var mı kontrol et (patch vs post için)
+                                    const pdfExists = await this._findFileInFolder(pdfFileName, targetDriveFolderId);
+                                    
+                                    const arrayBuffer = await pdfBlob.arrayBuffer();
+                                    const bytes = new Uint8Array(arrayBuffer);
+                                    const appProperties = { boardId: board.id, type: 'pdf-background' };
+                                    await this._uploadRawToDrive(pdfFileName, bytes, 'application/pdf', targetDriveFolderId, pdfExists?.id, appProperties);
+                                }
+                            } catch (e) {
+                                console.warn(`[CloudSync] Delta PDF yükleme hatası:`, e);
+                            }
+                        }
+
                         await this._syncManifest(settingsFolderId);
                         return { success: true, delta: true };
                     }
@@ -191,11 +214,13 @@ class CloudStorageManager {
             // ─── SENARYO B: FULL SYNC (Uygulama açılışı veya Genel Yenileme) ───
             console.log('[CloudSync] Full Sync Başlatıldı...');
             const remoteManifestFile = await this._findFileInFolder(APP_CONFIG.MANIFEST_FILE, settingsFolderId);
-            // ... (Full Pull logic starts here from original code)
+            
+            // Eğer uzakta manifest yoksa, bu yeni bir proje/client demektir. 
+            // Tüm yerel veriyi PUSH etmeliyiz.
+            const forcePush = !remoteManifestFile;
 
             let localBoards = await fsm.getItem('wb_boards', []);
             let localFolders = await fsm.getItem('wb_folders', []);
-            // locallyDeletedIds zaten yukarıda tanımlandı.
 
             if (remoteManifestFile) {
                 try {
@@ -258,6 +283,12 @@ class CloudStorageManager {
                             const tikContent = await this._downloadBoardTik(rb, remoteFolders, appFolderId);
                             if (tikContent) {
                                 await fsm.saveItem(`wb_content_${rb.id}`, tikContent, true);
+
+                                // lastSyncedTime'ı güncelle ki PUSH aşamasında tekrar yüklemeye çalışmasın
+                                await fsm.setSyncMetadata(rb.id, {
+                                    lastSyncedTime: Date.now()
+                                });
+
                                 // Local listeyi güncelle/ekle
                                 const idx = localBoards.findIndex(b => b.id === rb.id);
                                 if (idx !== -1) {
@@ -307,6 +338,18 @@ class CloudStorageManager {
             // Uygulama klasör yapısını Drive'da yansıt
             await this._ensureDriveFolders(folders, appFolderId);
 
+            // Drive'daki mevcut dosyaları bir kez listele (Hız ve "Drive'da var mı?" kontrolü için)
+            const driveFiles = await this._listAllAppFiles();
+
+            // Drive'daki dosyaları klasör bazlı grupla (İsim çakışması kontrolü için)
+            const driveFilesByParent = {};
+            for (const f of driveFiles) {
+                if (f.parents && f.parents[0]) {
+                    if (!driveFilesByParent[f.parents[0]]) driveFilesByParent[f.parents[0]] = [];
+                    driveFilesByParent[f.parents[0]].push(f);
+                }
+            }
+
             for (const board of boards) {
                 let meta = await fsm.getSyncMetadata(board.id);
                 if (!meta) {
@@ -314,18 +357,80 @@ class CloudStorageManager {
                     meta = await fsm.getSyncMetadata(board.id);
                 }
 
-                const needsUpload = !meta.googleDriveFileId ||
-                    (meta.lastModifiedLocally > (meta.lastSyncedTime || 0));
+                // Hedef klasörü ve dosya adını belirle
+                const targetDriveFolderId = await this._getDriveTargetFolder(board, folders, appFolderId);
+                const safeName = this._sanitizeName(board.name) || board.id;
+                const expectedFileName = board.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
+
+                // Drive'da bu board'a ait bir dosya var mı kontrol et
+                // Öncelik: appProperties.boardId eşleşmesi (ve type='board' olmalı)
+                let existsOnDrive = driveFiles.find(f => f.appProperties?.boardId === board.id && f.appProperties?.type === 'board');
+                
+                // İkincil: Eğer ID ile bulunamadıysa, aynı klasörde aynı isimli dosya var mı?
+                if (!existsOnDrive && driveFilesByParent[targetDriveFolderId]) {
+                    existsOnDrive = driveFilesByParent[targetDriveFolderId].find(f => f.name === expectedFileName);
+                }
+
+                // KRİTİK: Eğer dosya Drive'da varsa ama yerel meta'da ID yoksa, ID'yi eşleştir
+                if (existsOnDrive && !meta.googleDriveFileId) {
+                    meta.googleDriveFileId = existsOnDrive.id;
+                    await fsm.setSyncMetadata(board.id, { googleDriveFileId: existsOnDrive.id });
+                    console.log(`[CloudSync] Drive'daki dosya ID'si yerel ile eşleştirildi: ${board.name}`);
+                }
+
+                // KRİTİK YÜKLEME KARARI
+                const needsUpload = forcePush || !existsOnDrive || 
+                    (meta.lastModifiedLocally > (meta.lastSyncedTime || 0)) ||
+                    (board.lastModified > (meta.lastSyncedTime || 0)) ||
+                    (!meta.googleDriveFileId && existsOnDrive); 
 
                 if (needsUpload) {
+                    console.log(`[CloudSync] Yükleniyor: ${board.name} (Sebep: ${forcePush ? 'ForcePush' : (!existsOnDrive ? 'Drive\'da yok' : (board.lastModified > meta.lastSyncedTime ? 'İsim/Meta değişti' : 'İçerik değişti'))})`);
                     const content = await fsm.getItem(`wb_content_${board.id}`, null);
                     if (content) {
-                        const driveFileId = await this._uploadBoardTik(board, content, folders, appFolderId, meta.googleDriveFileId);
+                        // Eğer existsOnDrive varsa ama meta'da yoksa, overwriting riskine karşı Drive ID'sini kullan
+                        const fileIdToUse = forcePush ? null : (meta.googleDriveFileId || (existsOnDrive ? existsOnDrive.id : null));
+                        const driveFileId = await this._uploadBoardTik(board, content, folders, appFolderId, fileIdToUse);
+                        
                         await fsm.setSyncMetadata(board.id, {
                             googleDriveFileId: driveFileId,
                             lastSyncedTime: Date.now()
                         });
                         syncCount++;
+                    } else {
+                        console.warn(`[CloudSync] İçerik bulunamadı, atlanıyor: ${board.name}`);
+                    }
+                }
+
+                // ── PDF Senkronizasyonu (Ayrı Dosya Olarak) ──
+                if (board.isPDF) {
+                    const safeName = this._sanitizeName(board.name) || board.id;
+                    const pdfFileName = `${safeName}.pdf`;
+                    
+                    // Drive'da bu PDF var mı kontrol et
+                    let pdfExists = driveFiles.find(f => f.appProperties?.boardId === board.id && f.appProperties?.type === 'pdf-background');
+                    if (!pdfExists && driveFilesByParent[targetDriveFolderId]) {
+                        pdfExists = driveFilesByParent[targetDriveFolderId].find(f => f.name === pdfFileName);
+                    }
+
+                    if (!pdfExists || forcePush || (board.lastModified > (meta.lastSyncedTime || 0))) {
+                        try {
+                            const pdfBlob = await Utils.db.get(board.id);
+                            if (pdfBlob instanceof Blob) {
+                                if (board.lastModified > (meta.lastSyncedTime || 0) && pdfExists) {
+                                    console.log(`[CloudSync] PDF Arka Plan İsmi/Klasörü Güncelleniyor: ${pdfFileName}`);
+                                } else {
+                                    console.log(`[CloudSync] PDF Arka Planı Yükleniyor: ${pdfFileName}`);
+                                }
+                                const arrayBuffer = await pdfBlob.arrayBuffer();
+                                const bytes = new Uint8Array(arrayBuffer);
+                                const appProperties = { boardId: board.id, type: 'pdf-background' };
+                                await this._uploadRawToDrive(pdfFileName, bytes, 'application/pdf', targetDriveFolderId, pdfExists?.id, appProperties);
+                                syncCount++;
+                            }
+                        } catch (e) {
+                            console.warn(`[CloudSync] PDF yükleme hatası (${board.name}):`, e);
+                        }
                     }
                 }
             }
@@ -377,6 +482,31 @@ class CloudStorageManager {
             await fsm.saveItem('wb_pending_syncs', pending, true);
             console.log(`[CloudSync] İşlem kuyruğa alındı (Offline/Hata): ${id}`);
         }
+    }
+
+    /**
+     * Drive'daki tüm uygulama dosyalarını listele (Hız ve senkronizasyon kontrolü için).
+     */
+    async _listAllAppFiles() {
+        const headers = { Authorization: `Bearer ${this.gdriveToken}` };
+        const results = [];
+        let pageToken = null;
+        try {
+            do {
+                const params = new URLSearchParams({
+                    q: 'trashed=false',
+                    fields: 'files(id,name,appProperties,parents),nextPageToken',
+                    pageSize: '1000'
+                });
+                if (pageToken) params.set('pageToken', pageToken);
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, { headers });
+                if (!res.ok) break;
+                const data = await res.json();
+                results.push(...(data.files || []));
+                pageToken = data.nextPageToken;
+            } while (pageToken);
+        } catch (e) { console.warn('[CloudSync] _listAllAppFiles hatası:', e); }
+        return results;
     }
 
     async processPendingQueue() {
@@ -648,6 +778,7 @@ class CloudStorageManager {
         let pdfBase64 = null;
         if (boardId) {
             try {
+                // Utils.db.get (IndexedDB) üzerinden PDF blob'unu al
                 const pdfBlob = await Utils.db.get(boardId);
                 if (pdfBlob instanceof Blob && tikFileManager) {
                     pdfBase64 = await tikFileManager._blobToBase64(pdfBlob);
@@ -666,7 +797,16 @@ class CloudStorageManager {
             pdfBase64: pdfBase64 || undefined
         });
 
-        return pako.gzip(jsonStr);
+        // 6 byte'lık "BETIK!" imzasını ekle (Geriye uyumluluk ve dosya tanıma için)
+        const signature = APP_CONFIG.SIGNATURE || 'betik!!';
+        const signatureBytes = new TextEncoder().encode(signature);
+        const compressed = pako.gzip(jsonStr);
+        
+        const finalBytes = new Uint8Array(signatureBytes.length + compressed.length);
+        finalBytes.set(signatureBytes);
+        finalBytes.set(compressed, signatureBytes.length);
+
+        return finalBytes;
     }
 
     // ─── .tik Dosyası İndirme (PULL) ─────────────────────────────
@@ -676,17 +816,32 @@ class CloudStorageManager {
      */
     async _downloadBoardTik(boardMeta, folders, appFolderId) {
         try {
-            // Önce .tik dosyasını ara
-            const targetFolderId = await this._getDriveTargetFolder(boardMeta, folders, appFolderId);
-            const safeName = this._sanitizeName(boardMeta.name) || boardMeta.id;
-            const fileName = boardMeta.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
+            const headers = { Authorization: `Bearer ${this.gdriveToken}` };
+            
+            // 1. .tik dosyasını bul (appProperties üzerinden daha güvenli)
+            const tikSearchQuery = `appProperties has { key='boardId' and value='${boardMeta.id}' } and appProperties has { key='type' and value='board' } and trashed=false`;
+            const tikSearchRes = await fetch('https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({ q: tikSearchQuery, fields: 'files(id,name)' }).toString(), { headers });
+            
+            let tikFileId = null;
+            if (tikSearchRes.ok) {
+                const data = await tikSearchRes.json();
+                if (data.files?.length > 0) tikFileId = data.files[0].id;
+            }
 
-            const fileInfo = await this._findFileInFolder(fileName, targetFolderId);
-            if (!fileInfo) return null;
+            // Fallback: İsimle ara
+            if (!tikFileId) {
+                const targetFolderId = await this._getDriveTargetFolder(boardMeta, folders, appFolderId);
+                const safeName = this._sanitizeName(boardMeta.name) || boardMeta.id;
+                const fileName = boardMeta.isPDF ? `${safeName}.pdf.tik` : `${safeName}.tik`;
+                const fileInfo = await this._findFileInFolder(fileName, targetFolderId);
+                if (fileInfo) tikFileId = fileInfo.id;
+            }
+
+            if (!tikFileId) return null;
 
             const res = await fetch(
-                `https://www.googleapis.com/drive/v3/files/${fileInfo.id}?alt=media`,
-                { headers: { Authorization: `Bearer ${this.gdriveToken}` } }
+                `https://www.googleapis.com/drive/v3/files/${tikFileId}?alt=media`,
+                { headers }
             );
 
             const arrayBuffer = await res.arrayBuffer();
@@ -694,19 +849,15 @@ class CloudStorageManager {
 
             // pako ile decompress
             if (typeof pako === 'undefined') {
-                await new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js';
-                    s.onload = resolve; s.onerror = reject;
-                    document.head.appendChild(s);
-                });
+                await this._initPako();
             }
 
             let jsonStr;
-            // BETIK! veya BETIK! imzasını kontrol et (gerûye uyumluluk)
-            if (uint8[0] === 66 && uint8[1] === 69 || uint8[0] === 84 && uint8[1] === 79) {
-                // Signed format: skip 6-byte header
-                jsonStr = pako.inflate(uint8.slice(6), { to: 'string' });
+            const sigLength = (APP_CONFIG.SIGNATURE || 'betik!!').length;
+            const isSigned = Array.from(uint8.slice(0, sigLength)).map(b => String.fromCharCode(b)).join('') === (APP_CONFIG.SIGNATURE || 'betik!!');
+
+            if (isSigned) {
+                jsonStr = pako.inflate(uint8.slice(sigLength), { to: 'string' });
             } else if (uint8[0] === 0x1f && uint8[1] === 0x8b) {
                 jsonStr = pako.inflate(uint8, { to: 'string' });
             } else {
@@ -715,25 +866,53 @@ class CloudStorageManager {
 
             const parsed = JSON.parse(jsonStr);
 
-            // PDF base64 verisi varsa IndexedDB'ye geri yaz
-            if (parsed.pdfBase64 && boardMeta.id) {
-                try {
-                    const tikFileManager = this.app?.tikFileManager;
-                    if (tikFileManager) {
-                        const pdfBlob = await tikFileManager._base64ToBlob(parsed.pdfBase64, 'application/pdf');
-                        await Utils.db.save(boardMeta.id, pdfBlob);
-                        console.log(`[CloudSync] PDF verisi geri yüklendi: ${boardMeta.name}`);
-                    }
-                } catch (e) {
-                    console.warn('[CloudSync] PDF geri yükleme hatası:', e);
+            // 2. PDF Arka Planını İndir (Eğer ayrı dosya olarak varsa veya gömülüyse)
+            let pdfBlob = null;
+            
+            // Önce gömülü olanı kontrol et (Geriye uyumluluk)
+            if (parsed.pdfBase64) {
+                const tikFileManager = this.app?.tikFileManager;
+                if (tikFileManager) {
+                    pdfBlob = await tikFileManager._base64ToBlob(parsed.pdfBase64, 'application/pdf');
                 }
+            }
+            
+            // Gömülü yoksa Drive'da ayrı dosya olarak ara
+            if (!pdfBlob && boardMeta.isPDF) {
+                const pdfQuery = `appProperties has { key='boardId' and value='${boardMeta.id}' } and appProperties has { key='type' and value='pdf-background' } and trashed=false`;
+                const pdfRes = await fetch('https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({ q: pdfQuery, fields: 'files(id,name)' }).toString(), { headers });
+                
+                if (pdfRes.ok) {
+                    const pdfData = await pdfRes.json();
+                    if (pdfData.files?.length > 0) {
+                        const pdfDownloadRes = await fetch(`https://www.googleapis.com/drive/v3/files/${pdfData.files[0].id}?alt=media`, { headers });
+                        if (pdfDownloadRes.ok) {
+                            pdfBlob = await pdfDownloadRes.blob();
+                        }
+                    }
+                }
+            }
+
+            // PDF bulunduysa IndexedDB'ye kaydet
+            if (pdfBlob && boardMeta.id) {
+                await Utils.db.save(boardMeta.id, pdfBlob);
+                console.log(`[CloudSync] PDF Arka Planı Geri Yüklendi: ${boardMeta.name}`);
             }
 
             return parsed;
         } catch (e) {
-            console.warn('[CloudSync] .tik indirme hatası:', e);
+            console.warn('[CloudSync] Board indirme hatası:', e);
             return null;
         }
+    }
+
+    async _initPako() {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js';
+            s.onload = resolve; s.onerror = reject;
+            document.head.appendChild(s);
+        });
     }
 
     // ─── Seçenek A: Manifest ──────────────────────────────────────
@@ -930,7 +1109,7 @@ class CloudStorageManager {
                     const now = Date.now();
                     const isNew = (now - createdTime < 60000); // 1 minute buffer for very new items
 
-                    if (type === 'board') {
+                    if (type === 'board' || type === 'pdf-background') {
                         if (boardId) {
                             if (!boardIds.has(boardId)) {
                                 if (locallyDeletedIds.includes(boardId) || !isNew) {
