@@ -31,6 +31,11 @@ class FileSystemManager {
     async init() {
         if (this._initialized) return;
 
+        // Initialize OPFS
+        if (window.opfsManager) {
+            await window.opfsManager.init();
+        }
+
         // Initialize Dexie
         this.db = new Dexie(`${APP_CONFIG.NAME}DB`);
         this.db.version(1).stores({
@@ -245,10 +250,16 @@ class FileSystemManager {
         // 2. Her zaman Dexie'ye kaydet
         await this.db.data.put({ key, value });
 
-        // 3. Sync metadata güncelle
+        // 3. Sync metadata güncelle ve OPFS'e yaz
         if (key.startsWith('wb_content_')) {
             const boardId = key.replace('wb_content_', '');
             await this.updateSyncMetadata(boardId);
+            
+            // OPFS Yazma (Büyük dosyalar için performanslı)
+            if (window.opfsManager) {
+                const blob = new Blob([JSON.stringify(value)], { type: 'application/json' });
+                await window.opfsManager.writeFile(`${key}.json`, blob);
+            }
         }
 
         // 4. LocalStorage mirror (legacy erişim için)
@@ -519,6 +530,20 @@ class FileSystemManager {
     }
 
     async getItem(key, defaultValue) {
+        // 1. Önce OPFS'den dene (Büyük dosyalar için daha hızlı)
+        if (key.startsWith('wb_content_') && window.opfsManager) {
+            const opfsFile = await window.opfsManager.readFile(`${key}.json`);
+            if (opfsFile) {
+                try {
+                    const text = await opfsFile.text();
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.warn('[FileSystemManager] OPFS okuma hatası, Dexie denenecek:', e);
+                }
+            }
+        }
+
+        // 2. Dexie (IndexedDB)
         const item = await this.db.data.get(key);
         if (item !== undefined) {
             try {
@@ -573,6 +598,11 @@ class FileSystemManager {
      * - Yerel klasörden .tik veya .json dosyasını siler
      */
     async removeItem(key) {
+        // OPFS Silme
+        if (key.startsWith('wb_content_') && window.opfsManager) {
+            await window.opfsManager.deleteFile(`${key}.json`);
+        }
+
         await this.db.data.delete(key);
         localStorage.removeItem(key);
 
@@ -901,6 +931,114 @@ class FileSystemManager {
     async setSyncMetadata(boardId, data) {
         const current = await this.getSyncMetadata(boardId) || { id: boardId };
         await this.db.syncMetadata.put({ ...current, ...data });
+    }
+
+    /**
+     * Board'u sistem dosyalarına (Files app / Finder) dışarı aktar.
+     * iPad/Mobil için Web Share API kullanır, Desktop için showSaveFilePicker.
+     */
+    async exportBoards(boardIds) {
+        if (!boardIds || boardIds.length === 0) return;
+
+        // Board listesinin dolu olduğundan emin ol
+        if (!this._boards || this._boards.length === 0) {
+            this._boards = await this.getItem('wb_boards', []);
+        }
+
+        const toastMsg = boardIds.length > 1 ? `${boardIds.length} not dışarı aktarılıyor...` : `Not dışarı aktarılıyor...`;
+        Utils.showToast(toastMsg, 'info');
+
+        try {
+            const files = [];
+            for (const boardId of boardIds) {
+                let board = (this._boards || []).find(b => b.id === boardId);
+                
+                // Eğer board listede yoksa geçici bir obje oluştur (en azından isimsiz kalmasın)
+                if (!board) {
+                    console.warn(`[FileSystemManager] Board listede bulunamadı, ID ile devam ediliyor: ${boardId}`);
+                    board = { id: boardId, name: 'Adsız Not', coverBg: 'white' };
+                }
+
+                let content = await this.getItem(`wb_content_${boardId}`);
+                if (!content) {
+                    console.log(`[FileSystemManager] "${board.name}" için skeleton içerik hazırlanıyor...`);
+                    content = {
+                        version: '2.1',
+                        format: 'tik',
+                        pages: [{ 
+                            id: Date.now(),
+                            name: 'Sayfa 1',
+                            objects: [], 
+                            backgroundColor: board.coverBg || 'white', 
+                            backgroundPattern: 'none'
+                        }],
+                        currentPageIndex: 0,
+                        objects: null,
+                        id: boardId
+                    };
+                }
+
+                // TikFileManager'a window.app üzerinden erişiyoruz
+                const tikFM = window.app?.tikFileManager;
+
+                if (tikFM) {
+                    try {
+                        const blob = await tikFM.createTikBlob(content, board.name, boardId);
+                        if (blob && blob.size > 0) {
+                            const fileName = (board.name || 'Adsız Not').replace(/[/\\?%*:|"<>]/g, '-') + APP_CONFIG.FILE_EXTENSION;
+                            const file = new File([blob], fileName, { type: APP_CONFIG.MIME_TYPE });
+                            files.push(file);
+                            console.log(`[FileSystemManager] "${board.name}" dışa aktarım için hazırlandı (${blob.size} bytes)`);
+                        } else {
+                            console.error(`[FileSystemManager] "${board.name}" için Blob boş döndü.`);
+                        }
+                    } catch (err) {
+                        console.error(`[FileSystemManager] "${board.name}" hazırlanırken hata:`, err);
+                    }
+                } else {
+                    console.error('[FileSystemManager] TikFileManager bulunamadı! window.app.tikFileManager kontrol edilmeli.');
+                }
+            }
+
+            if (files.length === 0) {
+                throw new Error("Dışa aktarılacak geçerli dosya bulunamadı. Lütfen notun içeriğinin kaydedildiğinden emin olun.");
+            }
+
+            console.log('[FileSystemManager] Paylaşım için hazırlanmış dosyalar:', files);
+            if (navigator.share && navigator.canShare && navigator.canShare({ files })) {
+                console.log('[FileSystemManager] navigator.share çağrılıyor...');
+                await navigator.share({
+                    files: files,
+                    title: files.length > 1 ? `${files.length} Not` : files[0].name,
+                    text: `${APP_CONFIG.NAME} Notları`
+                });
+                console.log('[FileSystemManager] Paylaşım başarılı.');
+                return true;
+            } else {
+                console.log('[FileSystemManager] navigator.share desteklenmiyor. İndirme yöntemine geçiliyor.');
+                Utils.showToast('Paylaşım desteklenmiyor, dosyalar indiriliyor.', 'info');
+                for (const file of files) {
+                    const url = URL.createObjectURL(file);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = file.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                    await new Promise(r => setTimeout(r, 300));
+                }
+                return true;
+            }
+        } catch (e) {
+            console.error('[FileSystemManager] Export hatası:', e);
+            if (e.name === 'AbortError') {
+                console.log('[FileSystemManager] Kullanıcı paylaşımı iptal etti.');
+            } else {
+                Utils.showToast('Dışarı aktarma başarısız: ' + e.message, 'error');
+            }
+            return false;
+        }
     }
 }
 
