@@ -408,11 +408,33 @@ fn fs_main(v: VertexOut) -> @location(0) vec4<f32> {
         const verts = new Float32Array(len * 2 * 4);
         let idx = 0;
         const look = Math.max(2, Math.floor(strokeWidth * 0.5));
+
+        // Optimized O(N) Rolling Sum for normal calculation
+        let sumDx = 0, sumDy = 0;
+        let lastS = 0, lastE = 0;
+
         for (let i = 0; i < len; i++) {
             const p = points[i];
-            let dx = 0, dy = 0;
-            const s = Math.max(0, i - look), e = Math.min(len - 1, i + look);
-            for (let j = s; j < e; j++) { dx += points[j+1].x - points[j].x; dy += points[j+1].y - points[j].y; }
+            const s = Math.max(0, i - look);
+            const e = Math.min(len - 1, i + look);
+
+            // Update rolling sum
+            // 1. Remove points falling out of window (from the left)
+            while (lastS < s) {
+                if (lastS < len - 1) {
+                    sumDx -= points[lastS + 1].x - points[lastS].x;
+                    sumDy -= points[lastS + 1].y - points[lastS].y;
+                }
+                lastS++;
+            }
+            // 2. Add points entering window (from the right)
+            while (lastE < e) {
+                sumDx += points[lastE + 1].x - points[lastE].x;
+                sumDy += points[lastE + 1].y - points[lastE].y;
+                lastE++;
+            }
+
+            let dx = sumDx, dy = sumDy;
             if (dx === 0 && dy === 0) {
                 if (i < len - 1) { dx = points[i+1].x - p.x; dy = points[i+1].y - p.y; }
                 else if (i > 0) { dx = p.x - points[i-1].x; dy = p.y - points[i-1].y; }

@@ -115,26 +115,30 @@ class PenTool {
         this.lastStreamlined = streamlined;
         this.streamlinePoints.push(streamlined);
 
-        if (this.streamlinePoints.length > 5) {
-            let pts = [...this.streamlinePoints];
-            const precision = 0.4 / zoom;
-            if (pts.length > 10) {
-                const head = pts.slice(0, 2);
-                let lastKept = head[head.length - 1];
-                const mid = pts.slice(2, -2).filter((p) => {
-                    if (Utils.distance(p, lastKept) > precision) {
-                        lastKept = p;
-                        return true;
-                    }
-                    return false;
-                });
-                const tail = pts.slice(-2);
-                pts = [...head, ...mid, ...tail];
+        // OPTIMIZATION: Only rebuild path every few points or if distance moved is significant
+        // This dramatically reduces O(N) array work in every move event.
+        if (this.streamlinePoints.length % 2 === 0 || dist > 2 / zoom) {
+            if (this.streamlinePoints.length > 5) {
+                let pts = [...this.streamlinePoints];
+                const precision = 0.4 / zoom;
+                if (pts.length > 15) {
+                    const head = pts.slice(0, 2);
+                    let lastKept = head[head.length - 1];
+                    const mid = pts.slice(2, -2).filter((p) => {
+                        if (Utils.distance(p, lastKept) > precision) {
+                            lastKept = p;
+                            return true;
+                        }
+                        return false;
+                    });
+                    const tail = pts.slice(-2);
+                    pts = [...head, ...mid, ...tail];
+                }
+                pts = Utils.chaikin(pts, 1);
+                this.currentPath.points = Utils.smoothPressure(pts);
+            } else {
+                this.currentPath.points = [...this.streamlinePoints];
             }
-            pts = Utils.chaikin(pts, 1);
-            this.currentPath.points = Utils.smoothPressure(pts);
-        } else {
-            this.currentPath.points = this.streamlinePoints;
         }
 
         clearTimeout(this.straightenTimer);
@@ -221,11 +225,50 @@ class PenTool {
     draw(ctx, object) {
         if (!object.points || object.points.length < 1) return;
 
+        // PREDICTION: If this is an active stroke, add a few predicted points to close the gap
+        // between the streamlined trailing line and the actual pointer position.
+        let displayPoints = object.points;
+        if (this.isDrawing && !object.isStraightened && this.lastPoint && object.points.length > 2) {
+            const pts = object.points;
+            const last = pts[pts.length - 1];
+            const prev = pts[pts.length - 2];
+            
+            // Vector of the last segment
+            const vx = last.x - prev.x;
+            const vy = last.y - prev.y;
+            const dist = Math.sqrt(vx * vx + vy * vy);
+            
+            // Only predict if moving
+            if (dist > 0.5) {
+                const nx = vx / dist;
+                const ny = vy / dist;
+                
+                // Gap to the actual pointer
+                const gapX = this.lastPoint.x - last.x;
+                const gapY = this.lastPoint.y - last.y;
+                const gapDist = Math.sqrt(gapX * gapX + gapY * gapY);
+                
+                // Prediction amount based on gap and velocity
+                const predictCount = Math.min(5, Math.ceil(gapDist / 5));
+                if (predictCount > 0) {
+                    displayPoints = [...pts];
+                    for (let i = 1; i <= predictCount; i++) {
+                        const t = i / predictCount;
+                        displayPoints.push({
+                            x: last.x + gapX * t * 0.7, // 70% of gap to avoid overshooting
+                            y: last.y + gapY * t * 0.7,
+                            pressure: last.pressure + (this.lastPoint.pressure - last.pressure) * t
+                        });
+                    }
+                }
+            }
+        }
+
         const style = object.lineStyle || 'solid';
         const gpu = window.webGPURenderer;
         if (
             style === 'solid'
-            && object.points.length >= 20
+            && displayPoints.length >= 20
             && gpu && gpu.isSupported
         ) {
             const tx = ctx.getTransform();
@@ -234,13 +277,18 @@ class PenTool {
             const canvas = ctx.canvas;
             const viewW = canvas.clientWidth || canvas.width;
             const viewH = canvas.clientHeight || canvas.height;
-            if (gpu.drawStroke(ctx, object, zoom, viewW, viewH, pan)) return;
+            
+            // Use displayPoints for GPU rendering if it's the active stroke
+            const tempObj = this.isDrawing ? { ...object, points: displayPoints } : object;
+            if (gpu.drawStroke(ctx, tempObj, zoom, viewW, viewH, pan)) return;
         }
         ctx.save();
         ctx.globalAlpha = object.opacity !== undefined ? object.opacity : 1.0;
-        if (style === 'solid') this.drawSolid(ctx, object);
-        else if (style === 'wavy') this.drawWavy(ctx, object);
-        else this.drawDashed(ctx, object);
+        
+        const tempObj = this.isDrawing ? { ...object, points: displayPoints } : object;
+        if (style === 'solid') this.drawSolid(ctx, tempObj);
+        else if (style === 'wavy') this.drawWavy(ctx, tempObj);
+        else this.drawDashed(ctx, tempObj);
         ctx.restore();
     }
 
